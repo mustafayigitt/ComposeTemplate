@@ -8,12 +8,12 @@ plugins {
 }
 
 android {
-    namespace = "com.ytapps.androidsinglemoduletemplate"
+    namespace = "com.ytapps.composetemplate"
     compileSdk = 33
 
     // Default Configs
     defaultConfig {
-        applicationId = "com.ytapps.androidsinglemoduletemplate"
+        applicationId = "com.ytapps.composetemplate"
         minSdk = 21
         targetSdk = 33
         versionCode = 1

@@ -1,8 +1,8 @@
-package com.ytapps.androidsinglemoduletemplate.ui.splash
+package com.ytapps.composetemplate.ui.splash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ytapps.androidsinglemoduletemplate.ui.home.Home
+import com.ytapps.composetemplate.ui.home.Home
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

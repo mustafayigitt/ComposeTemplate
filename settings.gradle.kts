@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AndroidSingleModuleTemplate"
+rootProject.name = "ComposeTemplate"
 include(":app")

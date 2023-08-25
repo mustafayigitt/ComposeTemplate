@@ -1,4 +1,4 @@
-package com.ytapps.androidsinglemoduletemplate.ui.splash
+package com.ytapps.composetemplate.ui.splash
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +13,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.ytapps.androidsinglemoduletemplate.ui.navigation.INavigationItem
+import com.ytapps.composetemplate.ui.navigation.INavigationItem
 
 /**
  * Created by mustafayigitt on 25/08/2023

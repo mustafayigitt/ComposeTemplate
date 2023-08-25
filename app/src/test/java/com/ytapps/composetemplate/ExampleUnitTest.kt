@@ -1,4 +1,4 @@
-package com.ytapps.androidsinglemoduletemplate
+package com.ytapps.composetemplate
 
 import org.junit.Test
 

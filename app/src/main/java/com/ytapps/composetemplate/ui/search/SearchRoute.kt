@@ -1,9 +1,9 @@
-package com.ytapps.androidsinglemoduletemplate.ui.profile
+package com.ytapps.composetemplate.ui.search
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,42 +14,42 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.ytapps.androidsinglemoduletemplate.ui.navigation.IBottomBarItem
+import com.ytapps.composetemplate.ui.navigation.IBottomBarItem
 
 /**
  * Created by mustafayigitt on 25/08/2023
  * mustafa.yt65@gmail.com
  */
 
-fun NavGraphBuilder.profileGraph(
+fun NavGraphBuilder.searchGraph(
     navController: NavHostController
 ) {
-    composable(Profile.route) {
-        ProfileScreen(
+    composable(Search.route) {
+        SearchScreen(
             navController = navController
         )
     }
 }
 
-data object Profile : IBottomBarItem {
-    override val route: String = "route_profile"
+data object Search : IBottomBarItem {
+    override val route: String = "route_search"
     override val icon: @Composable () -> Unit = {
         Icon(
-            imageVector = Icons.Filled.Person,
-            contentDescription = "Profile"
+            imageVector = Icons.Filled.Search,
+            contentDescription = "Search"
         )
     }
 }
 
 @Composable
-fun ProfileScreen(
+fun SearchScreen(
     navController: NavController,
-    viewModel: ProfileViewModel = hiltViewModel()
+    viewModel: SearchViewModel = hiltViewModel()
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Profile Screen")
+        Text(text = "Search Screen")
     }
 }

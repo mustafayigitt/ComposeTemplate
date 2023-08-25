@@ -1,4 +1,4 @@
-package com.ytapps.androidsinglemoduletemplate.ui.theme
+package com.ytapps.composetemplate.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -38,7 +38,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun AndroidSingleModuleTemplateTheme(
+fun ComposeTemplateTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,

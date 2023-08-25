@@ -1,4 +1,4 @@
-package com.ytapps.androidsinglemoduletemplate.ui.navigation
+package com.ytapps.composetemplate.ui.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,14 +15,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.ytapps.androidsinglemoduletemplate.ui.home.Home
-import com.ytapps.androidsinglemoduletemplate.ui.home.homeGraph
-import com.ytapps.androidsinglemoduletemplate.ui.profile.Profile
-import com.ytapps.androidsinglemoduletemplate.ui.profile.profileGraph
-import com.ytapps.androidsinglemoduletemplate.ui.search.Search
-import com.ytapps.androidsinglemoduletemplate.ui.search.searchGraph
-import com.ytapps.androidsinglemoduletemplate.ui.splash.Splash
-import com.ytapps.androidsinglemoduletemplate.ui.splash.splashGraph
+import com.ytapps.composetemplate.ui.home.Home
+import com.ytapps.composetemplate.ui.home.homeGraph
+import com.ytapps.composetemplate.ui.profile.Profile
+import com.ytapps.composetemplate.ui.profile.profileGraph
+import com.ytapps.composetemplate.ui.search.Search
+import com.ytapps.composetemplate.ui.search.searchGraph
+import com.ytapps.composetemplate.ui.splash.Splash
+import com.ytapps.composetemplate.ui.splash.splashGraph
 
 /**
  * Created by mustafayigitt on 25/08/2023

@@ -1,4 +1,4 @@
-package com.ytapps.androidsinglemoduletemplate.ui.theme
+package com.ytapps.composetemplate.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

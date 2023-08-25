@@ -1,4 +1,4 @@
-package com.ytapps.androidsinglemoduletemplate.ui.home
+package com.ytapps.composetemplate.ui.home
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
