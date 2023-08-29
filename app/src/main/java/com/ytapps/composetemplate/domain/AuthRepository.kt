@@ -23,7 +23,6 @@ class AuthRepository @Inject constructor(
     }
 
     override suspend fun login(authRequestModel: AuthRequestModel): Result<AuthModel> {
-        return Result.Success(AuthModel("","","",""))
         return safeCall {
             authService.login(authRequestModel)
         }
