@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.ui.navigation
+package com.ytapps.composetemplate.core.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,6 +17,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ytapps.composetemplate.ui.home.Home
 import com.ytapps.composetemplate.ui.home.homeGraph
+import com.ytapps.composetemplate.ui.login.loginRoute
 import com.ytapps.composetemplate.ui.profile.Profile
 import com.ytapps.composetemplate.ui.profile.profileGraph
 import com.ytapps.composetemplate.ui.search.Search
@@ -95,6 +96,7 @@ fun AppNavigation() {
             modifier = Modifier.padding(paddingValues)
         ) {
             splashGraph(navController)
+            loginRoute(navController)
             searchGraph(navController)
             homeGraph(navController)
             profileGraph(navController)
