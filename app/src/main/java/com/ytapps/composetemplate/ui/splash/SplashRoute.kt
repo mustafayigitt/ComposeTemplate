@@ -13,7 +13,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.ytapps.composetemplate.ui.navigation.INavigationItem
+import com.ytapps.composetemplate.core.navigation.INavigationItem
 
 /**
  * Created by mustafayigitt on 25/08/2023

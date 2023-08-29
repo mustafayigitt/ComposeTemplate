@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.ui.theme
+package com.ytapps.composetemplate.core.theme
 
 import android.app.Activity
 import android.os.Build

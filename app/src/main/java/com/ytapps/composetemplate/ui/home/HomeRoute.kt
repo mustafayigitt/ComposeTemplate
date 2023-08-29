@@ -14,7 +14,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.ytapps.composetemplate.ui.navigation.IBottomBarItem
+import com.ytapps.composetemplate.core.navigation.IBottomBarItem
 
 /**
  * Created by mustafa.yigit on 25/08/2023
