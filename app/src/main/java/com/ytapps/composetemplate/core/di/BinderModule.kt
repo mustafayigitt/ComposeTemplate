@@ -1,7 +1,7 @@
 package com.ytapps.composetemplate.core.di
 
-import com.ytapps.composetemplate.data.repository.IAuthRepository
-import com.ytapps.composetemplate.domain.AuthRepository
+import com.ytapps.composetemplate.domain.repository.IAuthRepository
+import com.ytapps.composetemplate.data.repository.AuthRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

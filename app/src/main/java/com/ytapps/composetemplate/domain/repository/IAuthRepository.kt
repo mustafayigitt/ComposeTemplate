@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.data.repository
+package com.ytapps.composetemplate.domain.repository
 
 import com.ytapps.composetemplate.data.model.AuthModel
 import com.ytapps.composetemplate.data.model.AuthRequestModel

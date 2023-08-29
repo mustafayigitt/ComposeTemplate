@@ -1,6 +1,6 @@
-package com.ytapps.composetemplate.ui.splash
+package com.ytapps.composetemplate.domain.usecase
 
-import com.ytapps.composetemplate.data.repository.IAuthRepository
+import com.ytapps.composetemplate.domain.repository.IAuthRepository
 import javax.inject.Inject
 
 /**

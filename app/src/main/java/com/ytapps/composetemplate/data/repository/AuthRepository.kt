@@ -1,11 +1,11 @@
-package com.ytapps.composetemplate.domain
+package com.ytapps.composetemplate.data.repository
 
 import com.ytapps.composetemplate.core.base.BaseRepository
 import com.ytapps.composetemplate.data.local.PreferencesManager
 import com.ytapps.composetemplate.data.model.AuthModel
 import com.ytapps.composetemplate.data.model.AuthRequestModel
 import com.ytapps.composetemplate.data.remote.AuthService
-import com.ytapps.composetemplate.data.repository.IAuthRepository
+import com.ytapps.composetemplate.domain.repository.IAuthRepository
 import com.ytapps.composetemplate.core.base.Result
 import javax.inject.Inject
 

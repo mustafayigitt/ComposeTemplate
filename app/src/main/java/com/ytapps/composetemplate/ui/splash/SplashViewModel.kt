@@ -2,6 +2,7 @@ package com.ytapps.composetemplate.ui.splash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ytapps.composetemplate.domain.usecase.HasUserUseCase
 import com.ytapps.composetemplate.ui.home.Home
 import com.ytapps.composetemplate.ui.login.Login
 import dagger.hilt.android.lifecycle.HiltViewModel
