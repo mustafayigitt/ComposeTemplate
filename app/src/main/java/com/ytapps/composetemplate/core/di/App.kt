@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.di
+package com.ytapps.composetemplate.core.di
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
