@@ -1,6 +1,6 @@
 package com.ytapps.composetemplate.domain.repository
 
-import com.ytapps.composetemplate.data.model.AuthModel
+import com.ytapps.composetemplate.data.model.AuthResponseModel
 import com.ytapps.composetemplate.data.model.AuthRequestModel
 import com.ytapps.composetemplate.core.api.Result
 
@@ -12,5 +12,5 @@ import com.ytapps.composetemplate.core.api.Result
 interface IAuthRepository {
     fun hasUser(): Boolean
 
-    suspend fun login(authRequestModel: AuthRequestModel): Result<AuthModel>
+    suspend fun login(authRequestModel: AuthRequestModel): Result<AuthResponseModel>
 }

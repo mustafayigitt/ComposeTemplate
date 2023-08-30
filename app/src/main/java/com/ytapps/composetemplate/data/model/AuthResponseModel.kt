@@ -2,7 +2,7 @@ package com.ytapps.composetemplate.data.model
 
 import com.google.gson.annotations.SerializedName
 
-data class AuthModel(
+data class AuthResponseModel(
     @SerializedName("accessToken")
     val accessToken: String,
     @SerializedName("refreshToken")

@@ -2,7 +2,7 @@ package com.ytapps.composetemplate.data.repository
 
 import com.ytapps.composetemplate.core.base.BaseRepository
 import com.ytapps.composetemplate.data.local.PreferencesManager
-import com.ytapps.composetemplate.data.model.AuthModel
+import com.ytapps.composetemplate.data.model.AuthResponseModel
 import com.ytapps.composetemplate.data.model.AuthRequestModel
 import com.ytapps.composetemplate.data.remote.AuthService
 import com.ytapps.composetemplate.domain.repository.IAuthRepository
@@ -22,7 +22,7 @@ class AuthRepository @Inject constructor(
         return prefs.hasUser()
     }
 
-    override suspend fun login(authRequestModel: AuthRequestModel): Result<AuthModel> {
+    override suspend fun login(authRequestModel: AuthRequestModel): Result<AuthResponseModel> {
         return safeCall {
             authService.login(authRequestModel)
         }

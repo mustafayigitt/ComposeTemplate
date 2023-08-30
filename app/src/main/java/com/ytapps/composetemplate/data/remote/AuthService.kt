@@ -1,6 +1,6 @@
 package com.ytapps.composetemplate.data.remote
 
-import com.ytapps.composetemplate.data.model.AuthModel
+import com.ytapps.composetemplate.data.model.AuthResponseModel
 import com.ytapps.composetemplate.data.model.AuthRequestModel
 import retrofit2.Response
 import retrofit2.http.Body
@@ -14,5 +14,5 @@ interface AuthService {
     @GET("/auth/login")
     suspend fun login(
         @Body authRequestModel: AuthRequestModel
-    ): Response<AuthModel>
+    ): Response<AuthResponseModel>
 }
