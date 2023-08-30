@@ -6,7 +6,7 @@ import com.ytapps.composetemplate.data.model.AuthModel
 import com.ytapps.composetemplate.data.model.AuthRequestModel
 import com.ytapps.composetemplate.data.remote.AuthService
 import com.ytapps.composetemplate.domain.repository.IAuthRepository
-import com.ytapps.composetemplate.core.base.Result
+import com.ytapps.composetemplate.core.api.Result
 import javax.inject.Inject
 
 /**

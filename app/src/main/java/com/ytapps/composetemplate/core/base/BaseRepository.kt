@@ -1,5 +1,6 @@
 package com.ytapps.composetemplate.core.base
 
+import com.ytapps.composetemplate.core.api.Result
 import com.ytapps.composetemplate.util.Constants
 import retrofit2.Response
 

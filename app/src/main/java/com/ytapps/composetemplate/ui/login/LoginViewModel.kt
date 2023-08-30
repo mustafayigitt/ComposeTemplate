@@ -2,7 +2,7 @@ package com.ytapps.composetemplate.ui.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ytapps.composetemplate.core.base.Result
+import com.ytapps.composetemplate.core.api.Result
 import com.ytapps.composetemplate.data.model.AuthRequestModel
 import com.ytapps.composetemplate.domain.usecase.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

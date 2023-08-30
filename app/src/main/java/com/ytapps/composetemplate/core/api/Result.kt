@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.core.base
+package com.ytapps.composetemplate.core.api
 
 /**
  * Created by mustafa.yigit on 26/08/2023
