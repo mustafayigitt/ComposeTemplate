@@ -7,6 +7,7 @@ import com.ytapps.composetemplate.data.model.AuthRequestModel
 import com.ytapps.composetemplate.data.remote.AuthService
 import com.ytapps.composetemplate.domain.repository.IAuthRepository
 import com.ytapps.composetemplate.core.api.Result
+import retrofit2.Response
 import javax.inject.Inject
 
 /**
@@ -25,6 +26,14 @@ class AuthRepository @Inject constructor(
     override suspend fun login(authRequestModel: AuthRequestModel): Result<AuthResponseModel> {
         return safeCall {
             authService.login(authRequestModel)
+        }
+    }
+
+    override suspend fun refreshToken(): Result<String> {
+        return safeCall {
+            //TODO: Not Implemented
+            // authService.refreshToken()
+            Response.success("")
         }
     }
 }

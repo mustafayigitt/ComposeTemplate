@@ -1,8 +1,12 @@
 package com.ytapps.composetemplate.core.api
 
 import com.ytapps.composetemplate.data.local.PreferencesManager
+import com.ytapps.composetemplate.domain.repository.IAuthRepository
+import dagger.Lazy
+import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
+import java.net.HttpURLConnection
 import javax.inject.Inject
 
 /**
@@ -11,7 +15,8 @@ import javax.inject.Inject
  */
 
 class DefaultInterceptor @Inject constructor(
-    private val prefs: PreferencesManager
+    private val prefs: PreferencesManager,
+    private val authRepository: Lazy<IAuthRepository>
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val tokenType = prefs.getTokenType()
@@ -21,7 +26,17 @@ class DefaultInterceptor @Inject constructor(
             .addHeader(HEADER_AUTHORIZATION, "$tokenType $accessToken")
             .build()
 
-        return chain.proceed(request)
+        val response = chain.proceed(request)
+        if (response.code == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            val newToken = runBlocking {
+                authRepository.get().refreshToken().data ?: ""
+            }
+            val authorizedRequest = request.newBuilder()
+                .addHeader(HEADER_AUTHORIZATION, "$tokenType $newToken")
+                .build()
+            return chain.proceed(authorizedRequest)
+        }
+        return response
     }
 
     companion object {

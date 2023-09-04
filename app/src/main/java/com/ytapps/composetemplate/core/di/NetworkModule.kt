@@ -6,7 +6,9 @@ import com.ytapps.composetemplate.BuildConfig
 import com.ytapps.composetemplate.core.api.DefaultInterceptor
 import com.ytapps.composetemplate.data.local.PreferencesManager
 import com.ytapps.composetemplate.data.remote.AuthService
+import com.ytapps.composetemplate.domain.repository.IAuthRepository
 import com.ytapps.composetemplate.util.Constants
+import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,9 +39,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideDefaultInterceptor(
-        prefs: PreferencesManager
+        prefs: PreferencesManager,
+        authRepository: Lazy<IAuthRepository>
     ): DefaultInterceptor {
-        return DefaultInterceptor(prefs)
+        return DefaultInterceptor(prefs, authRepository)
     }
 
     @Provides
