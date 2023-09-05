@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ytapps.composetemplate.BuildConfig
 import com.ytapps.composetemplate.core.api.DefaultInterceptor
-import com.ytapps.composetemplate.data.local.PreferencesManager
+import com.ytapps.composetemplate.data.local.IPreferencesManager
 import com.ytapps.composetemplate.data.remote.AuthService
 import com.ytapps.composetemplate.domain.repository.IAuthRepository
 import com.ytapps.composetemplate.util.Constants
@@ -39,7 +39,7 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideDefaultInterceptor(
-        prefs: PreferencesManager,
+        prefs: IPreferencesManager,
         authRepository: Lazy<IAuthRepository>
     ): DefaultInterceptor {
         return DefaultInterceptor(prefs, authRepository)

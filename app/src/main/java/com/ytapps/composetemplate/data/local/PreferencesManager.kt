@@ -1,38 +1,65 @@
 package com.ytapps.composetemplate.data.local
 
 import android.content.Context
+import androidx.core.content.edit
 import com.ytapps.composetemplate.BuildConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-/**
- * Created by mustafa.yigit on 26/08/2023
- * mustafa.yt65@gmail.com
- */
 class PreferencesManager @Inject constructor(
     @ApplicationContext private val appContext: Context,
-) {
+): IPreferencesManager {
     private val prefs =
         appContext.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
 
-    fun hasUser(): Boolean {
+    override fun hasUser(): Boolean {
         return getUUID() != null
     }
 
-    fun getAccessToken(): String? {
+    override fun getAccessToken(): String? {
         return prefs.getString(KEY_ACCESS_TOKEN, null)
     }
 
-    fun getRefreshToken(): String? {
+    override fun getRefreshToken(): String? {
         return prefs.getString(KEY_REFRESH_TOKEN, null)
     }
 
-    fun getTokenType(): String? {
+    override fun getTokenType(): String? {
         return prefs.getString(KEY_TOKEN_TYPE,null)
     }
 
-    fun getUUID(): String? {
+    override fun getUUID(): String? {
         return prefs.getString(KEY_UUID, null)
+    }
+
+    override fun setAccessToken(accessToken: String) {
+        prefs.edit {
+            putString(KEY_ACCESS_TOKEN, accessToken)
+        }
+    }
+
+    override fun setRefreshToken(refreshToken: String) {
+        prefs.edit {
+            putString(KEY_REFRESH_TOKEN, refreshToken)
+        }
+    }
+
+    override fun setTokenType(tokenType: String) {
+        prefs.edit {
+            putString(KEY_TOKEN_TYPE, tokenType)
+        }
+    }
+
+    override fun setUUID(uuid: String) {
+        prefs.edit {
+            putString(KEY_UUID, uuid)
+        }
+    }
+
+    override fun clear() {
+        prefs.edit {
+            clear()
+        }
     }
 
     companion object {

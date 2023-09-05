@@ -1,6 +1,6 @@
 package com.ytapps.composetemplate.core.api
 
-import com.ytapps.composetemplate.data.local.PreferencesManager
+import com.ytapps.composetemplate.data.local.IPreferencesManager
 import com.ytapps.composetemplate.domain.repository.IAuthRepository
 import dagger.Lazy
 import kotlinx.coroutines.runBlocking
@@ -15,7 +15,7 @@ import javax.inject.Inject
  */
 
 class DefaultInterceptor @Inject constructor(
-    private val prefs: PreferencesManager,
+    private val prefs: IPreferencesManager,
     private val authRepository: Lazy<IAuthRepository>
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
