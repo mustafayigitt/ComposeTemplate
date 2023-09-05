@@ -1,5 +1,7 @@
 package com.ytapps.composetemplate.core.base
 
+import android.annotation.SuppressLint
+import com.google.common.truth.Truth
 import com.ytapps.composetemplate.core.api.Result
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
@@ -22,6 +24,7 @@ class BaseRepositoryTest {
         baseRepository = object : BaseRepository() {}
     }
 
+    @SuppressLint("CheckResult")
     @Test
     fun `given success response when safeCall then it should return Result-Success`() {
         // given
@@ -32,7 +35,7 @@ class BaseRepositoryTest {
         val result = runBlocking { baseRepository.safeCall { response } }
 
         // then
-        assert(result is Result.Success)
+        Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
     }
 
     @Test
@@ -48,7 +51,7 @@ class BaseRepositoryTest {
         val result = runBlocking { baseRepository.safeCall { response } }
 
         // then
-        assert(result is Result.Error)
+        Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
     }
 
     @Test
@@ -60,6 +63,6 @@ class BaseRepositoryTest {
         val result = runBlocking { baseRepository.safeCall<String> { throw exception } }
 
         // then
-        assert(result is Result.Error)
+        Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
     }
 }
