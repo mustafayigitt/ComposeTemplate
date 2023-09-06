@@ -35,7 +35,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `given no-data while has signed user when hasUser() then return true`() {
+    fun `given signed user when hasUser() then return true`() {
         // Given
         every { preferencesManager.hasUser() } returns true
 
@@ -47,7 +47,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `given no-data while has not signed user when hasUser() then return false`() {
+    fun `given has not signed user when hasUser() then return false`() {
         // Given
         every { preferencesManager.hasUser() } returns false
 
@@ -61,13 +61,8 @@ class AuthRepositoryTest {
     @Test
     fun `given valid authRequestModel when login() then verify saveCredentials called`() {
         // Given
-        val authRequestModel = AuthRequestModel("username", "password")
-        val authResponseModel = AuthResponseModel(
-            "accessToken",
-            "refreshToken",
-            "expiresIn",
-            "tokenType"
-        )
+        val authRequestModel = mockk<AuthRequestModel>()
+        val authResponseModel = mockk<AuthResponseModel>()
 
         // When
         coEvery { authService.login(authRequestModel) } returns Response.success(authResponseModel)
@@ -82,20 +77,14 @@ class AuthRepositoryTest {
     @Test
     fun `given invalid authRequestModel when login() then verify saveCredentials not called`() {
         // Given
-        val authRequestModel = AuthRequestModel("username", "password")
-        val authResponseModel = AuthResponseModel(
-            "accessToken",
-            "refreshToken",
-            "expiresIn",
-            "tokenType"
-        )
+        val authRequestModel = mockk<AuthRequestModel>()
+        val authResponseModel = mockk<AuthResponseModel>()
 
         // When
         coEvery { authService.login(authRequestModel) } returns Response.error(
             400,
             "Bad Request".toResponseBody()
         )
-        every { preferencesManager.saveCredentials(authResponseModel) } returns Unit
         val result = runBlocking { authRepository.login(authRequestModel) }
 
         // Then
