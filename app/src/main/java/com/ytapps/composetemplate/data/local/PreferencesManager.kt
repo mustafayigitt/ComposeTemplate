@@ -3,6 +3,7 @@ package com.ytapps.composetemplate.data.local
 import android.content.Context
 import androidx.core.content.edit
 import com.ytapps.composetemplate.BuildConfig
+import com.ytapps.composetemplate.data.model.AuthResponseModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -54,6 +55,12 @@ class PreferencesManager @Inject constructor(
         prefs.edit {
             putString(KEY_UUID, uuid)
         }
+    }
+
+    override fun saveCredentials(authResponseModel: AuthResponseModel) {
+        setAccessToken(authResponseModel.accessToken)
+        setRefreshToken(authResponseModel.refreshToken)
+        setTokenType(authResponseModel.tokenType)
     }
 
     override fun clear() {

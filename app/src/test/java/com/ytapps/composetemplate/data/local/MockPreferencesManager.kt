@@ -1,5 +1,6 @@
 package com.ytapps.composetemplate.data.local
 
+import com.ytapps.composetemplate.data.model.AuthResponseModel
 import javax.inject.Inject
 
 /**
@@ -44,6 +45,12 @@ class MockPreferencesManager @Inject constructor() : IPreferencesManager {
 
     override fun setUUID(uuid: String) {
         prefs[PreferencesManager.KEY_UUID] = uuid
+    }
+
+    override fun saveCredentials(authResponseModel: AuthResponseModel) {
+        setAccessToken(authResponseModel.accessToken)
+        setRefreshToken(authResponseModel.refreshToken)
+        setTokenType(authResponseModel.tokenType)
     }
 
     override fun clear() {
