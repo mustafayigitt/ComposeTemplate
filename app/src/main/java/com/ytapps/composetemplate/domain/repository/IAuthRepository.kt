@@ -11,7 +11,6 @@ import com.ytapps.composetemplate.core.api.Result
 
 interface IAuthRepository {
     fun hasUser(): Boolean
-
     suspend fun login(authRequestModel: AuthRequestModel): Result<AuthResponseModel>
     suspend fun refreshToken(): Result<String>
 }
