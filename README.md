@@ -35,6 +35,15 @@ ComposeTemplate is a Jetpack Compose template application that follows Clean Arc
 * [MockK](https://github.com/mockk/mockk)
 * [Truth](https://github.com/google/truth)
 
+## Predefined Structures
+- Header and Refresh Token interceptor (Implement your refresh token function) [DefaultInterceptor.kt](app/src/main/java/com/ytapps/composetemplate/core/api/DefaultInterceptor.kt)
+- safeCall network function [BaseRepository.kt](app/src/main/java/com/ytapps/composetemplate/core/base/BaseRepository.kt)
+- Flexible Navigation Structure [NavigationManager.kt](app/src/main/java/com/ytapps/composetemplate/core/navigation/NavigationManager.kt)
+- PreferencesManager [PreferencesManager.kt](app/src/main/java/com/ytapps/composetemplate/data/local/PreferencesManager.kt)
+- Basic Auth Flow (Token Retrieval & Save to local) [AuthRepository.kt](app/src/main/java/com/ytapps/composetemplate/data/repository/AuthRepository.kt)
+- All structure tested with jUnit and MockK [Examples](app/src/test/java/com/ytapps/composetemplate)
+- Added end-to-end examples related all layers.
+
 ## Getting Started
 
 To create a new project using this template, follow these steps:
