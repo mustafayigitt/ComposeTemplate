@@ -1,79 +1,76 @@
-# ComposeTemplate 🚀
+<br/>
+<p align="center">
+  <h3 align="center">ComposeTemplate</h3>
 
-![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](https://www.linkedin.com/in/mustafayigitt/)
+  <p align="center">
+    ComposeTemplate is a Jetpack Compose template application that follows Clean Architecture best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
+    <br/>
+    <br/>
+    <a href="https://github.com/mustafayigitt/ComposeTemplate/issues">Report Bug</a>
+    <a href="https://github.com/mustafayigitt/ComposeTemplate/issues">Request Feature</a>
+  </p>
+</p>
 
-## Project Description
+![Contributors](https://img.shields.io/github/contributors/mustafayigitt/ComposeTemplate?color=dark-green)
+![Stargazers](https://img.shields.io/github/stars/mustafayigitt/ComposeTemplate?style=social) ![Issues](https://img.shields.io/github/issues/mustafayigitt/ComposeTemplate)
+![License](https://img.shields.io/github/license/mustafayigitt/ComposeTemplate)
+
+## About The Project
+
+![Screen Shot](screenshot/compose-template-initializer.png)
 
 ComposeTemplate is a Jetpack Compose template application that follows Clean Architecture best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
 
-## Getting Started 🛠️
+## Built With
+
+
+
+* [Kotlin](https://github.com/JetBrains/kotlin)
+* [MVVM](https://developer.android.com/topic/architecture)
+* [Jetpack Compose](https://developer.android.com/jetpack/compose)
+* [Material 3](https://m3.material.io/)
+* [Retrofit](https://github.com/square/retrofit)
+* [Hilt](https://developer.android.com/training/dependency-injection/hilt-android)
+* [jUnit](https://developer.android.com/training/testing/local-tests)
+* [MockK](https://github.com/mockk/mockk)
+* [Truth](https://github.com/google/truth)
+
+## Getting Started
 
 To create a new project using this template, follow these steps:
 
 1. Run the `initializer.sh` script.
 2. Set the `applicationName` and `applicationId` as prompted.
-3. The script will copy a new project with the given credentials 🚀
+3. The script will copy a new project with the given credentials 🚀To get a local copy up and running follow these simple example steps.
 
-## Folder Structure 📂
+### Installation
 
-The project adheres to a well-defined folder structure that promotes maintainability and organization of your Compose application.
-* app
-    * src
-        * main
-            * java/com/applicationId/applicationName
-                * core
-                    * api // Core api operations and needs
-                        * DefaultInterceptor
-                        * Result
-                    * base // Base classes and interfaces
-                        * BaseRepository
-                        * BaseUiState
-                        * IMapper
-                    * di // Dependency Injection
-                        * BinderModule
-                        * ProviderModule
-                    * navigation // Navigation layer
-                        * IBottomBarItem
-                        * INavigationItem
-                        * NavigationManager
-                    * theme // Theme operations and components
-                        * component
-                        * Color.kt
-                        * Theme.kt
-                        * Type.kt
-                * data
-                    * local // Local data operations
-                    * remote // Remote data operations
-                    * repository // Repository implementations
-                    * model // Network models
-                * domain
-                    * model // UI models
-                    * mapper // Network Model -> UI Model mappers
-                    * repository // Repository definitions
-                    * usecase // User stories, use-cases
-                * ui // Features
-                * util // Util functions, helper classes
-                * App
-                * MainActivity
+1. Clone the repo
 
-## Contributing 🤝
+```sh
+git clone https://github.com/mustafayigitt/ComposeTemplate.git
+```
 
-We welcome contributions from the community! If you'd like to contribute to this project 🙌
-- Fork this repository
-- Clone your forked repository
-- Create your feature branch (git checkout -b my-new-feature)
-- Make changes
-- Commit your changes (git commit -m 'Add some feature')
-- Push to the branch (git push origin my-new-feature)
-- Create a new Pull Request
-- Wait for review and approval from maintainers
+2. Run `initializer.sh`
 
-## License 📝
+3. Open the created project with the given application name.
+
+## Contributing
+
+Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+* If you have suggestions for adding or removing projects, feel free to [open an issue](https://github.com/mustafayigitt/ComposeTemplate/issues/new) to discuss it, or directly create a pull request after you edit the *README.md* file with necessary changes.
+* Please make sure you check your spelling and grammar.
+* Create individual PR for each suggestion.
+* Please also read through the [Code Of Conduct](https://github.com/mustafayigitt/ComposeTemplate/blob/main/CODE_OF_CONDUCT.md) before posting your first idea as well.
+
+### Creating A Pull Request
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-## Contact 📧
-
-If you have any questions, suggestions, or want to report issues, feel free to open an issue here on GitHub. 
-You can also connect with the project maintainer on [LinkedIn](https://www.linkedin.com/in/mustafayigitt/) 👋
