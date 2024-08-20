@@ -1,10 +1,9 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.version)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.dagger.hilt.plugin)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -26,13 +25,16 @@ android {
     }
 
     // Configure app by build type
-    val localProperties = gradleLocalProperties(rootDir)
     buildTypes {
         debug {
             isMinifyEnabled = false
             isShrinkResources = false
 
-            buildConfigField("String", "BASE_URL", "\"${localProperties["BASE_URL_DEBUG"]}\"")
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                "\"${providers.gradleProperty("BASE_URL_DEBUG")}\""
+            )
 
         }
         release {
@@ -43,7 +45,11 @@ android {
                 "proguard-rules.pro"
             )
 
-            buildConfigField("String", "BASE_URL", "\"${localProperties["BASE_URL"]}\"")
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                "\"${providers.gradleProperty("BASE_URL")}\""
+            )
 
         }
     }
@@ -61,16 +67,11 @@ android {
         buildConfig = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.2"
-    }
-
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-
 }
 
 dependencies {
