@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.ui.splash
+package com.ytapps.composetemplate.presentation.splash
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,10 +10,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
 import com.ytapps.composetemplate.core.navigation.INavigationItem
+import com.ytapps.composetemplate.core.navigation.NavigationManager
+import kotlinx.serialization.Serializable
 
 /**
  * Created by mustafayigitt on 25/08/2023
@@ -21,33 +20,29 @@ import com.ytapps.composetemplate.core.navigation.INavigationItem
  */
 
 /*** Navigation */
-fun NavGraphBuilder.splashGraph(
-    navController: NavController
-) {
-    composable(Splash.route) {
-        SplashScreen(
-            navController = navController
-        )
-    }
-}
-
+@Serializable
 data object Splash : INavigationItem {
     override val route: String = "route_splash"
+
+    @Composable
+    override fun ContentScreen(navigationManager: NavigationManager) {
+        SplashScreen(
+            navigationManager = navigationManager
+        )
+    }
 }
 
 /*** Screen */
 @Composable
 fun SplashScreen(
-    viewModel: SplashViewModel = hiltViewModel(),
-    navController: NavController
+    navigationManager: NavigationManager,
+    viewModel: SplashViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(uiState) {
         uiState.destinationRoute?.let { destinationRoute ->
-            navController.navigate(destinationRoute) {
-                popUpTo(navController.graph.startDestinationRoute!!) { inclusive = true }
-            }
+            navigationManager.navigateToTop(destinationRoute)
         }
     }
 

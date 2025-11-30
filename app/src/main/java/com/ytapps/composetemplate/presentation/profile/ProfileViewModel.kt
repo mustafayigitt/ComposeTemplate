@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.ui.search
+package com.ytapps.composetemplate.presentation.profile
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -9,4 +9,4 @@ import javax.inject.Inject
  * mustafa.yt65@gmail.com
  */
 @HiltViewModel
-class SearchViewModel @Inject constructor(): ViewModel()
+class ProfileViewModel @Inject constructor(): ViewModel()

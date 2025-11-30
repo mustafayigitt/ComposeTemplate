@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.ui.login
+package com.ytapps.composetemplate.presentation.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

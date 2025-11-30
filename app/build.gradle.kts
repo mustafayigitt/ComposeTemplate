@@ -1,20 +1,21 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.version)
-    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.dagger.hilt.plugin)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
 android {
     namespace = "com.ytapps.composetemplate"
-    compileSdk = 34
+    compileSdk = 36
 
     // Default Configs
     defaultConfig {
         applicationId = "com.ytapps.composetemplate"
-        minSdk = 21
-        targetSdk = 33
+        minSdk = 23
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0.0"
 
@@ -89,12 +90,16 @@ dependencies {
     implementation(libs.androidx.material3)
 
     // Navigation
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.androidx.material3.adaptive.navigation3)
+    implementation(libs.kotlinx.serialization.core)
 
     // Dependency Injection
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
 
     // Network
     implementation(libs.retrofit)

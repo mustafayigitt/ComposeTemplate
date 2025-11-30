@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.ui.login
+package com.ytapps.composetemplate.presentation.login
 
 import com.google.common.truth.Truth
 import com.ytapps.composetemplate.core.api.Result

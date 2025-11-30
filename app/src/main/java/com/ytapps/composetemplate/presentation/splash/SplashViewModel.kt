@@ -1,9 +1,9 @@
-package com.ytapps.composetemplate.ui.splash
+package com.ytapps.composetemplate.presentation.splash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ytapps.composetemplate.ui.home.Home
-import com.ytapps.composetemplate.ui.login.Login
+import com.ytapps.composetemplate.presentation.home.Home
+import com.ytapps.composetemplate.presentation.login.Login
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +26,7 @@ class SplashViewModel @Inject constructor() : ViewModel() {
             val hasUser = true
             delay(1000)
             _uiState.value = SplashUiState(
-                destinationRoute = if (hasUser) Home.route else Login.route,
+                destinationRoute = if (hasUser) Home else Login,
                 isLoading = false
             )
         }

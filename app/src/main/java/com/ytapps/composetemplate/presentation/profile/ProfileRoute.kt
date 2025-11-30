@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.ui.profile
+package com.ytapps.composetemplate.presentation.profile
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,27 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.composable
 import com.ytapps.composetemplate.core.navigation.IBottomBarItem
+import com.ytapps.composetemplate.core.navigation.NavigationManager
+import kotlinx.serialization.Serializable
 
 /**
  * Created by mustafayigitt on 25/08/2023
  * mustafa.yt65@gmail.com
  */
-
-fun NavGraphBuilder.profileGraph(
-    navController: NavHostController
-) {
-    composable(Profile.route) {
-        ProfileScreen(
-            navController = navController
-        )
-    }
-}
-
+@Serializable
 data object Profile : IBottomBarItem {
     override val route: String = "route_profile"
     override val icon: @Composable () -> Unit = {
@@ -39,11 +27,18 @@ data object Profile : IBottomBarItem {
             contentDescription = "Profile"
         )
     }
+
+    @Composable
+    override fun ContentScreen(navigationManager: NavigationManager) {
+        ProfileScreen(
+            navigationManager = navigationManager
+        )
+    }
 }
 
 @Composable
 fun ProfileScreen(
-    navController: NavController,
+    navigationManager: NavigationManager,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     Box(

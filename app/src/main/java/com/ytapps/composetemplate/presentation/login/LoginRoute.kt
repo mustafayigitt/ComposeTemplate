@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.ui.login
+package com.ytapps.composetemplate.presentation.login
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,33 +11,31 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
 import com.ytapps.composetemplate.core.navigation.INavigationItem
-import com.ytapps.composetemplate.ui.splash.Splash
+import com.ytapps.composetemplate.core.navigation.NavigationManager
+import com.ytapps.composetemplate.presentation.splash.Splash
+import kotlinx.serialization.Serializable
 
 /**
  * Created by mustafa.yigit on 26/08/2023
  * mustafa.yt65@gmail.com
  */
-
-fun NavGraphBuilder.loginRoute(navController: NavController) {
-    composable(Login.route) {
-        LoginScreen(
-            navController = navController
-        )
-    }
-}
-
+@Serializable
 data object Login : INavigationItem {
     override val route: String = "route_login"
+
+    @Composable
+    override fun ContentScreen(navigationManager: NavigationManager) {
+        LoginScreen(
+            navigationManager = navigationManager
+        )
+    }
 }
 
 
 @Composable
 fun LoginScreen(
-    navController: NavController,
+    navigationManager: NavigationManager,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -45,11 +43,10 @@ fun LoginScreen(
     LaunchedEffect(uiState) {
         uiState.shouldNavigateToSplash.let { shouldNavigateToSplash ->
             if (shouldNavigateToSplash) {
-                navController.navigate(Splash.route) {
-                    popUpTo(Login.route) {
-                        inclusive = true
-                    }
-                }
+                navigationManager.navigateOver(
+                    route = Splash,
+                    over = Login
+                )
             }
         }
     }
