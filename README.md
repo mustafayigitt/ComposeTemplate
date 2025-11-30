@@ -23,46 +23,438 @@ ComposeTemplate is a Jetpack Compose template application that follows Clean Arc
 
 ## Built With
 
+* [Kotlin](https://github.com/JetBrains/kotlin) - Modern programming language for Android
+* [MVVM](https://developer.android.com/topic/architecture) - Architecture pattern
+* [Jetpack Compose](https://developer.android.com/jetpack/compose) - Modern UI toolkit
+* [Material 3](https://m3.material.io/) - Material Design 3 components
+* [Navigation3](https://developer.android.com/jetpack/androidx/releases/navigation) - Type-safe navigation library
+* [Retrofit](https://github.com/square/retrofit) - HTTP client for Android
+* [Gson](https://github.com/google/gson) - JSON serialization/deserialization
+* [Hilt](https://developer.android.com/training/dependency-injection/hilt-android) - Dependency injection framework
+* [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) - Asynchronous programming
+* [Kotlin Serialization](https://kotlinlang.org/docs/serialization.html) - Type-safe serialization
+* [jUnit](https://developer.android.com/training/testing/local-tests) - Unit testing framework
+* [MockK](https://github.com/mockk/mockk) - Mocking library for Kotlin
+* [Truth](https://github.com/google/truth) - Fluent assertions for Java and Android
 
+## Project Structure
 
-* [Kotlin](https://github.com/JetBrains/kotlin)
-* [MVVM](https://developer.android.com/topic/architecture)
-* [Jetpack Compose](https://developer.android.com/jetpack/compose)
-* [Material 3](https://m3.material.io/)
-* [Retrofit](https://github.com/square/retrofit)
-* [Hilt](https://developer.android.com/training/dependency-injection/hilt-android)
-* [jUnit](https://developer.android.com/training/testing/local-tests)
-* [MockK](https://github.com/mockk/mockk)
-* [Truth](https://github.com/google/truth)
+The project follows Clean Architecture principles with clear separation of concerns:
+
+```
+app/src/main/java/com/ytapps/composetemplate/
+├── core/                          # Core functionality and utilities
+│   ├── api/                       # API related classes
+│   │   ├── DefaultInterceptor.kt  # HTTP interceptor for auth headers
+│   │   └── Result.kt             # Sealed class for API results
+│   ├── base/                      # Base classes
+│   │   ├── BaseRepository.kt     # Base repository with safeCall
+│   │   ├── BaseUiState.kt        # Base UI state class
+│   │   └── IMapper.kt            # Mapper interface
+│   ├── di/                        # Dependency injection modules
+│   │   ├── BinderModule.kt       # Hilt binding module
+│   │   └── ProviderModule.kt     # Hilt provider module
+│   ├── navigation/                # Navigation components
+│   │   ├── NavigationManager.kt  # Custom navigation manager
+│   │   ├── INavigationItem.kt    # Navigation item interface
+│   │   └── IBottomBarItem.kt     # Bottom bar item interface
+│   └── theme/                     # UI theme and components
+│       ├── component/             # Reusable UI components
+│       │   ├── AppNavigation.kt  # Main navigation component
+│       │   └── AppNavigationBar.kt # Bottom navigation bar
+│       ├── Color.kt              # Color definitions
+│       ├── Theme.kt              # Material 3 theme
+│       └── Type.kt               # Typography definitions
+├── data/                          # Data layer
+│   ├── local/                     # Local data sources
+│   │   ├── PreferencesManager.kt # SharedPreferences manager
+│   │   └── IPreferencesManager.kt # Preferences interface
+│   ├── model/                     # Data models
+│   │   ├── AuthRequestModel.kt   # Auth request DTO
+│   │   └── AuthResponseModel.kt  # Auth response DTO
+│   ├── remote/                    # Remote data sources
+│   │   └── AuthService.kt        # Retrofit API service
+│   └── repository/                # Repository implementations
+│       └── AuthRepository.kt     # Authentication repository
+├── domain/                         # Domain layer (business logic)
+│   ├── mapper/                    # Data mappers
+│   │   └── AuthMapper.kt         # Auth model mapper
+│   ├── model/                      # Domain models
+│   │   └── AuthModel.kt          # Auth domain model
+│   ├── repository/                 # Repository interfaces
+│   │   └── IAuthRepository.kt     # Auth repository interface
+│   └── usecase/                    # Use cases
+│       └── LoginUseCase.kt       # Login use case
+├── presentation/                   # Presentation layer (UI)
+│   ├── detail/                     # Detail screen
+│   │   ├── DetailRoute.kt
+│   │   ├── DetailUiState.kt
+│   │   └── DetailViewModel.kt
+│   ├── home/                       # Home screen
+│   │   ├── HomeRoute.kt
+│   │   └── HomeViewModel.kt
+│   ├── list/                       # List screen
+│   │   ├── ListRoute.kt
+│   │   ├── ListUiState.kt
+│   │   └── ListViewModel.kt
+│   ├── login/                      # Login screen
+│   │   ├── LoginRoute.kt
+│   │   ├── LoginUiState.kt
+│   │   └── LoginViewModel.kt
+│   ├── profile/                     # Profile screen
+│   │   ├── ProfileRoute.kt
+│   │   └── ProfileViewModel.kt
+│   ├── search/                      # Search screen
+│   │   ├── SearchRoute.kt
+│   │   └── SearchViewModel.kt
+│   └── splash/                      # Splash screen
+│       ├── SplashRoute.kt
+│       ├── SplashUiState.kt
+│       └── SplashViewModel.kt
+├── util/                            # Utilities
+│   └── Constants.kt                # App constants
+├── App.kt                          # Application class with Hilt
+└── MainActivity.kt                 # Main activity
+```
+
+## Key Features
+
+### Navigation System
+- **Navigation3 Integration**: Uses the latest Navigation3 library with type-safe navigation
+- **Custom NavigationManager**: Flexible navigation management with back stack handling
+- **Bottom Navigation Bar**: Material 3 adaptive bottom navigation bar
+- **Route-based Navigation**: Serializable route objects for type-safe navigation
+- **Navigation Methods**: 
+  - `navigate()` - Navigate to a new screen
+  - `navigateBack()` - Navigate back in the stack
+  - `navigateOver()` - Navigate over a specific route
+  - `navigateToTop()` - Navigate to top of stack
+  - `selectTab()` - Select bottom bar tab
+
+### Screens Included
+- **Splash Screen**: Initial screen with routing logic
+- **Login Screen**: Authentication screen with login flow
+- **Home Screen**: Main home screen with navigation examples
+- **Search Screen**: Search functionality screen
+- **Profile Screen**: User profile screen
+- **List Screen**: List view example
+- **Detail Screen**: Detail view example
+
+### Network Layer
+- **Retrofit Integration**: Configured with Gson converter
+- **DefaultInterceptor**: Automatic token injection and refresh token handling
+  - Adds Authorization header to all requests
+  - Handles 401 Unauthorized responses
+  - Automatic token refresh on authentication failure
+- **BaseRepository**: Safe API call wrapper with error handling
+  - `safeCall()` function for error-safe network calls
+  - Returns `Result<T>` sealed class (Success/Error)
+
+### Data Management
+- **PreferencesManager**: Local data storage using SharedPreferences
+  - Token management (access token, token type)
+  - User credentials storage
+  - User session management
+- **Repository Pattern**: Clean separation between data sources
+- **Mapper Pattern**: Data model transformation between layers
+
+### Dependency Injection
+- **Hilt Integration**: Full dependency injection setup
+- **ProviderModule**: Provides network components (Retrofit, OkHttp, Gson)
+- **BinderModule**: Binds interfaces to implementations
+- **Singleton Components**: Properly scoped dependencies
+
+### Testing
+- **Unit Tests**: Comprehensive test coverage with JUnit
+- **MockK**: Mocking framework for Kotlin
+- **Truth**: Fluent assertions library
+- **Test Examples**: 
+  - Repository tests
+  - ViewModel tests
+  - Mapper tests
+  - Use case tests
+  - Base repository tests
+
+### UI/UX
+- **Material 3 Design**: Latest Material Design components
+- **Custom Theme**: Themed colors and typography
+- **Adaptive Navigation**: Material 3 adaptive navigation components
+- **Compose UI**: Fully built with Jetpack Compose
 
 ## Predefined Structures
-- Header and Refresh Token interceptor (Implement your refresh token function) [DefaultInterceptor.kt](app/src/main/java/com/ytapps/composetemplate/core/api/DefaultInterceptor.kt)
-- safeCall network function [BaseRepository.kt](app/src/main/java/com/ytapps/composetemplate/core/base/BaseRepository.kt)
-- Flexible Navigation Structure [NavigationManager.kt](app/src/main/java/com/ytapps/composetemplate/core/navigation/NavigationManager.kt)
-- PreferencesManager [PreferencesManager.kt](app/src/main/java/com/ytapps/composetemplate/data/local/PreferencesManager.kt)
-- Basic Auth Flow (Token Retrieval & Save to local) [AuthRepository.kt](app/src/main/java/com/ytapps/composetemplate/data/repository/AuthRepository.kt)
-- All structure tested with jUnit and MockK [Examples](app/src/test/java/com/ytapps/composetemplate)
-- Added end-to-end examples related all layers.
+
+- **Header and Refresh Token Interceptor**: Automatic token management with refresh token support [DefaultInterceptor.kt](app/src/main/java/com/ytapps/composetemplate/core/api/DefaultInterceptor.kt)
+- **Safe Network Calls**: Error-handled network function [BaseRepository.kt](app/src/main/java/com/ytapps/composetemplate/core/base/BaseRepository.kt)
+- **Flexible Navigation Structure**: Custom navigation manager with Navigation3 [NavigationManager.kt](app/src/main/java/com/ytapps/composetemplate/core/navigation/NavigationManager.kt)
+- **Preferences Manager**: Local data storage with SharedPreferences [PreferencesManager.kt](app/src/main/java/com/ytapps/composetemplate/data/local/PreferencesManager.kt)
+- **Auth Flow**: Complete authentication flow with token management [AuthRepository.kt](app/src/main/java/com/ytapps/composetemplate/data/repository/AuthRepository.kt)
+- **Clean Architecture**: Complete separation of Data, Domain, and Presentation layers
+- **Unit Tests**: All structures tested with JUnit and MockK [Examples](app/src/test/java/com/ytapps/composetemplate)
+- **End-to-End Examples**: Complete examples for all architecture layers
 
 ## Getting Started
 
-To create a new project using this template, follow these steps:
+### Prerequisites
 
-1. Run the `initializer.sh` script.
-2. Set the `applicationName` and `applicationId` as prompted.
-3. The script will copy a new project with the given credentials 🚀To get a local copy up and running follow these simple example steps.
+- Android Studio Hedgehog (2023.1.1) or later
+- JDK 17 or later
+- Android SDK with API level 23 (Android 6.0) or higher
+- Gradle 8.13.0 or later
 
 ### Installation
 
-1. Clone the repo
+1. **Clone the repository**
 
 ```sh
 git clone https://github.com/mustafayigitt/ComposeTemplate.git
+cd ComposeTemplate
 ```
 
-2. Run `initializer.sh`
+2. **Configure Base URLs**
 
-3. Open the created project with the given application name.
+Create or update `gradle.properties` in the project root with your API base URLs:
+
+```properties
+BASE_URL_DEBUG=https://your-debug-api-url.com/
+BASE_URL=https://your-production-api-url.com/
+```
+
+3. **Run the Initializer Script**
+
+To create a new project using this template:
+
+```sh
+chmod +x initializer.sh
+./initializer.sh
+```
+
+When prompted:
+- Enter your `applicationId` (e.g., `com.example.myapp`)
+- Enter your `applicationName` (e.g., `MyApp`)
+
+The script will:
+- Create a new project directory with your application name
+- Replace all package names and references
+- Remove template-specific files (.git, initializer.sh)
+- Set up the project structure with your credentials
+
+4. **Open the Project**
+
+Open the newly created project in Android Studio:
+- If using the template directly: Open `ComposeTemplate` folder
+- If using initializer: Open the created project folder (e.g., `../MyApp`)
+
+5. **Sync and Build**
+
+- Sync Gradle files
+- Build the project (Build > Make Project)
+- Run on an emulator or device
+
+### Configuration
+
+#### Build Configuration
+
+The project uses build variants for different environments:
+- **Debug**: Uses `BASE_URL_DEBUG` from `gradle.properties`
+- **Release**: Uses `BASE_URL` from `gradle.properties`
+
+#### Minimum Requirements
+
+- **minSdk**: 23 (Android 6.0)
+- **targetSdk**: 36
+- **compileSdk**: 36
+- **Java Version**: 17
+- **Kotlin Version**: 2.2.21
+
+#### Dependencies
+
+All dependencies are managed through `gradle/libs.versions.toml` using Version Catalogs. Key dependencies include:
+
+- Compose BOM: 2024.06.00
+- Hilt: 2.57.1
+- Retrofit: 2.11.0
+- Navigation3: 1.0.0
+- Kotlin: 2.2.21
+
+## Usage Examples
+
+### Creating a New Screen
+
+1. **Create Route Object** (in `presentation/yourfeature/YourFeatureRoute.kt`):
+
+```kotlin
+@Serializable
+data object YourFeature : INavigationItem {
+    override val route: String = "route_your_feature"
+
+    @Composable
+    override fun ContentScreen(navigationManager: NavigationManager) {
+        YourFeatureScreen(navigationManager = navigationManager)
+    }
+}
+```
+
+2. **Create Screen Composable**:
+
+```kotlin
+@Composable
+fun YourFeatureScreen(
+    navigationManager: NavigationManager,
+    viewModel: YourFeatureViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    
+    // Your UI implementation
+}
+```
+
+3. **Add to NavigationManager** (if needed for bottom bar):
+
+```kotlin
+val bottomBarItems: List<IBottomBarItem> = listOf(
+    Home,
+    Search,
+    YourFeature, // Add here
+    Profile,
+)
+```
+
+### Making API Calls
+
+1. **Create API Service** (in `data/remote/YourService.kt`):
+
+```kotlin
+interface YourService {
+    @POST("your-endpoint")
+    suspend fun yourMethod(@Body request: YourRequestModel): Response<YourResponseModel>
+}
+```
+
+2. **Create Repository** (in `data/repository/YourRepository.kt`):
+
+```kotlin
+class YourRepository @Inject constructor(
+    private val yourService: YourService
+) : BaseRepository(), IYourRepository {
+    override suspend fun yourMethod(): Result<YourResponseModel> {
+        return safeCall {
+            yourService.yourMethod(YourRequestModel())
+        }
+    }
+}
+```
+
+3. **Use in ViewModel**:
+
+```kotlin
+@HiltViewModel
+class YourViewModel @Inject constructor(
+    private val repository: IYourRepository
+) : ViewModel() {
+    fun loadData() {
+        viewModelScope.launch {
+            when (val result = repository.yourMethod()) {
+                is Result.Success -> {
+                    // Handle success
+                }
+                is Result.Error -> {
+                    // Handle error
+                }
+            }
+        }
+    }
+}
+```
+
+### Navigation Examples
+
+```kotlin
+// Navigate to a new screen
+navigationManager.navigate(YourFeature)
+
+// Navigate back
+navigationManager.navigateBack()
+
+// Navigate over a specific route
+navigationManager.navigateOver(NewRoute, OldRoute)
+
+// Navigate to top of stack
+navigationManager.navigateToTop(Home)
+```
+
+### Storing Data Locally
+
+```kotlin
+// In your repository or use case
+@Inject constructor(
+    private val prefs: IPreferencesManager
+) {
+    // Save data
+    prefs.saveString("key", "value")
+    
+    // Get data
+    val value = prefs.getString("key", "default")
+    
+    // Save credentials (for auth)
+    prefs.saveCredentials(authResponse)
+}
+```
+
+## Architecture
+
+This project follows **Clean Architecture** principles with three main layers:
+
+### Data Layer
+- **Responsibility**: Data sources (remote API, local storage)
+- **Components**: Repositories, Data Models, API Services, Local Storage
+- **Location**: `data/` package
+
+### Domain Layer
+- **Responsibility**: Business logic and use cases
+- **Components**: Use Cases, Domain Models, Repository Interfaces, Mappers
+- **Location**: `domain/` package
+
+### Presentation Layer
+- **Responsibility**: UI and user interactions
+- **Components**: ViewModels, UI States, Composable Screens, Routes
+- **Location**: `presentation/` package
+
+### Core Layer
+- **Responsibility**: Shared utilities and base classes
+- **Components**: Base classes, Navigation, DI modules, Theme, API utilities
+- **Location**: `core/` package
+
+## Testing
+
+The project includes comprehensive unit tests. Run tests with:
+
+```sh
+./gradlew test
+```
+
+### Test Structure
+
+- **Repository Tests**: Test data layer logic
+- **ViewModel Tests**: Test presentation layer logic
+- **Mapper Tests**: Test data transformation
+- **Use Case Tests**: Test business logic
+
+Example test:
+
+```kotlin
+@Test
+fun `test login success`() = runTest {
+    // Given
+    val expectedResult = Result.Success(authResponse)
+    coEvery { authService.login(any()) } returns Response.success(authResponse)
+    
+    // When
+    val result = authRepository.login(authRequest)
+    
+    // Then
+    assertThat(result).isInstanceOf(Result.Success::class.java)
+}
+```
 
 ## Contributing
 
