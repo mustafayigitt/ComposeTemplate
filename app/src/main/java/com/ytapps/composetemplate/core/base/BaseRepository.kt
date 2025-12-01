@@ -5,7 +5,7 @@ import com.ytapps.composetemplate.util.Constants
 import retrofit2.Response
 
 /**
- * Created by mustafa.yigit on 26/08/2023
+ * Created by mustafayigitt on 26/08/2023
  * mustafa.yt65@gmail.com
  */
 abstract class BaseRepository {

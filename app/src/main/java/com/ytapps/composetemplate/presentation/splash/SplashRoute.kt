@@ -15,7 +15,7 @@ import com.ytapps.composetemplate.core.navigation.NavigationManager
 import kotlinx.serialization.Serializable
 
 /**
- * Created by mustafayigitt on 25/08/2023
+ * Created by mustafayigitt on 02/12/2025
  * mustafa.yt65@gmail.com
  */
 

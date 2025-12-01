@@ -9,7 +9,7 @@ import com.ytapps.composetemplate.domain.repository.IAuthRepository
 import javax.inject.Inject
 
 /**
- * Created by mustafa.yigit on 26/08/2023
+ * Created by mustafayigitt on 26/08/2023
  * mustafa.yt65@gmail.com
  */
 class LoginUseCase @Inject constructor(

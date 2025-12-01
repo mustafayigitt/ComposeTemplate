@@ -3,7 +3,7 @@ package com.ytapps.composetemplate.presentation.login
 import com.ytapps.composetemplate.core.base.BaseUiState
 
 /**
- * Created by mustafa.yigit on 26/08/2023
+ * Created by mustafayigitt on 26/08/2023
  * mustafa.yt65@gmail.com
  */
 data class LoginUiState(

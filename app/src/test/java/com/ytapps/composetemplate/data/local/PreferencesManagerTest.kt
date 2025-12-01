@@ -5,7 +5,7 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * Created by mustafa.yigit on 05/09/2023
+ * Created by mustafayigitt on 05/09/2023
  * mustafa.yt65@gmail.com
  */
 class PreferencesManagerTest {

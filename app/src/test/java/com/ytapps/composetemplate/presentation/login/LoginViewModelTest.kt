@@ -16,7 +16,7 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * Created by mustafa.yigit on 06/09/2023
+ * Created by mustafayigitt on 06/09/2023
  * mustafa.yt65@gmail.com
  */
 class LoginViewModelTest {

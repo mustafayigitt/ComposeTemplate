@@ -1,7 +1,7 @@
 package com.ytapps.composetemplate.domain.model
 
 /**
- * Created by mustafa.yigit on 30/08/2023
+ * Created by mustafayigitt on 30/08/2023
  * mustafa.yt65@gmail.com
  */
 data class AuthModel(

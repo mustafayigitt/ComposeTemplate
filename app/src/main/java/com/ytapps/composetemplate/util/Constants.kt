@@ -1,7 +1,7 @@
 package com.ytapps.composetemplate.util
 
 /**
- * Created by mustafa.yigit on 26/08/2023
+ * Created by mustafayigitt on 26/08/2023
  * mustafa.yt65@gmail.com
  */
 object Constants {

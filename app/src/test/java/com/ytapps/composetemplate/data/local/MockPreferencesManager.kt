@@ -4,7 +4,7 @@ import com.ytapps.composetemplate.data.model.AuthResponseModel
 import javax.inject.Inject
 
 /**
- * Created by mustafa.yigit on 05/09/2023
+ * Created by mustafayigitt on 05/09/2023
  * mustafa.yt65@gmail.com
  */
 class MockPreferencesManager @Inject constructor() : IPreferencesManager {
