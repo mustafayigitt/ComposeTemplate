@@ -39,83 +39,140 @@ ComposeTemplate is a Jetpack Compose template application that follows Clean Arc
 
 ## Project Structure
 
-The project follows Clean Architecture principles with clear separation of concerns:
+The project follows Clean Architecture principles with clear separation of concerns and uses Convention Plugins for build configuration:
 
 ```
-app/src/main/java/com/ytapps/composetemplate/
-├── core/                          # Core functionality and utilities
-│   ├── api/                       # API related classes
-│   │   ├── DefaultInterceptor.kt  # HTTP interceptor for auth headers
-│   │   └── Result.kt             # Sealed class for API results
-│   ├── base/                      # Base classes
-│   │   ├── BaseRepository.kt     # Base repository with safeCall
-│   │   ├── BaseUiState.kt        # Base UI state class
-│   │   └── IMapper.kt            # Mapper interface
-│   ├── di/                        # Dependency injection modules
-│   │   ├── BinderModule.kt       # Hilt binding module
-│   │   └── ProviderModule.kt     # Hilt provider module
-│   ├── navigation/                # Navigation components
-│   │   ├── NavigationManager.kt  # Custom navigation manager
-│   │   ├── INavigationItem.kt    # Navigation item interface
-│   │   └── IBottomBarItem.kt     # Bottom bar item interface
-│   └── theme/                     # UI theme and components
-│       ├── component/             # Reusable UI components
-│       │   ├── AppNavigation.kt  # Main navigation component
-│       │   └── AppNavigationBar.kt # Bottom navigation bar
-│       ├── Color.kt              # Color definitions
-│       ├── Theme.kt              # Material 3 theme
-│       └── Type.kt               # Typography definitions
-├── data/                          # Data layer
-│   ├── local/                     # Local data sources
-│   │   ├── PreferencesManager.kt # SharedPreferences manager
-│   │   └── IPreferencesManager.kt # Preferences interface
-│   ├── model/                     # Data models
-│   │   ├── AuthRequestModel.kt   # Auth request DTO
-│   │   └── AuthResponseModel.kt  # Auth response DTO
-│   ├── remote/                    # Remote data sources
-│   │   └── AuthService.kt        # Retrofit API service
-│   └── repository/                # Repository implementations
-│       └── AuthRepository.kt     # Authentication repository
-├── domain/                         # Domain layer (business logic)
-│   ├── mapper/                    # Data mappers
-│   │   └── AuthMapper.kt         # Auth model mapper
-│   ├── model/                      # Domain models
-│   │   └── AuthModel.kt          # Auth domain model
-│   ├── repository/                 # Repository interfaces
-│   │   └── IAuthRepository.kt     # Auth repository interface
-│   └── usecase/                    # Use cases
-│       └── LoginUseCase.kt       # Login use case
-├── presentation/                   # Presentation layer (UI)
-│   ├── detail/                     # Detail screen
-│   │   ├── DetailRoute.kt
-│   │   ├── DetailUiState.kt
-│   │   └── DetailViewModel.kt
-│   ├── home/                       # Home screen
-│   │   ├── HomeRoute.kt
-│   │   └── HomeViewModel.kt
-│   ├── list/                       # List screen
-│   │   ├── ListRoute.kt
-│   │   ├── ListUiState.kt
-│   │   └── ListViewModel.kt
-│   ├── login/                      # Login screen
-│   │   ├── LoginRoute.kt
-│   │   ├── LoginUiState.kt
-│   │   └── LoginViewModel.kt
-│   ├── profile/                     # Profile screen
-│   │   ├── ProfileRoute.kt
-│   │   └── ProfileViewModel.kt
-│   ├── search/                      # Search screen
-│   │   ├── SearchRoute.kt
-│   │   └── SearchViewModel.kt
-│   └── splash/                      # Splash screen
-│       ├── SplashRoute.kt
-│       ├── SplashUiState.kt
-│       └── SplashViewModel.kt
-├── util/                            # Utilities
-│   └── Constants.kt                # App constants
-├── App.kt                          # Application class with Hilt
-└── MainActivity.kt                 # Main activity
+ComposeTemplate/
+├── app/src/main/java/com/ytapps/composetemplate/
+│   ├── core/                          # Core functionality and utilities
+│   │   ├── api/                       # API related classes
+│   │   │   ├── DefaultInterceptor.kt  # HTTP interceptor for auth headers
+│   │   │   └── Result.kt             # Sealed class for API results
+│   │   ├── base/                      # Base classes
+│   │   │   ├── BaseRepository.kt     # Base repository with safeCall
+│   │   │   ├── BaseUiState.kt        # Base UI state class
+│   │   │   └── IMapper.kt            # Mapper interface
+│   │   ├── di/                        # Dependency injection modules
+│   │   │   ├── BinderModule.kt       # Hilt binding module
+│   │   │   └── ProviderModule.kt     # Hilt provider module
+│   │   ├── navigation/                # Navigation components
+│   │   │   ├── NavigationManager.kt  # Custom navigation manager
+│   │   │   ├── INavigationItem.kt    # Navigation item interface
+│   │   │   └── IBottomBarItem.kt     # Bottom bar item interface
+│   │   └── theme/                     # UI theme and components
+│   │       ├── component/             # Reusable UI components
+│   │       │   ├── AppNavigation.kt  # Main navigation component
+│   │       │   └── AppNavigationBar.kt # Bottom navigation bar
+│   │       ├── Color.kt              # Color definitions
+│   │       ├── Theme.kt              # Material 3 theme
+│   │       └── Type.kt               # Typography definitions
+│   ├── data/                          # Data layer
+│   │   ├── local/                     # Local data sources
+│   │   │   ├── PreferencesManager.kt # SharedPreferences manager
+│   │   │   └── IPreferencesManager.kt # Preferences interface
+│   │   ├── model/                     # Data models
+│   │   │   ├── AuthRequestModel.kt   # Auth request DTO
+│   │   │   └── AuthResponseModel.kt  # Auth response DTO
+│   │   ├── remote/                    # Remote data sources
+│   │   │   └── AuthService.kt        # Retrofit API service
+│   │   └── repository/                # Repository implementations
+│   │       └── AuthRepository.kt     # Authentication repository
+│   ├── domain/                         # Domain layer (business logic)
+│   │   ├── mapper/                    # Data mappers
+│   │   │   └── AuthMapper.kt         # Auth model mapper
+│   │   ├── model/                      # Domain models
+│   │   │   └── AuthModel.kt          # Auth domain model
+│   │   ├── repository/                 # Repository interfaces
+│   │   │   └── IAuthRepository.kt     # Auth repository interface
+│   │   └── usecase/                    # Use cases
+│   │       └── LoginUseCase.kt       # Login use case
+│   ├── presentation/                   # Presentation layer (UI)
+│   │   ├── detail/                     # Detail screen
+│   │   │   ├── DetailRoute.kt
+│   │   │   ├── DetailUiState.kt
+│   │   │   └── DetailViewModel.kt
+│   │   ├── home/                       # Home screen
+│   │   │   ├── HomeRoute.kt
+│   │   │   └── HomeViewModel.kt
+│   │   ├── list/                       # List screen
+│   │   │   ├── ListRoute.kt
+│   │   │   ├── ListUiState.kt
+│   │   │   └── ListViewModel.kt
+│   │   ├── login/                      # Login screen
+│   │   │   ├── LoginRoute.kt
+│   │   │   ├── LoginUiState.kt
+│   │   │   └── LoginViewModel.kt
+│   │   ├── profile/                     # Profile screen
+│   │   │   ├── ProfileRoute.kt
+│   │   │   └── ProfileViewModel.kt
+│   │   ├── search/                      # Search screen
+│   │   │   ├── SearchRoute.kt
+│   │   │   └── SearchViewModel.kt
+│   │   └── splash/                      # Splash screen
+│   │       ├── SplashRoute.kt
+│   │       ├── SplashUiState.kt
+│   │       └── SplashViewModel.kt
+│   ├── util/                            # Utilities
+│   │   └── Constants.kt                # App constants
+│   ├── App.kt                          # Application class with Hilt
+│   └── MainActivity.kt                 # Main activity
+├── build-logic/                        # Build configuration
+│   ├── convention/                     # Convention plugins
+│   │   └── src/main/kotlin/com/ytapps/composetemplate/convention/
+│   │       ├── AndroidApplicationConventionPlugin.kt
+│   │       ├── AndroidComposeConventionPlugin.kt
+│   │       ├── AndroidHiltConventionPlugin.kt
+│   │       ├── AndroidLibraryConventionPlugin.kt
+│   │       ├── KotlinAndroid.kt
+│   │       └── ProjectExtensions.kt
+│   └── README.md                       # Build logic documentation
+└── gradle/
+    └── libs.versions.toml              # Version catalog (dependencies & versions)
 ```
+
+## Build Configuration
+
+This project uses modern Gradle build configuration with **Convention Plugins** and **Version Catalog** for maintainable and scalable build logic.
+
+### Convention Plugins
+
+Located in `build-logic/convention/`, these plugins encapsulate common build configuration:
+
+- **`composetemplate.android.application`**: Base Android app configuration (SDK versions, Kotlin setup)
+- **`composetemplate.android.application.compose`**: Jetpack Compose setup with common dependencies
+- **`composetemplate.android.hilt`**: Hilt dependency injection configuration
+- **`composetemplate.android.library`**: Android library module configuration
+
+Benefits:
+- ✅ Centralized build configuration
+- ✅ Reduced duplication across modules
+- ✅ Type-safe Kotlin DSL
+- ✅ Easy to maintain and update
+
+### Version Catalog
+
+All dependencies and versions are managed in `gradle/libs.versions.toml`:
+
+```toml
+[versions]
+minSdk = "23"
+compileSdk = "36"
+targetSdk = "36"
+versionCode = "1"
+versionName = "1.0.0"
+kotlin = "2.2.10"
+
+[libraries]
+androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+```
+
+Benefits:
+- ✅ Single source of truth for versions
+- ✅ Type-safe dependency accessors
+- ✅ Easy version updates
+- ✅ Shared across all modules
+
+For detailed build configuration documentation, see [build-logic/README.md](build-logic/README.md).
 
 ## Key Features
 
@@ -228,15 +285,29 @@ chmod +x initializer.sh
 ./initializer.sh
 ```
 
+The script provides an interactive setup with:
+- **Input Validation**: Ensures valid application ID and name formats
+- **Configuration Summary**: Shows all settings before proceeding
+- **Confirmation Prompt**: Asks for confirmation before creating the project
+
 When prompted:
 - Enter your `applicationId` (e.g., `com.example.myapp`)
+  - Must be lowercase with at least 2 segments (e.g., `com.example`)
+  - Only letters, numbers, and underscores allowed
 - Enter your `applicationName` (e.g., `MyApp`)
+  - Must start with a letter
+  - Only alphanumeric characters allowed
 
 The script will:
-- Create a new project directory with your application name
-- Replace all package names and references
-- Remove template-specific files (.git, initializer.sh)
-- Set up the project structure with your credentials
+- ✅ Validate your inputs
+- ✅ Create a new project directory with your application name
+- ✅ Restructure all source directories (app + build-logic)
+- ✅ Replace all package names and references
+- ✅ Update convention plugin package names and IDs
+- ✅ Generate a proper `.gitignore` file
+- ✅ Initialize a new git repository with initial commit
+- ✅ Clean up template-specific files
+- ✅ Provide clear next steps
 
 4. **Open the Project**
 
@@ -264,7 +335,7 @@ The project uses build variants for different environments:
 - **targetSdk**: 36
 - **compileSdk**: 36
 - **Java Version**: 17
-- **Kotlin Version**: 2.2.21
+- **Kotlin Version**: 2.2.10
 
 #### Dependencies
 
@@ -274,7 +345,7 @@ All dependencies are managed through `gradle/libs.versions.toml` using Version C
 - Hilt: 2.57.1
 - Retrofit: 2.11.0
 - Navigation3: 1.0.0
-- Kotlin: 2.2.21
+- Kotlin: 2.2.10
 
 ## Usage Examples
 

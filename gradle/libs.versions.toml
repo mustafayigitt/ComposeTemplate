@@ -1,4 +1,10 @@
 [versions]
+minSdk = "23"
+compileSdk = "36"
+targetSdk = "36"
+versionCode = "1"
+versionName = "1.0.0"
+
 androidx-core = "1.13.1"
 androidx-compose-bom = "2024.06.00"
 androidx-lifecycle = "2.8.4"
@@ -13,7 +19,7 @@ junit-version = "1.2.1"
 kotlinx-coroutines-test = "1.7.3"
 logging-interceptor = "4.12.0"
 mockk = "1.13.7"
-kotlin = "2.2.21"
+kotlin = "2.2.10"
 retrofit = "2.11.0"
 truth = "1.1.5"
 ksp="2.2.10-2.0.2"
@@ -53,6 +59,12 @@ androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", vers
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycleViewmodelNav3" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerializationCore" }
 androidx-material3-adaptive-navigation3 = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation3", version.ref = "material3AdaptiveNav3" }
+
+# Build Logic Dependencies
+android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "android-gradle-plugin" }
+kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "symbol-processing-gradle-plugin", version.ref = "ksp" }
+compose-compiler-gradle-plugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }
