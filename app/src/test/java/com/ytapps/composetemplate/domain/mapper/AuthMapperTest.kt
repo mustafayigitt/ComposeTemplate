@@ -1,7 +1,8 @@
 package com.ytapps.composetemplate.domain.mapper
 
 import com.google.common.truth.Truth
-import com.ytapps.composetemplate.data.model.AuthResponseModel
+import com.ytapps.composetemplate.feature.auth.domain.model.AuthResponseModel
+import com.ytapps.composetemplate.feature.auth.domain.mapper.AuthMapper
 import org.junit.Before
 import org.junit.Test
 

@@ -2,15 +2,16 @@ package com.ytapps.composetemplate.data.repository
 
 import com.google.common.truth.Truth
 import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.data.local.IPreferencesManager
-import com.ytapps.composetemplate.data.model.AuthRequestModel
-import com.ytapps.composetemplate.data.model.AuthResponseModel
-import com.ytapps.composetemplate.data.remote.AuthService
-import com.ytapps.composetemplate.domain.repository.IAuthRepository
+import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.ytapps.composetemplate.feature.auth.domain.model.AuthRequestModel
+import com.ytapps.composetemplate.feature.auth.domain.model.AuthResponseModel
+import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
+import com.ytapps.composetemplate.feature.auth.data.AuthRepository
+import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Before
@@ -30,7 +31,7 @@ class AuthRepositoryTest {
     @Before
     fun setUp() {
         authService = mockk<AuthService>()
-        preferencesManager = mockk<IPreferencesManager>()
+        preferencesManager = mockk<IPreferencesManager>(relaxed = true)
         authRepository = AuthRepository(authService, preferencesManager)
     }
 
@@ -59,26 +60,31 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `given valid authRequestModel when login() then verify saveCredentials called`() {
+    fun `given valid authRequestModel when login() then verify setAccessToken called`() {
         // Given
         val authRequestModel = mockk<AuthRequestModel>()
-        val authResponseModel = mockk<AuthResponseModel>()
+        val authResponseModel = AuthResponseModel(
+            accessToken = "token",
+            refreshToken = "refresh",
+            tokenType = "Bearer",
+            expiresIn = "3600"
+        )
 
         // When
         coEvery { authService.login(authRequestModel) } returns Response.success(authResponseModel)
-        every { preferencesManager.saveCredentials(authResponseModel) } returns Unit
         val result = runBlocking { authRepository.login(authRequestModel) }
 
         // Then
         Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
-        verify { preferencesManager.saveCredentials(authResponseModel) }
+        coVerify { preferencesManager.setAccessToken("token") }
+        coVerify { preferencesManager.setRefreshToken("refresh") }
+        coVerify { preferencesManager.setTokenType("Bearer") }
     }
 
     @Test
-    fun `given invalid authRequestModel when login() then verify saveCredentials not called`() {
+    fun `given invalid authRequestModel when login() then verify setAccessToken not called`() {
         // Given
         val authRequestModel = mockk<AuthRequestModel>()
-        val authResponseModel = mockk<AuthResponseModel>()
 
         // When
         coEvery { authService.login(authRequestModel) } returns Response.error(
@@ -89,7 +95,7 @@ class AuthRepositoryTest {
 
         // Then
         Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
-        verify(exactly = 0) { preferencesManager.saveCredentials(authResponseModel) }
+        coVerify(exactly = 0) { preferencesManager.setAccessToken(any()) }
     }
 
 }

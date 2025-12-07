@@ -2,10 +2,11 @@ package com.ytapps.composetemplate.domain.usecase
 
 import com.google.common.truth.Truth
 import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.data.model.AuthRequestModel
-import com.ytapps.composetemplate.data.model.AuthResponseModel
-import com.ytapps.composetemplate.domain.mapper.AuthMapper
-import com.ytapps.composetemplate.domain.repository.IAuthRepository
+import com.ytapps.composetemplate.feature.auth.domain.model.AuthRequestModel
+import com.ytapps.composetemplate.feature.auth.domain.model.AuthResponseModel
+import com.ytapps.composetemplate.feature.auth.domain.mapper.AuthMapper
+import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
+import com.ytapps.composetemplate.feature.auth.domain.LoginUseCase
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -51,7 +52,7 @@ class LoginUseCaseTest {
     fun `given Result-Error AuthRequestModel when LoginUseCase() return Result-Error`() {
         // Given
         val authRequestModel = mockk<AuthRequestModel>()
-        val response = Result.Error<AuthResponseModel>("Login Failed")
+        val response: Result<AuthResponseModel> = Result.Error("Login Failed")
 
         coEvery { autRepository.login(authRequestModel) } returns response
 

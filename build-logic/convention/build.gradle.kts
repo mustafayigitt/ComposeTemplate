@@ -25,6 +25,10 @@ gradlePlugin {
             id = "composetemplate.android.application.compose"
             implementationClass = "com.ytapps.composetemplate.convention.AndroidComposeConventionPlugin"
         }
+        register("androidLibraryCompose") {
+            id = "composetemplate.android.library.compose"
+            implementationClass = "com.ytapps.composetemplate.convention.AndroidComposeConventionPlugin"
+        }
         register("androidHilt") {
             id = "composetemplate.android.hilt"
             implementationClass = "com.ytapps.composetemplate.convention.AndroidHiltConventionPlugin"

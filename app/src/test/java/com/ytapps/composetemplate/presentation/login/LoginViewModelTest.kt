@@ -2,9 +2,10 @@ package com.ytapps.composetemplate.presentation.login
 
 import com.google.common.truth.Truth
 import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.data.model.AuthRequestModel
-import com.ytapps.composetemplate.domain.model.AuthModel
-import com.ytapps.composetemplate.domain.usecase.LoginUseCase
+import com.ytapps.composetemplate.feature.auth.domain.model.AuthRequestModel
+import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
+import com.ytapps.composetemplate.feature.auth.domain.LoginUseCase
+import com.ytapps.composetemplate.feature.auth.presentation.LoginViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -59,14 +60,14 @@ class LoginViewModelTest {
     fun `given invalid user credentials when login should set error`() {
         // Given
         val authRequestModel = AuthRequestModel("email", "password")
-        val response = Result.Error<AuthModel>("error")
+        val response: Result<AuthModel> = Result.Error("error")
 
         // When
         coEvery { loginUseCase.invoke(authRequestModel) } returns response
         viewModel.login(authRequestModel.email, authRequestModel.password)
 
         // Then
-        Truth.assertThat(viewModel.uiState.value.error).isEqualTo(response.error)
+        Truth.assertThat(viewModel.uiState.value.error).isEqualTo((response as Result.Error).message)
         Truth.assertThat(viewModel.uiState.value.isLoading).isFalse()
         Truth.assertThat(viewModel.uiState.value.shouldNavigateToSplash).isFalse()
     }
