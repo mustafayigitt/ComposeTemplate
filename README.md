@@ -3,7 +3,7 @@
   <h3 align="center">ComposeTemplate</h3>
 
   <p align="center">
-    ComposeTemplate is a Jetpack Compose template application that follows Clean Architecture best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
+    ComposeTemplate is a Jetpack Compose template application that follows Clean Architecture and modularization best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
     <br/>
     <br/>
     <a href="https://github.com/mustafayigitt/ComposeTemplate/issues">Report Bug</a>
@@ -19,7 +19,7 @@
 
 ![Screen Shot](screenshot/compose-template-initializer.png)
 
-ComposeTemplate is a Jetpack Compose template application that follows Clean Architecture best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
+ComposeTemplate is a Jetpack Compose template application that follows Clean Architecture and modularization best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
 
 ## Built With
 
@@ -39,83 +39,41 @@ ComposeTemplate is a Jetpack Compose template application that follows Clean Arc
 
 ## Project Structure
 
-The project follows Clean Architecture principles with clear separation of concerns and uses Convention Plugins for build configuration:
+The project follows Clean Architecture principles with clear separation of concerns and uses Convention Plugins for build configuration. The project is also modularized by feature.
 
 ```
 ComposeTemplate/
-├── app/src/main/java/com/ytapps/composetemplate/
-│   ├── core/                          # Core functionality and utilities
-│   │   ├── api/                       # API related classes
-│   │   │   ├── DefaultInterceptor.kt  # HTTP interceptor for auth headers
-│   │   │   └── Result.kt             # Sealed class for API results
-│   │   ├── base/                      # Base classes
-│   │   │   ├── BaseRepository.kt     # Base repository with safeCall
-│   │   │   ├── BaseUiState.kt        # Base UI state class
-│   │   │   └── IMapper.kt            # Mapper interface
-│   │   ├── di/                        # Dependency injection modules
-│   │   │   ├── BinderModule.kt       # Hilt binding module
-│   │   │   └── ProviderModule.kt     # Hilt provider module
-│   │   ├── navigation/                # Navigation components
-│   │   │   ├── NavigationManager.kt  # Custom navigation manager
-│   │   │   ├── INavigationItem.kt    # Navigation item interface
-│   │   │   └── IBottomBarItem.kt     # Bottom bar item interface
-│   │   └── theme/                     # UI theme and components
-│   │       ├── component/             # Reusable UI components
-│   │       │   ├── AppNavigation.kt  # Main navigation component
-│   │       │   └── AppNavigationBar.kt # Bottom navigation bar
-│   │       ├── Color.kt              # Color definitions
-│   │       ├── Theme.kt              # Material 3 theme
-│   │       └── Type.kt               # Typography definitions
-│   ├── data/                          # Data layer
-│   │   ├── local/                     # Local data sources
-│   │   │   ├── PreferencesManager.kt # SharedPreferences manager
-│   │   │   └── IPreferencesManager.kt # Preferences interface
-│   │   ├── model/                     # Data models
-│   │   │   ├── AuthRequestModel.kt   # Auth request DTO
-│   │   │   └── AuthResponseModel.kt  # Auth response DTO
-│   │   ├── remote/                    # Remote data sources
-│   │   │   └── AuthService.kt        # Retrofit API service
-│   │   └── repository/                # Repository implementations
-│   │       └── AuthRepository.kt     # Authentication repository
-│   ├── domain/                         # Domain layer (business logic)
-│   │   ├── mapper/                    # Data mappers
-│   │   │   └── AuthMapper.kt         # Auth model mapper
-│   │   ├── model/                      # Domain models
-│   │   │   └── AuthModel.kt          # Auth domain model
-│   │   ├── repository/                 # Repository interfaces
-│   │   │   └── IAuthRepository.kt     # Auth repository interface
-│   │   └── usecase/                    # Use cases
-│   │       └── LoginUseCase.kt       # Login use case
-│   ├── presentation/                   # Presentation layer (UI)
-│   │   ├── detail/                     # Detail screen
-│   │   │   ├── DetailRoute.kt
-│   │   │   ├── DetailUiState.kt
-│   │   │   └── DetailViewModel.kt
-│   │   ├── home/                       # Home screen
-│   │   │   ├── HomeRoute.kt
-│   │   │   └── HomeViewModel.kt
-│   │   ├── list/                       # List screen
-│   │   │   ├── ListRoute.kt
-│   │   │   ├── ListUiState.kt
-│   │   │   └── ListViewModel.kt
-│   │   ├── login/                      # Login screen
-│   │   │   ├── LoginRoute.kt
-│   │   │   ├── LoginUiState.kt
-│   │   │   └── LoginViewModel.kt
-│   │   ├── profile/                     # Profile screen
-│   │   │   ├── ProfileRoute.kt
-│   │   │   └── ProfileViewModel.kt
-│   │   ├── search/                      # Search screen
-│   │   │   ├── SearchRoute.kt
-│   │   │   └── SearchViewModel.kt
-│   │   └── splash/                      # Splash screen
-│   │       ├── SplashRoute.kt
-│   │       ├── SplashUiState.kt
-│   │       └── SplashViewModel.kt
-│   ├── util/                            # Utilities
-│   │   └── Constants.kt                # App constants
-│   ├── App.kt                          # Application class with Hilt
-│   └── MainActivity.kt                 # Main activity
+├── app/                # Main application module
+├── core/               # Core module with shared utilities
+├── feature/
+│   ├── auth/           # Auth feature module
+│   │   ├── data/
+│   │   ├── domain/
+│   │   └── presentation/
+│   ├── home/           # Home feature module
+│   │   ├── data/
+│   │   ├── domain/
+│   │   └── presentation/
+│   ├── list/           # List feature module
+│   │   ├── data/
+│   │   ├── domain/
+│   │   └── presentation/
+│   ├── detail/         # Detail feature module
+│   │   ├── data/
+│   │   ├── domain/
+│   │   └── presentation/
+│   ├── search/         # Search feature module
+│   │   ├── data/
+│   │   ├── domain/
+│   │   └── presentation/
+│   ├── splash/         # Splash feature module
+│   │   ├── data/
+│   │   ├── domain/
+│   │   └── presentation/
+│   └── profile/        # Profile feature module
+│       ├── data/
+│       ├── domain/
+│       └── presentation/
 ├── build-logic/                        # Build configuration
 │   ├── convention/                     # Convention plugins
 │   │   └── src/main/kotlin/com/ytapps/composetemplate/convention/
@@ -127,7 +85,7 @@ ComposeTemplate/
 │   │       └── ProjectExtensions.kt
 │   └── README.md                       # Build logic documentation
 └── gradle/
-    └── libs.versions.toml              # Version catalog (dependencies & versions)
+    └── libs.versions.toml # Version catalog
 ```
 
 ## Build Configuration
@@ -240,13 +198,13 @@ For detailed build configuration documentation, see [build-logic/README.md](buil
 
 ## Predefined Structures
 
-- **Header and Refresh Token Interceptor**: Automatic token management with refresh token support [DefaultInterceptor.kt](app/src/main/java/com/ytapps/composetemplate/core/api/DefaultInterceptor.kt)
-- **Safe Network Calls**: Error-handled network function [BaseRepository.kt](app/src/main/java/com/ytapps/composetemplate/core/base/BaseRepository.kt)
-- **Flexible Navigation Structure**: Custom navigation manager with Navigation3 [NavigationManager.kt](app/src/main/java/com/ytapps/composetemplate/core/navigation/NavigationManager.kt)
-- **Preferences Manager**: Local data storage with SharedPreferences [PreferencesManager.kt](app/src/main/java/com/ytapps/composetemplate/data/local/PreferencesManager.kt)
-- **Auth Flow**: Complete authentication flow with token management [AuthRepository.kt](app/src/main/java/com/ytapps/composetemplate/data/repository/AuthRepository.kt)
+- **Header and Refresh Token Interceptor**: Automatic token management with refresh token support
+- **Safe Network Calls**: Error-handled network function
+- **Flexible Navigation Structure**: Custom navigation manager with Navigation3
+- **Preferences Manager**: Local data storage with SharedPreferences
+- **Auth Flow**: Complete authentication flow with token management
 - **Clean Architecture**: Complete separation of Data, Domain, and Presentation layers
-- **Unit Tests**: All structures tested with JUnit and MockK [Examples](app/src/test/java/com/ytapps/composetemplate)
+- **Unit Tests**: All structures tested with JUnit and MockK
 - **End-to-End Examples**: Complete examples for all architecture layers
 
 ## Getting Started
@@ -305,7 +263,7 @@ The script will:
 - ✅ Replace all package names and references
 - ✅ Update convention plugin package names and IDs
 - ✅ Generate a proper `.gitignore` file
-- ✅ Initialize a new git repository with initial commit
+- ✅ Initialize a new git repository with an initial commit
 - ✅ Clean up template-specific files
 - ✅ Provide clear next steps
 
@@ -392,7 +350,7 @@ val bottomBarItems: List<IBottomBarItem> = listOf(
 
 ### Making API Calls
 
-1. **Create API Service** (in `data/remote/YourService.kt`):
+1. **Create API Service** (in `feature/yourfeature/data/remote/YourService.kt`):
 
 ```kotlin
 interface YourService {
@@ -401,7 +359,7 @@ interface YourService {
 }
 ```
 
-2. **Create Repository** (in `data/repository/YourRepository.kt`):
+2. **Create Repository** (in `feature/yourfeature/data/repository/YourRepository.kt`):
 
 ```kotlin
 class YourRepository @Inject constructor(
@@ -478,17 +436,17 @@ This project follows **Clean Architecture** principles with three main layers:
 ### Data Layer
 - **Responsibility**: Data sources (remote API, local storage)
 - **Components**: Repositories, Data Models, API Services, Local Storage
-- **Location**: `data/` package
+- **Location**: `feature/*/data/` package
 
 ### Domain Layer
 - **Responsibility**: Business logic and use cases
 - **Components**: Use Cases, Domain Models, Repository Interfaces, Mappers
-- **Location**: `domain/` package
+- **Location**: `feature/*/domain/` package
 
 ### Presentation Layer
 - **Responsibility**: UI and user interactions
 - **Components**: ViewModels, UI States, Composable Screens, Routes
-- **Location**: `presentation/` package
+- **Location**: `feature/*/presentation/` package
 
 ### Core Layer
 - **Responsibility**: Shared utilities and base classes
