@@ -2,7 +2,6 @@ package com.ytapps.composetemplate.feature.auth.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ytapps.composetemplate.core.api.Result
 import com.ytapps.composetemplate.core.api.onError
 import com.ytapps.composetemplate.core.api.onSuccess
 import com.ytapps.composetemplate.feature.auth.domain.LoginUseCase

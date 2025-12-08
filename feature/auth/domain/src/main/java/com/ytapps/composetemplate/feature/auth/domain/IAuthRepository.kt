@@ -11,5 +11,5 @@ import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
 
 interface IAuthRepository : ITokenRefresher {
     fun hasUser(): Boolean
-    suspend fun login(email:String,password:String): Result<AuthModel>
+    suspend fun login(email: String, password: String): Result<AuthModel>
 }

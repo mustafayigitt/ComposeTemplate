@@ -4,24 +4,18 @@ import com.ytapps.composetemplate.core.api.Result
 import com.ytapps.composetemplate.core.api.map
 import com.ytapps.composetemplate.core.base.BaseRepository
 import com.ytapps.composetemplate.core.local.IPreferencesManager
-import com.ytapps.composetemplate.feature.auth.data.mapper.AuthMapper
-import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
+import com.ytapps.composetemplate.feature.auth.data.dto.AuthRequestModel
 import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
 import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
 import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
 import retrofit2.Response
 import javax.inject.Inject
 
-/**
- * Created by mustafayigitt on 26/08/2023
- * mustafa.yt65@gmail.com
- */
-
 internal class AuthRepository @Inject constructor(
     private val authService: AuthService,
-    private val prefs: IPreferencesManager,
-    private val authMapper: AuthMapper
+    private val prefs: IPreferencesManager
 ) : BaseRepository(), IAuthRepository {
+
     override fun hasUser(): Boolean {
         return prefs.hasUser()
     }
@@ -29,10 +23,19 @@ internal class AuthRepository @Inject constructor(
     override suspend fun login(email: String, password: String): Result<AuthModel> {
         val result = safeCall(
             call = {
-                authService.login(AuthRequestModel(email, password))
+                val requestModel = AuthRequestModel(
+                    email = email,
+                    password = password
+                )
+                authService.login(requestModel)
             }
         ).map {
-            authMapper.map(it)
+            AuthModel(
+                accessToken = it.accessToken,
+                refreshToken = it.refreshToken,
+                expiresIn = it.expiresIn,
+                tokenType = it.tokenType
+            )
         }
         if (result is Result.Success) {
             val data = result.data
