@@ -14,7 +14,7 @@ import javax.inject.Inject
  * mustafa.yt65@gmail.com
  */
 @HiltViewModel
-class ListViewModel @Inject constructor() : ViewModel() {
+internal class ListViewModel @Inject constructor() : ViewModel() {
 
     private val _uiState = MutableStateFlow(ListUiState())
     val uiState = _uiState.asStateFlow()

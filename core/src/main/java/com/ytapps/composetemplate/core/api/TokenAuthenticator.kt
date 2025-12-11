@@ -24,7 +24,7 @@ import javax.inject.Singleton
  * - Checks if token was already refreshed by another thread
  */
 @Singleton
-class TokenAuthenticator @Inject constructor(
+internal class TokenAuthenticator @Inject constructor(
     private val prefs: IPreferencesManager,
     private val tokenRefresher: Lazy<ITokenRefresher>
 ) : Authenticator {

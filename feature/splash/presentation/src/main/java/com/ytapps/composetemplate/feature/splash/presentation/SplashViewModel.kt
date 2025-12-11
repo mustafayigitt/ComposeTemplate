@@ -17,7 +17,7 @@ import javax.inject.Inject
  * mustafa.yt65@gmail.com
  */
 @HiltViewModel
-class SplashViewModel @Inject constructor(
+internal class SplashViewModel @Inject constructor(
     //private val preferencesManager: IPreferencesManager
 ) : ViewModel() {
 

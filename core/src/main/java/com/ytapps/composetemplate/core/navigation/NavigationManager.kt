@@ -8,7 +8,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class NavigationManager @Inject constructor(
+internal class NavigationManager @Inject constructor(
     override val startDestination: INavigationItem,
     private val bottomBarItemsRaw: Map<String, @JvmSuppressWildcards IBottomBarItem>
 ) : INavigationManager {

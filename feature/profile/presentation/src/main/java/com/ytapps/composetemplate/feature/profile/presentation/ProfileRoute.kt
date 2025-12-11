@@ -13,9 +13,17 @@ import com.ytapps.composetemplate.core.navigation.INavigationManager
  * Created by mustafayigitt on 02/12/2025
  * mustafa.yt65@gmail.com
  */
-
 @Composable
 fun ProfileScreen(
+    navigationManager: INavigationManager,
+) {
+    ProfileScreenInternal(
+        navigationManager = navigationManager
+    )
+}
+
+@Composable
+internal fun ProfileScreenInternal(
     navigationManager: INavigationManager,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {

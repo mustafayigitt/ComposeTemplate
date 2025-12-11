@@ -22,7 +22,7 @@ import retrofit2.Response
  * Created by mustafayigitt on 05/09/2023
  * mustafa.yt65@gmail.com
  */
-class AuthRepositoryTest {
+internal class AuthRepositoryTest {
 
     private lateinit var authRepository: IAuthRepository
     private lateinit var authService: AuthService

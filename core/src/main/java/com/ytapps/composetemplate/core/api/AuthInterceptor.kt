@@ -9,7 +9,7 @@ import javax.inject.Inject
  * Interceptor that adds authentication headers to requests.
  * This interceptor only handles adding headers - token refresh is handled by TokenAuthenticator.
  */
-class AuthInterceptor @Inject constructor(
+internal class AuthInterceptor @Inject constructor(
     private val prefs: IPreferencesManager
 ) : Interceptor {
     

@@ -9,4 +9,4 @@ import javax.inject.Inject
  * mustafa.yt65@gmail.com
  */
 @HiltViewModel
-class HomeViewModel @Inject constructor(): ViewModel()
+internal class HomeViewModel @Inject constructor(): ViewModel()

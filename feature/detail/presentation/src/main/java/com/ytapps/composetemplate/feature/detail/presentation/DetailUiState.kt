@@ -5,6 +5,6 @@ package com.ytapps.composetemplate.feature.detail.presentation
  * mustafa.yt65@gmail.com
  */
 
-data class DetailUiState(
+internal data class DetailUiState(
     val id: String = ""
 )

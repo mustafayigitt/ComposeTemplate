@@ -18,7 +18,7 @@ import org.junit.Test
  * Created by mustafayigitt on 06/09/2023
  * mustafa.yt65@gmail.com
  */
-class LoginViewModelTest {
+internal class LoginViewModelTest {
 
     private lateinit var loginUseCase: LoginUseCase
     private lateinit var viewModel: LoginViewModel

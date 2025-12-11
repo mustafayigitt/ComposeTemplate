@@ -23,6 +23,15 @@ import com.ytapps.composetemplate.core.navigation.INavigationManager
 @Composable
 fun LoginScreen(
     navigationManager: INavigationManager,
+) {
+    LoginScreenInternal(
+        navigationManager = navigationManager
+    )
+}
+
+@Composable
+internal fun LoginScreenInternal(
+    navigationManager: INavigationManager,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()

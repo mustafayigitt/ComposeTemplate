@@ -16,8 +16,8 @@ import javax.inject.Inject
  * mustafa.yt65@gmail.com
  */
 @HiltViewModel
-class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase
+internal class LoginViewModel @Inject constructor(
+    private val login: LoginUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -27,7 +27,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = LoginUiState(isLoading = true)
             
-            loginUseCase.invoke(email, password)
+            login.invoke(email, password)
                 .onSuccess {
                     _uiState.value = LoginUiState(
                         shouldNavigateToSplash = true,

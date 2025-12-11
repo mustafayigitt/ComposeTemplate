@@ -26,6 +26,18 @@ import com.ytapps.composetemplate.core.navigation.INavigationManager
 @Composable
 fun DetailScreen(
     navigationManager: INavigationManager,
+    id: String
+) {
+    DetailScreenInternal(
+        navigationManager = navigationManager,
+        id = id
+    )
+}
+
+
+@Composable
+internal fun DetailScreenInternal(
+    navigationManager: INavigationManager,
     id: String,
     viewModel: DetailViewModel = hiltViewModel()
 ) {

@@ -17,9 +17,18 @@ import com.ytapps.composetemplate.core.navigation.INavigationManager
  * mustafa.yt65@gmail.com
  */
 
-/*** Screen */
 @Composable
 fun SplashScreen(
+    navigationManager: INavigationManager,
+) {
+    SplashScreenInternal(
+        navigationManager = navigationManager
+    )
+}
+
+/*** Screen */
+@Composable
+internal fun SplashScreenInternal(
     navigationManager: INavigationManager,
     viewModel: SplashViewModel = hiltViewModel()
 ) {

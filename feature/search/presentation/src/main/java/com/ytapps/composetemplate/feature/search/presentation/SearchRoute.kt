@@ -13,9 +13,17 @@ import com.ytapps.composetemplate.core.navigation.INavigationManager
  * Created by mustafayigitt on 02/12/2025
  * mustafa.yt65@gmail.com
  */
-
 @Composable
 fun SearchScreen(
+    navigationManager: INavigationManager,
+) {
+    SearchScreenInternal(
+        navigationManager = navigationManager
+    )
+}
+
+@Composable
+internal fun SearchScreenInternal(
     navigationManager: INavigationManager,
     viewModel: SearchViewModel = hiltViewModel()
 ) {

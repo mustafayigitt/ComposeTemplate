@@ -7,6 +7,6 @@ import kotlin.collections.List
  * mustafa.yt65@gmail.com
  */
 
-data class ListUiState(
+internal data class ListUiState(
     val items: List<String> = listOf()
 )

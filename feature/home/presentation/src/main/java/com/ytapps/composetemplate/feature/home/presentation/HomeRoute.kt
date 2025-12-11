@@ -15,9 +15,17 @@ import com.ytapps.composetemplate.core.navigation.INavigationManager
  * Created by mustafayigitt on 02/12/2025
  * mustafa.yt65@gmail.com
  */
-
 @Composable
 fun HomeScreen(
+    navigationManager: INavigationManager,
+) {
+    HomeScreenInternal(
+        navigationManager = navigationManager
+    )
+}
+
+@Composable
+internal fun HomeScreenInternal(
     navigationManager: INavigationManager,
     viewModel: HomeViewModel = hiltViewModel()
 ) {

@@ -21,9 +21,17 @@ import com.ytapps.composetemplate.core.navigation.INavigationManager
  * Created by mustafayigitt on 02/12/2025
  * mustafa.yt65@gmail.com
  */
-
 @Composable
 fun ListScreen(
+    navigationManager: INavigationManager,
+) {
+    ListScreenInternal(
+        navigationManager = navigationManager
+    )
+}
+
+@Composable
+internal fun ListScreenInternal(
     navigationManager: INavigationManager,
     viewModel: ListViewModel = hiltViewModel()
 ) {

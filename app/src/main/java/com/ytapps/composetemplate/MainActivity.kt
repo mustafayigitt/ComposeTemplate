@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.ui.AppNavigation
 import com.ytapps.composetemplate.core.theme.ComposeTemplateTheme
-import com.ytapps.composetemplate.core.navigation.NavigationManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
