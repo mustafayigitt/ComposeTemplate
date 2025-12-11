@@ -4,7 +4,7 @@ import com.ytapps.composetemplate.core.api.Result
 import com.ytapps.composetemplate.core.api.map
 import com.ytapps.composetemplate.core.base.BaseRepository
 import com.ytapps.composetemplate.core.local.IPreferencesManager
-import com.ytapps.composetemplate.feature.auth.data.dto.AuthRequestModel
+import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
 import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
 import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
 import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
