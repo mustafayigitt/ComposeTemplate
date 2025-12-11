@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ytapps.composetemplate.core.navigation.NavigationManager
+import com.ytapps.composetemplate.core.navigation.INavigationManager
 
 /**
  * Created by mustafayigitt on 02/12/2025
@@ -16,7 +16,7 @@ import com.ytapps.composetemplate.core.navigation.NavigationManager
 
 @Composable
 fun SearchScreen(
-    navigationManager: NavigationManager,
+    navigationManager: INavigationManager,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     Box(

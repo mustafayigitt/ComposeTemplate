@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ytapps.composetemplate.core.navigation.NavigationManager
 import com.ytapps.composetemplate.contract.DetailRoute
+import com.ytapps.composetemplate.core.navigation.INavigationManager
 
 /**
  * Created by mustafayigitt on 02/12/2025
@@ -24,7 +24,7 @@ import com.ytapps.composetemplate.contract.DetailRoute
 
 @Composable
 fun ListScreen(
-    navigationManager: NavigationManager,
+    navigationManager: INavigationManager,
     viewModel: ListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

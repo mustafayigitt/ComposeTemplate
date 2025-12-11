@@ -6,11 +6,13 @@ import com.ytapps.composetemplate.contract.ProfileRoute
 import com.ytapps.composetemplate.contract.SearchRoute
 import com.ytapps.composetemplate.contract.SplashRoute
 import com.ytapps.composetemplate.core.navigation.IBottomBarItem
-import com.ytapps.composetemplate.core.navigation.NavigationManager
+import com.ytapps.composetemplate.core.navigation.INavigationItem
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
+import dagger.multibindings.StringKey
 import javax.inject.Singleton
 
 @Module
@@ -25,13 +27,22 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideNavigationManager(): NavigationManager {
-        val startDestination = SplashRoute
-        val bottomBarItems = listOf<IBottomBarItem>(
-            HomeRoute,
-            SearchRoute,
-            ProfileRoute
-        )
-        return NavigationManager(startDestination, bottomBarItems)
+    fun provideStartDestination(): INavigationItem {
+        return SplashRoute
     }
+
+    @Provides
+    @IntoMap
+    @StringKey("1")
+    fun provideHomeBottomBarItem(): IBottomBarItem = HomeRoute
+
+    @Provides
+    @IntoMap
+    @StringKey("2")
+    fun provideSearchBottomBarItem(): IBottomBarItem = SearchRoute
+
+    @Provides
+    @IntoMap
+    @StringKey("3")
+    fun provideProfileBottomBarItem(): IBottomBarItem = ProfileRoute
 }

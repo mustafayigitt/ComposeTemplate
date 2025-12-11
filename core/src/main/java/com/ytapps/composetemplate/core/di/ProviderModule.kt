@@ -4,6 +4,9 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ytapps.composetemplate.core.api.AuthInterceptor
 import com.ytapps.composetemplate.core.api.TokenAuthenticator
+import com.ytapps.composetemplate.core.navigation.IBottomBarItem
+import com.ytapps.composetemplate.core.navigation.INavigationItem
+import com.ytapps.composetemplate.core.navigation.NavigationManager
 import com.ytapps.composetemplate.core.util.Constants
 import dagger.Module
 import dagger.Provides

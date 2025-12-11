@@ -12,4 +12,9 @@ dependencies {
     implementation(project(":feature:auth:domain"))
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.truth)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

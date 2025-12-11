@@ -3,6 +3,7 @@ package com.ytapps.composetemplate
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.ui.AppNavigation
 import com.ytapps.composetemplate.core.theme.ComposeTemplateTheme
 import com.ytapps.composetemplate.core.navigation.NavigationManager
@@ -13,7 +14,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
     
     @Inject
-    lateinit var navigationManager: NavigationManager
+    lateinit var navigationManager: INavigationManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

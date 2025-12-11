@@ -1,11 +1,9 @@
-package com.ytapps.composetemplate.presentation.login
+package com.ytapps.composetemplate.feature.auth.presentation
 
 import com.google.common.truth.Truth
 import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.feature.auth.domain.model.AuthRequestModel
-import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
 import com.ytapps.composetemplate.feature.auth.domain.LoginUseCase
-import com.ytapps.composetemplate.feature.auth.presentation.LoginViewModel
+import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -42,13 +40,13 @@ class LoginViewModelTest {
     @Test
     fun `given valid user credentials when login should set shouldNavigationSplash true`() {
         // Given
-        val authRequestModel = AuthRequestModel("email", "password")
+        val (email, password) = "email" to "password"
         val authModel = mockk<AuthModel>()
         val response = Result.Success(authModel)
 
         // When
-        coEvery { loginUseCase.invoke(authRequestModel) } returns response
-        viewModel.login(authRequestModel.email, authRequestModel.password)
+        coEvery { loginUseCase.invoke(email, password) } returns response
+        viewModel.login("email", "password")
 
         // Then
         Truth.assertThat(viewModel.uiState.value.shouldNavigateToSplash).isTrue()
@@ -59,15 +57,15 @@ class LoginViewModelTest {
     @Test
     fun `given invalid user credentials when login should set error`() {
         // Given
-        val authRequestModel = AuthRequestModel("email", "password")
         val response: Result<AuthModel> = Result.Error("error")
 
         // When
-        coEvery { loginUseCase.invoke(authRequestModel) } returns response
-        viewModel.login(authRequestModel.email, authRequestModel.password)
+        coEvery { loginUseCase.invoke(any(), any()) } returns response
+        viewModel.login("email", "password")
 
         // Then
-        Truth.assertThat(viewModel.uiState.value.error).isEqualTo((response as Result.Error).message)
+        Truth.assertThat(viewModel.uiState.value.error)
+            .isEqualTo((response as Result.Error).message)
         Truth.assertThat(viewModel.uiState.value.isLoading).isFalse()
         Truth.assertThat(viewModel.uiState.value.shouldNavigateToSplash).isFalse()
     }

@@ -13,6 +13,6 @@ dependencies {
     implementation(libs.androidx.compose.bom)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.navigation3.runtime)
+    api(libs.androidx.navigation3.runtime)
     implementation(libs.kotlinx.serialization.core)
 }

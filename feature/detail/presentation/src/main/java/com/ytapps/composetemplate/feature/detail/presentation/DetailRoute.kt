@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ytapps.composetemplate.core.navigation.NavigationManager
+import com.ytapps.composetemplate.core.navigation.INavigationManager
 
 /**
  * Created by mustafayigitt on 02/12/2025
@@ -25,7 +25,7 @@ import com.ytapps.composetemplate.core.navigation.NavigationManager
 
 @Composable
 fun DetailScreen(
-    navigationManager: NavigationManager,
+    navigationManager: INavigationManager,
     id: String,
     viewModel: DetailViewModel = hiltViewModel()
 ) {

@@ -1,14 +1,11 @@
-package com.ytapps.composetemplate.domain.usecase
+package com.ytapps.composetemplate.feature.auth.domain.usecase
 
 import com.google.common.truth.Truth
 import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.feature.auth.domain.model.AuthRequestModel
-import com.ytapps.composetemplate.feature.auth.domain.model.AuthResponseModel
-import com.ytapps.composetemplate.feature.auth.domain.mapper.AuthMapper
 import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
 import com.ytapps.composetemplate.feature.auth.domain.LoginUseCase
+import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -21,28 +18,25 @@ import org.junit.Test
 class LoginUseCaseTest {
 
     private lateinit var autRepository: IAuthRepository
-    private lateinit var authMapper: AuthMapper
     private lateinit var loginUseCase: LoginUseCase
 
     @Before
     fun setUp() {
         autRepository = mockk()
-        authMapper = mockk()
-        loginUseCase = LoginUseCase(autRepository, authMapper)
+        loginUseCase = LoginUseCase(autRepository)
     }
 
     @Test
     fun `given Result-Success AuthRequestModel when LoginUseCase() return Result-Success`() {
         // Given
-        val authRequestModel = mockk<AuthRequestModel>()
-        val authResponseModel = mockk<AuthResponseModel>()
-        val response = Result.Success(authResponseModel)
+        val email = "email"
+        val password = "password"
+        val response = Result.Success(mockk<AuthModel>())
 
-        every { authMapper.map(authResponseModel) } returns mockk()
-        coEvery { autRepository.login(authRequestModel) } returns response
+        coEvery { autRepository.login(email, password) } returns response
 
         // When
-        val result = runBlocking { loginUseCase(authRequestModel) }
+        val result = runBlocking { loginUseCase(email, password) }
 
         // Then
         Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
@@ -51,13 +45,12 @@ class LoginUseCaseTest {
     @Test
     fun `given Result-Error AuthRequestModel when LoginUseCase() return Result-Error`() {
         // Given
-        val authRequestModel = mockk<AuthRequestModel>()
-        val response: Result<AuthResponseModel> = Result.Error("Login Failed")
+        val response: Result<AuthModel> = Result.Error("Login Failed")
 
-        coEvery { autRepository.login(authRequestModel) } returns response
+        coEvery { autRepository.login(any(), any()) } returns response
 
         // When
-        val result = runBlocking { loginUseCase(authRequestModel) }
+        val result = runBlocking { loginUseCase("email", "password") }
 
         // Then
         Truth.assertThat(result).isInstanceOf(Result.Error::class.java)

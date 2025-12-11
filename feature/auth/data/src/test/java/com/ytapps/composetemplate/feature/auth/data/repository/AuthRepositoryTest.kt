@@ -1,12 +1,12 @@
-package com.ytapps.composetemplate.data.repository
+package com.ytapps.composetemplate.feature.auth.data.repository
 
 import com.google.common.truth.Truth
 import com.ytapps.composetemplate.core.api.Result
 import com.ytapps.composetemplate.core.local.IPreferencesManager
-import com.ytapps.composetemplate.feature.auth.domain.model.AuthRequestModel
-import com.ytapps.composetemplate.feature.auth.domain.model.AuthResponseModel
-import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
 import com.ytapps.composetemplate.feature.auth.data.AuthRepository
+import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
+import com.ytapps.composetemplate.feature.auth.data.model.AuthResponseModel
+import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
 import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -62,7 +62,10 @@ class AuthRepositoryTest {
     @Test
     fun `given valid authRequestModel when login() then verify setAccessToken called`() {
         // Given
-        val authRequestModel = mockk<AuthRequestModel>()
+        val authRequestModel = AuthRequestModel(
+            email = "email",
+            password = "password"
+        )
         val authResponseModel = AuthResponseModel(
             accessToken = "token",
             refreshToken = "refresh",
@@ -72,7 +75,7 @@ class AuthRepositoryTest {
 
         // When
         coEvery { authService.login(authRequestModel) } returns Response.success(authResponseModel)
-        val result = runBlocking { authRepository.login(authRequestModel) }
+        val result = runBlocking { authRepository.login("email", "password") }
 
         // Then
         Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
@@ -84,14 +87,17 @@ class AuthRepositoryTest {
     @Test
     fun `given invalid authRequestModel when login() then verify setAccessToken not called`() {
         // Given
-        val authRequestModel = mockk<AuthRequestModel>()
+        val authRequestModel = AuthRequestModel(
+            email = "email",
+            password = "password"
+        )
 
         // When
         coEvery { authService.login(authRequestModel) } returns Response.error(
             400,
             "Bad Request".toResponseBody()
         )
-        val result = runBlocking { authRepository.login(authRequestModel) }
+        val result = runBlocking { authRepository.login("email", "password") }
 
         // Then
         Truth.assertThat(result).isInstanceOf(Result.Error::class.java)

@@ -8,8 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ytapps.composetemplate.core.navigation.NavigationManager
 import com.ytapps.composetemplate.contract.ListRoute
+import com.ytapps.composetemplate.core.navigation.INavigationManager
 
 /**
  * Created by mustafayigitt on 02/12/2025
@@ -18,7 +18,7 @@ import com.ytapps.composetemplate.contract.ListRoute
 
 @Composable
 fun HomeScreen(
-    navigationManager: NavigationManager,
+    navigationManager: INavigationManager,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     Box(

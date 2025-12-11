@@ -11,9 +11,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ytapps.composetemplate.core.navigation.NavigationManager
-import com.ytapps.composetemplate.contract.SplashRoute
 import com.ytapps.composetemplate.contract.LoginRoute
+import com.ytapps.composetemplate.contract.SplashRoute
+import com.ytapps.composetemplate.core.navigation.INavigationManager
 
 /**
  * Created by mustafayigitt on 26/08/2023
@@ -22,7 +22,7 @@ import com.ytapps.composetemplate.contract.LoginRoute
 
 @Composable
 fun LoginScreen(
-    navigationManager: NavigationManager,
+    navigationManager: INavigationManager,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
