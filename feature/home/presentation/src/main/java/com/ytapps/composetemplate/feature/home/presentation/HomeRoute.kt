@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ytapps.composetemplate.contract.ListRoute
+import com.ytapps.composetemplate.feature.list.navigation.ListRoute
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 
 /**

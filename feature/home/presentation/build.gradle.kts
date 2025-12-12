@@ -12,4 +12,6 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":contract"))
     implementation(project(":feature:home:domain"))
+    implementation(project(":feature:home:navigation"))
+    implementation(project(":feature:list:navigation"))
 }

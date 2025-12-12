@@ -11,8 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ytapps.composetemplate.contract.LoginRoute
-import com.ytapps.composetemplate.contract.SplashRoute
+import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
+import com.ytapps.composetemplate.feature.splash.navigation.SplashRoute
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 
 /**

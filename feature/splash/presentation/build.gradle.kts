@@ -12,4 +12,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":contract"))
     implementation(project(":feature:splash:domain"))
+    implementation(project(":feature:splash:navigation"))
+    implementation(project(":feature:home:navigation"))
+    implementation(project(":feature:auth:navigation"))
 }

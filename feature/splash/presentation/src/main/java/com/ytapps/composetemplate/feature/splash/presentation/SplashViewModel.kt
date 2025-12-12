@@ -2,8 +2,8 @@ package com.ytapps.composetemplate.feature.splash.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ytapps.composetemplate.contract.HomeRoute
-import com.ytapps.composetemplate.contract.LoginRoute
+import com.ytapps.composetemplate.feature.home.navigation.HomeRoute
+import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
 import com.ytapps.composetemplate.core.local.IPreferencesManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
