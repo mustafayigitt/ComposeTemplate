@@ -24,7 +24,7 @@ ComposeTemplate is a Jetpack Compose template application that follows Clean Arc
 ## Built With
 
 * [Kotlin](https://github.com/JetBrains/kotlin) - Modern programming language for Android
-* [MVVM](https://developer.android.com/topic/architecture) - Architecture pattern
+* [Modern Architecture](https://developer.android.com/topic/architecture) - UDF Architecture pattern
 * [Jetpack Compose](https://developer.android.com/jetpack/compose) - Modern UI toolkit
 * [Material 3](https://m3.material.io/) - Material Design 3 components
 * [Navigation3](https://developer.android.com/jetpack/androidx/releases/navigation) - Type-safe navigation library
@@ -45,35 +45,17 @@ The project follows Clean Architecture principles with clear separation of conce
 ComposeTemplate/
 ├── app/                # Main application module
 ├── core/               # Core module with shared utilities
+│   ├── data/           # Data storage implementations
+│   ├── network/        # Network layer utilities
+│   └── preferences/    # Shared preferences utilities
+├── contract/           # Shared navigation routes and contracts
 ├── feature/
-│   ├── auth/           # Auth feature module
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   ├── home/           # Home feature module
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   ├── list/           # List feature module
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   ├── detail/         # Detail feature module
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   ├── search/         # Search feature module
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   ├── splash/         # Splash feature module
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   └── profile/        # Profile feature module
-│       ├── data/
-│       ├── domain/
-│       └── presentation/
+│   ├── example/           # Example feature module
+│   │   ├── data/       # Data layer (repositories, API services)
+│   │   ├── domain/     # Domain layer (use cases, business logic)
+│   │   ├── navigation/ # Navigation layer (routes, navigation logic)
+│   │   └── presentation/ # Presentation layer (UI, ViewModels)
+│   ├──...
 ├── build-logic/                        # Build configuration
 │   ├── convention/                     # Convention plugins
 │   │   └── src/main/kotlin/com/ytapps/composetemplate/convention/
@@ -81,11 +63,21 @@ ComposeTemplate/
 │   │       ├── AndroidComposeConventionPlugin.kt
 │   │       ├── AndroidHiltConventionPlugin.kt
 │   │       ├── AndroidLibraryConventionPlugin.kt
+│   │       ├── FeatureConventionPlugin.kt
+│   │       ├── TestConventionPlugin.kt
 │   │       ├── KotlinAndroid.kt
 │   │       └── ProjectExtensions.kt
 │   └── README.md                       # Build logic documentation
 └── gradle/
     └── libs.versions.toml # Version catalog
+
+## Configuration Files
+
+├── gradle.properties     # Gradle configuration and API URLs
+├── local.properties      # Local development properties (gitignored)
+├── .gitignore           # Git ignore rules
+├── initializer.sh       # Project initialization script
+└── settings.gradle.kts  # Gradle settings
 ```
 
 ## Build Configuration
@@ -100,12 +92,15 @@ Located in `build-logic/convention/`, these plugins encapsulate common build con
 - **`composetemplate.android.application.compose`**: Jetpack Compose setup with common dependencies
 - **`composetemplate.android.hilt`**: Hilt dependency injection configuration
 - **`composetemplate.android.library`**: Android library module configuration
+- **`composetemplate.test`**: Common testing dependencies (JUnit, Truth, MockK, Espresso)
+- **`composetemplate.feature`**: Base dependencies for feature modules (:core, :contract)
 
 Benefits:
 - ✅ Centralized build configuration
-- ✅ Reduced duplication across modules
+- ✅ Reduced duplication across modules (60+ lines eliminated)
 - ✅ Type-safe Kotlin DSL
 - ✅ Easy to maintain and update
+- ✅ Consistent testing setup across all modules
 
 ### Version Catalog
 
@@ -304,49 +299,54 @@ All dependencies are managed through `gradle/libs.versions.toml` using Version C
 - Retrofit: 2.11.0
 - Navigation3: 1.0.0
 - Kotlin: 2.2.10
+- Kotlin Serialization: 2.1.21
+- Kotlin Coroutines: 1.7.3
 
 ## Usage Examples
 
-### Creating a New Screen
+### Creating a New Feature
 
-1. **Create Route Object** (in `presentation/yourfeature/YourFeatureRoute.kt`):
+1. **Create Route Object** (in `feature/yourfeature/navigation/YourFeatureRoute.kt`):
 
 ```kotlin
 @Serializable
-data object YourFeature : INavigationItem {
+data object YourFeatureRoute : INavigationItem {
     override val route: String = "route_your_feature"
+}
+```
 
+2. **Create Screen Provider** (in `feature/yourfeature/presentation/YourFeatureScreenProvider.kt`):
+
+```kotlin
+class YourFeatureScreenProvider @Inject constructor() : IScreenProvider {
     @Composable
-    override fun ContentScreen(navigationManager: NavigationManager) {
-        YourFeatureScreen(navigationManager = navigationManager)
+    override fun provideScreen(
+        route: INavigationItem,
+        navigationManager: INavigationManager
+    ): Boolean {
+        return when (route) {
+            is YourFeatureRoute -> {
+                YourFeatureScreen(navigationManager)
+                true
+            }
+            else -> false
+        }
     }
 }
 ```
 
-2. **Create Screen Composable**:
+3. **Create Screen Composable** (in `feature/yourfeature/presentation/YourFeatureScreen.kt`):
 
 ```kotlin
 @Composable
 fun YourFeatureScreen(
-    navigationManager: NavigationManager,
-    viewModel: YourFeatureViewModel = hiltViewModel()
+    navigationManager: INavigationManager,
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    
     // Your UI implementation
 }
 ```
 
-3. **Add to NavigationManager** (if needed for bottom bar):
-
-```kotlin
-val bottomBarItems: List<IBottomBarItem> = listOf(
-    Home,
-    Search,
-    YourFeature, // Add here
-    Profile,
-)
-```
+4. **Register Screen Provider** in your DI module.
 
 ### Making API Calls
 
@@ -448,6 +448,11 @@ This project follows **Clean Architecture** principles with three main layers:
 - **Components**: ViewModels, UI States, Composable Screens, Routes
 - **Location**: `feature/*/presentation/` package
 
+### Contract Layer
+- **Responsibility**: Shared navigation routes and UI contracts
+- **Components**: Main route definitions, Bottom bar item definitions, Navigation contracts
+- **Location**: `contract/` package
+
 ### Core Layer
 - **Responsibility**: Shared utilities and base classes
 - **Components**: Base classes, Navigation, DI modules, Theme, API utilities
@@ -472,16 +477,24 @@ Example test:
 
 ```kotlin
 @Test
-fun `test login success`() = runTest {
+fun `test login success`() = runBlocking {
     // Given
-    val expectedResult = Result.Success(authResponse)
-    coEvery { authService.login(any()) } returns Response.success(authResponse)
-    
+    val authRequestModel = AuthRequestModel(email = "email", password = "password")
+    val authResponseModel = AuthResponseModel(
+        accessToken = "token",
+        refreshToken = "refresh",
+        tokenType = "Bearer",
+        expiresIn = "3600"
+    )
+
+    coEvery { authService.login(authRequestModel) } returns Response.success(authResponseModel)
+
     // When
-    val result = authRepository.login(authRequest)
-    
+    val result = authRepository.login("email", "password")
+
     // Then
     assertThat(result).isInstanceOf(Result.Success::class.java)
+    coVerify { preferencesManager.setAccessToken("token") }
 }
 ```
 

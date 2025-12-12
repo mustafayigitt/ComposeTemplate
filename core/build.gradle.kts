@@ -2,6 +2,7 @@ plugins {
     id("composetemplate.android.library")
     id("composetemplate.android.library.compose")
     id("composetemplate.android.hilt")
+    id("composetemplate.test")
 }
 
 android {
@@ -19,8 +20,4 @@ dependencies {
     implementation(libs.logging.interceptor)
     implementation(libs.androidx.datastore.preferences)
     
-    testImplementation(libs.junit)
-    testImplementation(libs.truth)
-    testImplementation(libs.mockk)
-    testImplementation(libs.kotlinx.coroutines.test)
 }

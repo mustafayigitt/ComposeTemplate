@@ -12,6 +12,8 @@ build-logic/
 │       ├── AndroidComposeConventionPlugin.kt
 │       ├── AndroidHiltConventionPlugin.kt
 │       ├── AndroidLibraryConventionPlugin.kt
+│       ├── FeatureConventionPlugin.kt
+│       ├── TestConventionPlugin.kt
 │       ├── KotlinAndroid.kt
 │       └── ProjectExtensions.kt
 └── settings.gradle.kts
@@ -24,6 +26,13 @@ Convention Plugins help you:
 - **Centralize configuration**: Manage SDK versions, dependencies in one place
 - **Improve maintainability**: Update configuration once, apply everywhere
 - **Type-safe**: Use Kotlin instead of Groovy for build scripts
+
+## ✨ Recent Improvements
+
+- **New Test Plugin**: Eliminates 60+ lines of repeated test dependencies across 15+ modules
+- **New Feature Plugin**: Provides consistent base dependencies for all feature modules
+- **Organized Version Catalog**: Better categorized dependencies and versions for improved maintainability
+- **Cleaner Module Builds**: Simplified build.gradle.kts files with less duplication
 
 ## 🔌 Available Plugins
 
@@ -85,31 +94,115 @@ plugins {
 }
 ```
 
+### `composetemplate.test`
+**What it does:**
+- Adds common testing dependencies (JUnit, Truth, MockK, Coroutines testing)
+- Adds Android testing dependencies (JUnit Android, Espresso)
+- Eliminates test dependency duplication across modules
+
+**Usage:**
+```kotlin
+plugins {
+    id("composetemplate.test")
+}
+```
+
+### `composetemplate.feature`
+**What it does:**
+- Adds common feature module dependencies (:core, :contract)
+- Provides consistent base dependencies for all feature modules
+
+**Usage:**
+```kotlin
+plugins {
+    id("composetemplate.feature")
+}
+```
+
+## 💡 Practical Usage Examples
+
+### App Module
+```kotlin
+plugins {
+    id("composetemplate.android.application")
+    id("composetemplate.android.application.compose")
+    id("composetemplate.android.hilt")
+    id("composetemplate.test")
+    alias(libs.plugins.kotlin.serialization)
+}
+```
+
+### Feature Presentation Module
+```kotlin
+plugins {
+    id("composetemplate.android.library")
+    id("composetemplate.android.library.compose")
+    id("composetemplate.android.hilt")
+    id("composetemplate.feature")  // Provides :core and :contract
+    id("composetemplate.test")     // Provides all test dependencies
+}
+```
+
+### Feature Domain Module
+```kotlin
+plugins {
+    id("composetemplate.android.library")
+    id("composetemplate.android.hilt")
+    id("composetemplate.test")
+}
+```
+
 
 ## 📦 Version Catalog Integration
 
 Convention Plugins work seamlessly with the Version Catalog (`gradle/libs.versions.toml`):
 
-### SDK Versions
+### Organized Version Structure
 ```toml
 [versions]
+# SDK versions
 minSdk = "23"
 compileSdk = "36"
 targetSdk = "36"
+
+# AndroidX
+androidx-core = "1.13.1"
+androidx-compose-bom = "2024.06.00"
+androidx-lifecycle = "2.8.4"
+
+# Network
+retrofit = "2.11.0"
+converter-gson = "2.11.0"
+
+# Testing
+junit = "4.13.2"
+truth = "1.1.5"
+mockk = "1.13.7"
 ```
 
-These are automatically applied by the Convention Plugins, so you don't need to specify them in individual module build files.
-
-### Dependencies
+### Categorized Dependencies
 ```toml
 [libraries]
+# AndroidX Core
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
+
+# Compose
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "androidx-compose-bom" }
+androidx-ui = { module = "androidx.compose.ui:ui" }
+androidx-material3 = { module = "androidx.compose.material3:material3" }
+
+# Testing
+junit = { module = "junit:junit", version.ref = "junit" }
+truth = { module = "com.google.truth:truth", version.ref = "truth" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 ```
 
 Access in build files:
 ```kotlin
 dependencies {
     implementation(libs.androidx.core)
+    testImplementation(libs.junit)
 }
 ```
 
@@ -155,6 +248,8 @@ To change SDK versions or dependencies:
 2. **Use Version Catalog**: Never hardcode versions in Convention Plugins
 3. **Document changes**: Update this README when adding new plugins
 4. **Test thoroughly**: Changes affect all modules using the plugin
+5. **Organize dependencies**: Group related dependencies in version catalog with clear categories
+6. **Leverage convention plugins**: Use `test` and `feature` plugins to eliminate duplication
 
 ## 🚀 Adding a New Convention Plugin
 

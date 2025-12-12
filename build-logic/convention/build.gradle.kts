@@ -17,13 +17,13 @@ gradlePlugin {
             id = "composetemplate.android.application"
             implementationClass = "com.ytapps.composetemplate.convention.AndroidApplicationConventionPlugin"
         }
+        register("androidApplicationCompose") {
+            id = "composetemplate.android.application.compose"
+            implementationClass = "com.ytapps.composetemplate.convention.AndroidComposeConventionPlugin"
+        }
         register("androidLibrary") {
             id = "composetemplate.android.library"
             implementationClass = "com.ytapps.composetemplate.convention.AndroidLibraryConventionPlugin"
-        }
-        register("androidCompose") {
-            id = "composetemplate.android.application.compose"
-            implementationClass = "com.ytapps.composetemplate.convention.AndroidComposeConventionPlugin"
         }
         register("androidLibraryCompose") {
             id = "composetemplate.android.library.compose"
@@ -32,6 +32,14 @@ gradlePlugin {
         register("androidHilt") {
             id = "composetemplate.android.hilt"
             implementationClass = "com.ytapps.composetemplate.convention.AndroidHiltConventionPlugin"
+        }
+        register("test") {
+            id = "composetemplate.test"
+            implementationClass = "com.ytapps.composetemplate.convention.TestConventionPlugin"
+        }
+        register("feature") {
+            id = "composetemplate.feature"
+            implementationClass = "com.ytapps.composetemplate.convention.FeatureConventionPlugin"
         }
     }
 }

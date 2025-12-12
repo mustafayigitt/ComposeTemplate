@@ -5,7 +5,8 @@ plugins {
     id("composetemplate.android.application")
     id("composetemplate.android.application.compose")
     id("composetemplate.android.hilt")
-    alias(libs.plugins.jetbrains.kotlin.serialization)
+    id("composetemplate.test")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -81,10 +82,4 @@ dependencies {
     implementation(libs.androidx.material3.adaptive.navigation3)
     implementation(libs.kotlinx.serialization.core)
 
-    testImplementation(libs.junit)
-    testImplementation(libs.truth)
-    testImplementation(libs.mockk)
-    testImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

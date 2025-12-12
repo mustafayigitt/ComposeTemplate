@@ -2,7 +2,7 @@ plugins {
     id("composetemplate.android.library")
     id("composetemplate.android.hilt")
     id("composetemplate.android.library.compose")
-    alias(libs.plugins.jetbrains.kotlin.serialization)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -14,3 +14,4 @@ dependencies {
     implementation(project(":contract"))
     implementation(libs.kotlinx.serialization.core)
 }
+
