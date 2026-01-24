@@ -2,6 +2,7 @@ import java.util.Properties
 import kotlin.apply
 
 plugins {
+    id("composetemplate.create.new.app")
     id("composetemplate.android.application")
     id("composetemplate.android.application.compose")
     id("composetemplate.android.hilt")

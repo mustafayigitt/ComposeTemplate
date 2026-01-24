@@ -17,7 +17,7 @@
 
 ## About The Project
 
-![Screen Shot](screenshot/compose-template-initializer.png)
+![Screen Shot](screenshot/compose-template-initializer-plugin.png)
 
 ComposeTemplate is a Jetpack Compose template application that follows Clean Architecture and modularization best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
 
@@ -76,7 +76,6 @@ ComposeTemplate/
 ├── gradle.properties     # Gradle configuration and API URLs
 ├── local.properties      # Local development properties (gitignored)
 ├── .gitignore           # Git ignore rules
-├── initializer.sh       # Project initialization script
 └── settings.gradle.kts  # Gradle settings
 ```
 
@@ -206,7 +205,7 @@ For detailed build configuration documentation, see [build-logic/README.md](buil
 
 ### Prerequisites
 
-- Android Studio Hedgehog (2023.1.1) or later
+- Android Studio Ladybug (2024.2.1) or later
 - JDK 17 or later
 - Android SDK with API level 23 (Android 6.0) or higher
 - Gradle 8.13.0 or later
@@ -229,16 +228,24 @@ BASE_URL_DEBUG=https://your-debug-api-url.com/
 BASE_URL=https://your-production-api-url.com/
 ```
 
-3. **Run the Initializer Script**
+3. **Run the Initializer Plugin**
 
-To create a new project using this template:
+This template includes a built-in generator to create a fresh project with your own package name and structure.
 
-```sh
-chmod +x initializer.sh
-./initializer.sh
+```bash
+# Option 1: Quick Mode
+# Skip the questions by providing the Application ID and Name directly:
+./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -q --console=plain
 ```
 
-The script provides an interactive setup with:
+```bash
+# Option 2: Setup Mode
+# Follow the prompts step-by-step for a guided setup:
+./gradlew create-new-app -q --console=plain
+```
+Note: The -q --console=plain flags are crucial to keep the terminal output clean and ensure the prompts (in setup mode) are visible.
+
+The plugin provides an interactive setup with:
 - **Input Validation**: Ensures valid application ID and name formats
 - **Configuration Summary**: Shows all settings before proceeding
 - **Confirmation Prompt**: Asks for confirmation before creating the project
@@ -251,7 +258,7 @@ When prompted:
   - Must start with a letter
   - Only alphanumeric characters allowed
 
-The script will:
+The plugin will:
 - ✅ Validate your inputs
 - ✅ Create a new project directory with your application name
 - ✅ Restructure all source directories (app + build-logic)

@@ -13,6 +13,10 @@ dependencies {
 
 gradlePlugin {
     plugins {
+        register("createNewApp") {
+            id = "composetemplate.create.new.app"
+            implementationClass = "com.ytapps.composetemplate.convention.CreateNewAppPlugin"
+        }
         register("androidApplication") {
             id = "composetemplate.android.application"
             implementationClass = "com.ytapps.composetemplate.convention.AndroidApplicationConventionPlugin"
