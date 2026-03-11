@@ -16,6 +16,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
+import com.lhacenmed.budget.R
 
 @Composable
 fun LoginPage(
@@ -41,7 +43,7 @@ fun LoginPage(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Budget", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+            Text(stringResource(id = R.string.app_name), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
             Text("Track your groceries together",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)

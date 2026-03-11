@@ -8,9 +8,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhacenmed.budget.util.DarkThemePreference
 import com.lhacenmed.budget.util.PreferenceUtil
 
-val LocalDarkTheme         = compositionLocalOf { DarkThemePreference() }
-val LocalDynamicColorSwitch = compositionLocalOf { false }
-val LocalThemeColorIndex   = compositionLocalOf { 0 }
+val LocalDarkTheme          = compositionLocalOf { PreferenceUtil.DEFAULT_DARK_THEME }
+val LocalDynamicColorSwitch = compositionLocalOf { PreferenceUtil.DEFAULT_DYNAMIC_COLOR }
+val LocalThemeColorIndex    = compositionLocalOf { PreferenceUtil.DEFAULT_COLOR_INDEX }
 
 @Composable
 fun SettingsProvider(content: @Composable () -> Unit) {

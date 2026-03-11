@@ -19,21 +19,26 @@ private val Context.appDataStore: DataStore<Preferences>
 
 object PreferenceUtil {
 
+    // ── Defaults (single source of truth) ────────────────────────────────────
+    val DEFAULT_DARK_THEME    = DarkThemePreference()
+    val DEFAULT_DYNAMIC_COLOR = true
+    val DEFAULT_COLOR_INDEX   = 0
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var dataStore: DataStore<Preferences>
 
-    private val KEY_DARK_THEME = intPreferencesKey("dark_theme_value")
+    private val KEY_DARK_THEME    = intPreferencesKey("dark_theme_value")
     private val KEY_HIGH_CONTRAST = booleanPreferencesKey("high_contrast")
     private val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
-    private val KEY_COLOR_INDEX = intPreferencesKey("theme_color_index")
+    private val KEY_COLOR_INDEX   = intPreferencesKey("theme_color_index")
 
-    private val _darkThemePreference = MutableStateFlow(DarkThemePreference())
+    private val _darkThemePreference   = MutableStateFlow(DEFAULT_DARK_THEME)
     val darkThemePreference: StateFlow<DarkThemePreference> = _darkThemePreference
 
-    private val _isDynamicColorEnabled = MutableStateFlow(false)
+    private val _isDynamicColorEnabled = MutableStateFlow(DEFAULT_DYNAMIC_COLOR)
     val isDynamicColorEnabled: StateFlow<Boolean> = _isDynamicColorEnabled
 
-    private val _themeColorIndex = MutableStateFlow(0)
+    private val _themeColorIndex = MutableStateFlow(DEFAULT_COLOR_INDEX)
     val themeColorIndex: StateFlow<Int> = _themeColorIndex
 
     fun init(context: Context) {
@@ -41,11 +46,11 @@ object PreferenceUtil {
         scope.launch {
             dataStore.data.collect { prefs ->
                 _darkThemePreference.value = DarkThemePreference(
-                    darkThemeValue = prefs[KEY_DARK_THEME] ?: DarkThemePreference.FOLLOW_SYSTEM,
-                    isHighContrastModeEnabled = prefs[KEY_HIGH_CONTRAST] ?: false,
+                    darkThemeValue            = prefs[KEY_DARK_THEME]    ?: DEFAULT_DARK_THEME.darkThemeValue,
+                    isHighContrastModeEnabled = prefs[KEY_HIGH_CONTRAST] ?: DEFAULT_DARK_THEME.isHighContrastModeEnabled,
                 )
-                _isDynamicColorEnabled.value = prefs[KEY_DYNAMIC_COLOR] ?: false
-                _themeColorIndex.value = prefs[KEY_COLOR_INDEX] ?: 0
+                _isDynamicColorEnabled.value = prefs[KEY_DYNAMIC_COLOR] ?: DEFAULT_DYNAMIC_COLOR
+                _themeColorIndex.value       = prefs[KEY_COLOR_INDEX]   ?: DEFAULT_COLOR_INDEX
             }
         }
     }
@@ -56,7 +61,7 @@ object PreferenceUtil {
     ) {
         scope.launch {
             dataStore.edit { prefs ->
-                prefs[KEY_DARK_THEME] = darkThemeValue
+                prefs[KEY_DARK_THEME]    = darkThemeValue
                 prefs[KEY_HIGH_CONTRAST] = isHighContrastModeEnabled
             }
         }
