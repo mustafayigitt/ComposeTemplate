@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import com.lhacenmed.budget.core.navigation.INavigationManager
 import com.lhacenmed.budget.core.navigation.ScreenRegistry
 import com.lhacenmed.budget.ui.AppNavigation
-import com.lhacenmed.budget.core.theme.ComposeTemplateTheme
+import com.lhacenmed.budget.core.theme.BudgetTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ComposeTemplateTheme {
+            BudgetTheme {
                 AppNavigation(
                     navigationManager = navigationManager,
                     screenRegistry = screenRegistry

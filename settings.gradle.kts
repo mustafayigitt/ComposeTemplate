@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ComposeTemplate"
+rootProject.name = "Budget"
 include(":app")
 include(":core")
 include(":contract")

@@ -1,25 +1,25 @@
 <br/>
 <p align="center">
-  <h3 align="center">ComposeTemplate</h3>
+  <h3 align="center">Budget</h3>
 
   <p align="center">
-    ComposeTemplate is a Jetpack Compose template application that follows Clean Architecture and modularization best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
+    Budget is a Jetpack Compose template application that follows Clean Architecture and modularization best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
     <br/>
     <br/>
-    <a href="https://github.com/mustafayigitt/ComposeTemplate/issues">Report Bug</a>
-    <a href="https://github.com/mustafayigitt/ComposeTemplate/issues">Request Feature</a>
+    <a href="https://github.com/mustafayigitt/Budget/issues">Report Bug</a>
+    <a href="https://github.com/mustafayigitt/Budget/issues">Request Feature</a>
   </p>
 </p>
 
-![Contributors](https://img.shields.io/github/contributors/mustafayigitt/ComposeTemplate?color=dark-green)
-![Stargazers](https://img.shields.io/github/stars/mustafayigitt/ComposeTemplate?style=social) ![Issues](https://img.shields.io/github/issues/mustafayigitt/ComposeTemplate)
-![License](https://img.shields.io/github/license/mustafayigitt/ComposeTemplate)
+![Contributors](https://img.shields.io/github/contributors/mustafayigitt/Budget?color=dark-green)
+![Stargazers](https://img.shields.io/github/stars/mustafayigitt/Budget?style=social) ![Issues](https://img.shields.io/github/issues/mustafayigitt/Budget)
+![License](https://img.shields.io/github/license/mustafayigitt/Budget)
 
 ## About The Project
 
 ![Screen Shot](screenshot/compose-template-initializer-plugin.png)
 
-ComposeTemplate is a Jetpack Compose template application that follows Clean Architecture and modularization best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
+Budget is a Jetpack Compose template application that follows Clean Architecture and modularization best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
 
 ## Built With
 
@@ -42,7 +42,7 @@ ComposeTemplate is a Jetpack Compose template application that follows Clean Arc
 The project follows Clean Architecture principles with clear separation of concerns and uses Convention Plugins for build configuration. The project is also modularized by feature.
 
 ```
-ComposeTemplate/
+Budget/
 ├── app/                # Main application module
 ├── core/               # Core module with shared utilities
 │   ├── data/           # Data storage implementations
@@ -215,8 +215,8 @@ For detailed build configuration documentation, see [build-logic/README.md](buil
 1. **Clone the repository**
 
 ```sh
-git clone https://github.com/mustafayigitt/ComposeTemplate.git
-cd ComposeTemplate
+git clone https://github.com/mustafayigitt/Budget.git
+cd Budget
 ```
 
 2. **Configure Base URLs**
@@ -272,7 +272,7 @@ The plugin will:
 4. **Open the Project**
 
 Open the newly created project in Android Studio:
-- If using the template directly: Open `ComposeTemplate` folder
+- If using the template directly: Open `Budget` folder
 - If using initializer: Open the created project folder (e.g., `../MyApp`)
 
 5. **Sync and Build**
@@ -508,7 +508,7 @@ fun `test login success`() = runBlocking {
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-* If you have suggestions for adding or removing projects, feel free to [open an issue](https://github.com/mustafayigitt/ComposeTemplate/issues/new) to discuss it, or directly create a pull request after you edit the *README.md* file with necessary changes.
+* If you have suggestions for adding or removing projects, feel free to [open an issue](https://github.com/mustafayigitt/Budget/issues/new) to discuss it, or directly create a pull request after you edit the *README.md* file with necessary changes.
 * Please make sure you check your spelling and grammar.
 * Create individual PR for each suggestion.
 

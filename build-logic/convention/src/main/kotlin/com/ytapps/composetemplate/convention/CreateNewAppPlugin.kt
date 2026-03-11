@@ -10,7 +10,7 @@ class CreateNewAppPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         target.tasks.register("create-new-app") {
             group = "setup"
-            description = "Creates a new Android project with ComposeTemplate"
+            description = "Creates a new Android project with Budget"
 
             doLast {
                 val scanner = Scanner(System.`in`)
@@ -77,7 +77,7 @@ class CreateNewAppPlugin : Plugin<Project> {
                 val content = file.readText()
                 val updated = content
                     .replace(oldPackage, appId)
-                    .replace("ComposeTemplate", appName)
+                    .replace("Budget", appName)
                     .replace("$oldPrefix.", "$newPrefix.")
 
                 if (content != updated) file.writeText(updated)
