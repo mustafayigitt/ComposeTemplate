@@ -1,7 +1,7 @@
-package com.ytapps.composetemplate.feature.list.navigation.di
+package com.lhacenmed.budget.feature.list.navigation.di
 
-import com.ytapps.composetemplate.core.navigation.INavigationItem
-import com.ytapps.composetemplate.feature.list.navigation.ListRoute
+import com.lhacenmed.budget.core.navigation.INavigationItem
+import com.lhacenmed.budget.feature.list.navigation.ListRoute
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

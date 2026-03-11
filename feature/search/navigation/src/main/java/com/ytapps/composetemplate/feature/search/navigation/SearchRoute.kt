@@ -1,10 +1,10 @@
-package com.ytapps.composetemplate.feature.search.navigation
+package com.lhacenmed.budget.feature.search.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import com.ytapps.composetemplate.core.navigation.IBottomBarItem
+import com.lhacenmed.budget.core.navigation.IBottomBarItem
 import kotlinx.serialization.Serializable
 
 /**

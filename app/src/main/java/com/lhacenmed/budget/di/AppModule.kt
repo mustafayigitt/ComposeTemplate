@@ -1,6 +1,6 @@
-package com.ytapps.composetemplate.di
+package com.lhacenmed.budget.di
 
-import com.ytapps.composetemplate.BuildConfig
+import com.lhacenmed.budget.BuildConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

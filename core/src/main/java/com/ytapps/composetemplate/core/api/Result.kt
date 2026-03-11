@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.core.api
+package com.lhacenmed.budget.core.api
 
 /**
  * A sealed interface representing the result of an operation.

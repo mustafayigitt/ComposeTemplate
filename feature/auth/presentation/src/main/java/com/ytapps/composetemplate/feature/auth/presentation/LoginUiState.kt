@@ -1,6 +1,6 @@
-package com.ytapps.composetemplate.feature.auth.presentation
+package com.lhacenmed.budget.feature.auth.presentation
 
-import com.ytapps.composetemplate.core.base.BaseUiState
+import com.lhacenmed.budget.core.base.BaseUiState
 
 /**
  * Created by mustafayigitt on 26/08/2023

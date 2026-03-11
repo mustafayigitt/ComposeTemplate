@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.core.api
+package com.lhacenmed.budget.core.api
 
 /**
  * Interface definition for token refreshing mechanism

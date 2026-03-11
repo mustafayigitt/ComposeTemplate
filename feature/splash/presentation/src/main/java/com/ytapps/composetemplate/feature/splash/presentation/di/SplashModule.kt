@@ -1,7 +1,7 @@
-package com.ytapps.composetemplate.feature.splash.presentation.di
+package com.lhacenmed.budget.feature.splash.presentation.di
 
-import com.ytapps.composetemplate.core.navigation.IScreenProvider
-import com.ytapps.composetemplate.feature.splash.presentation.SplashScreenProvider
+import com.lhacenmed.budget.core.navigation.IScreenProvider
+import com.lhacenmed.budget.feature.splash.presentation.SplashScreenProvider
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

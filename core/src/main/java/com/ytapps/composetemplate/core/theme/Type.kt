@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.core.theme
+package com.lhacenmed.budget.core.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

@@ -1,8 +1,8 @@
-package com.ytapps.composetemplate.feature.search.navigation.di
+package com.lhacenmed.budget.feature.search.navigation.di
 
-import com.ytapps.composetemplate.core.navigation.IBottomBarItem
-import com.ytapps.composetemplate.core.navigation.INavigationItem
-import com.ytapps.composetemplate.feature.search.navigation.SearchRoute
+import com.lhacenmed.budget.core.navigation.IBottomBarItem
+import com.lhacenmed.budget.core.navigation.INavigationItem
+import com.lhacenmed.budget.feature.search.navigation.SearchRoute
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

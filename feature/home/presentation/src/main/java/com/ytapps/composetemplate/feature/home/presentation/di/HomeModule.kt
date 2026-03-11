@@ -1,7 +1,7 @@
-package com.ytapps.composetemplate.feature.home.presentation.di
+package com.lhacenmed.budget.feature.home.presentation.di
 
-import com.ytapps.composetemplate.core.navigation.IScreenProvider
-import com.ytapps.composetemplate.feature.home.presentation.HomeScreenProvider
+import com.lhacenmed.budget.core.navigation.IScreenProvider
+import com.lhacenmed.budget.feature.home.presentation.HomeScreenProvider
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

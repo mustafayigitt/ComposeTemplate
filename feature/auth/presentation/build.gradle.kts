@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ytapps.composetemplate.feature.auth.presentation"
+    namespace = "com.lhacenmed.budget.feature.auth.presentation"
 }
 
 dependencies {

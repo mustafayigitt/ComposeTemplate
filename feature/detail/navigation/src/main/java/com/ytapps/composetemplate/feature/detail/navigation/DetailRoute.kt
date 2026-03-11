@@ -1,6 +1,6 @@
-package com.ytapps.composetemplate.feature.detail.navigation
+package com.lhacenmed.budget.feature.detail.navigation
 
-import com.ytapps.composetemplate.core.navigation.INavigationItem
+import com.lhacenmed.budget.core.navigation.INavigationItem
 import kotlinx.serialization.Serializable
 
 /**

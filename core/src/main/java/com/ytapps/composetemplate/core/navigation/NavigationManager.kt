@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.core.navigation
+package com.lhacenmed.budget.core.navigation
 
 
 import kotlinx.coroutines.flow.MutableStateFlow

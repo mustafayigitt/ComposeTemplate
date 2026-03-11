@@ -1,13 +1,13 @@
-package com.ytapps.composetemplate.feature.auth.data
+package com.lhacenmed.budget.feature.auth.data
 
-import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.core.api.map
-import com.ytapps.composetemplate.core.base.BaseRepository
-import com.ytapps.composetemplate.core.local.IPreferencesManager
-import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
-import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
-import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
-import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
+import com.lhacenmed.budget.core.api.Result
+import com.lhacenmed.budget.core.api.map
+import com.lhacenmed.budget.core.base.BaseRepository
+import com.lhacenmed.budget.core.local.IPreferencesManager
+import com.lhacenmed.budget.feature.auth.data.model.AuthRequestModel
+import com.lhacenmed.budget.feature.auth.data.remote.AuthService
+import com.lhacenmed.budget.feature.auth.domain.IAuthRepository
+import com.lhacenmed.budget.feature.auth.domain.model.AuthModel
 import retrofit2.Response
 import javax.inject.Inject
 

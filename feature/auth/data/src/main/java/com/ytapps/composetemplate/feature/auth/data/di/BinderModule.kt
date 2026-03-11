@@ -1,8 +1,8 @@
-package com.ytapps.composetemplate.feature.auth.data.di
+package com.lhacenmed.budget.feature.auth.data.di
 
-import com.ytapps.composetemplate.core.api.ITokenRefresher
-import com.ytapps.composetemplate.feature.auth.data.AuthRepository
-import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
+import com.lhacenmed.budget.core.api.ITokenRefresher
+import com.lhacenmed.budget.feature.auth.data.AuthRepository
+import com.lhacenmed.budget.feature.auth.domain.IAuthRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

@@ -1,8 +1,8 @@
-package com.ytapps.composetemplate.feature.auth.domain
+package com.lhacenmed.budget.feature.auth.domain
 
-import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.core.api.ITokenRefresher
-import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
+import com.lhacenmed.budget.core.api.Result
+import com.lhacenmed.budget.core.api.ITokenRefresher
+import com.lhacenmed.budget.feature.auth.domain.model.AuthModel
 
 /**
  * Created by mustafayigitt on 26/08/2023

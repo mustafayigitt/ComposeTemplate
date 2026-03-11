@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate
+package com.lhacenmed.budget
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.feature.auth.data.model
+package com.lhacenmed.budget.feature.auth.data.model
 
 import com.google.gson.annotations.SerializedName
 

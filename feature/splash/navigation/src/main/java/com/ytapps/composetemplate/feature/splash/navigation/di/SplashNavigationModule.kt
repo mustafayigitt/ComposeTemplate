@@ -1,7 +1,7 @@
-package com.ytapps.composetemplate.feature.splash.navigation.di
+package com.lhacenmed.budget.feature.splash.navigation.di
 
-import com.ytapps.composetemplate.core.navigation.INavigationItem
-import com.ytapps.composetemplate.feature.splash.navigation.SplashRoute
+import com.lhacenmed.budget.core.navigation.INavigationItem
+import com.lhacenmed.budget.feature.splash.navigation.SplashRoute
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

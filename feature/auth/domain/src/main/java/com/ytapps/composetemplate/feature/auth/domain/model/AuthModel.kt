@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.feature.auth.domain.model
+package com.lhacenmed.budget.feature.auth.domain.model
 
 /**
  * Created by mustafayigitt on 30/08/2023

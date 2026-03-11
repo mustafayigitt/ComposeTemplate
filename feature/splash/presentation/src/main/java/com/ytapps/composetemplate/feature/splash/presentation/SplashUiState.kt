@@ -1,7 +1,7 @@
-package com.ytapps.composetemplate.feature.splash.presentation
+package com.lhacenmed.budget.feature.splash.presentation
 
-import com.ytapps.composetemplate.core.base.BaseUiState
-import com.ytapps.composetemplate.core.navigation.INavigationItem
+import com.lhacenmed.budget.core.base.BaseUiState
+import com.lhacenmed.budget.core.navigation.INavigationItem
 
 internal class SplashUiState(
     val destinationRoute: INavigationItem? = null,

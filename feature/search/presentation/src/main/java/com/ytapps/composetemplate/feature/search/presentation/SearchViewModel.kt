@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.feature.search.presentation
+package com.lhacenmed.budget.feature.search.presentation
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

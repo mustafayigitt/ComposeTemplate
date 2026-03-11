@@ -1,7 +1,7 @@
-package com.ytapps.composetemplate.feature.auth.presentation.di
+package com.lhacenmed.budget.feature.auth.presentation.di
 
-import com.ytapps.composetemplate.core.navigation.IScreenProvider
-import com.ytapps.composetemplate.feature.auth.presentation.AuthScreenProvider
+import com.lhacenmed.budget.core.navigation.IScreenProvider
+import com.lhacenmed.budget.feature.auth.presentation.AuthScreenProvider
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

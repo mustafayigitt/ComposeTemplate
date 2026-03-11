@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.feature.detail.presentation
+package com.lhacenmed.budget.feature.detail.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

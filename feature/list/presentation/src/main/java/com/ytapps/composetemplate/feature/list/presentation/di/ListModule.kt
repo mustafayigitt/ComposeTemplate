@@ -1,7 +1,7 @@
-package com.ytapps.composetemplate.feature.list.presentation.di
+package com.lhacenmed.budget.feature.list.presentation.di
 
-import com.ytapps.composetemplate.core.navigation.IScreenProvider
-import com.ytapps.composetemplate.feature.list.presentation.ListScreenProvider
+import com.lhacenmed.budget.core.navigation.IScreenProvider
+import com.lhacenmed.budget.feature.list.presentation.ListScreenProvider
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

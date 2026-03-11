@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ytapps.composetemplate.feature.home.domain"
+    namespace = "com.lhacenmed.budget.feature.home.domain"
 }
 
 dependencies {

@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.ui
+package com.lhacenmed.budget.ui
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
-import com.ytapps.composetemplate.MainActivity
-import com.ytapps.composetemplate.core.navigation.INavigationManager
-import com.ytapps.composetemplate.core.navigation.ScreenRegistry
-import com.ytapps.composetemplate.core.theme.component.AppNavigationBar
+import com.lhacenmed.budget.MainActivity
+import com.lhacenmed.budget.core.navigation.INavigationManager
+import com.lhacenmed.budget.core.navigation.ScreenRegistry
+import com.lhacenmed.budget.core.theme.component.AppNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

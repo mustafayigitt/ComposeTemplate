@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.core.local
+package com.lhacenmed.budget.core.local
 
 import kotlinx.coroutines.flow.Flow
 

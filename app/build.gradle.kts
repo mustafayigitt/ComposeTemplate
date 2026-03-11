@@ -11,10 +11,10 @@ plugins {
 }
 
 android {
-    namespace = "com.ytapps.composetemplate"
+    namespace = "com.lhacenmed.budget"
 
     defaultConfig {
-        applicationId = "com.ytapps.composetemplate"
+        applicationId = "com.lhacenmed.budget"
         versionCode = libs.versions.versionCode.get().toInt()
         versionName = libs.versions.versionName.get()
 

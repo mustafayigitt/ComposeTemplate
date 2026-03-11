@@ -1,6 +1,6 @@
-package com.ytapps.composetemplate.core.api
+package com.lhacenmed.budget.core.api
 
-import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.lhacenmed.budget.core.local.IPreferencesManager
 import okhttp3.Interceptor
 import okhttp3.Response
 import javax.inject.Inject

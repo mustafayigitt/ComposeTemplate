@@ -1,10 +1,10 @@
-package com.ytapps.composetemplate.feature.splash.presentation
+package com.lhacenmed.budget.feature.splash.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ytapps.composetemplate.feature.home.navigation.HomeRoute
-import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
-import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.lhacenmed.budget.feature.home.navigation.HomeRoute
+import com.lhacenmed.budget.feature.auth.navigation.LoginRoute
+import com.lhacenmed.budget.core.local.IPreferencesManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

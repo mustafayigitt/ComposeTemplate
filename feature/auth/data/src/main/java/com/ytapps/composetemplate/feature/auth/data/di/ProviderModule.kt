@@ -1,6 +1,6 @@
-package com.ytapps.composetemplate.feature.auth.data.di
+package com.lhacenmed.budget.feature.auth.data.di
 
-import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
+import com.lhacenmed.budget.feature.auth.data.remote.AuthService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

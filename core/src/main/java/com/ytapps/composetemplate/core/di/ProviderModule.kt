@@ -1,10 +1,10 @@
-package com.ytapps.composetemplate.core.di
+package com.lhacenmed.budget.core.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.ytapps.composetemplate.core.api.AuthInterceptor
-import com.ytapps.composetemplate.core.api.TokenAuthenticator
-import com.ytapps.composetemplate.core.util.Constants
+import com.lhacenmed.budget.core.api.AuthInterceptor
+import com.lhacenmed.budget.core.api.TokenAuthenticator
+import com.lhacenmed.budget.core.util.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

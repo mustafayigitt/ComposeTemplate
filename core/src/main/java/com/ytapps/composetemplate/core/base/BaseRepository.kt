@@ -1,7 +1,7 @@
-package com.ytapps.composetemplate.core.base
+package com.lhacenmed.budget.core.base
 
-import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.core.util.Constants
+import com.lhacenmed.budget.core.api.Result
+import com.lhacenmed.budget.core.util.Constants
 import retrofit2.Response
 
 /**

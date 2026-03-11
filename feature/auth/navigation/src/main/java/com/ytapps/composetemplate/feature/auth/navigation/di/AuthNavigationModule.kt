@@ -1,7 +1,7 @@
-package com.ytapps.composetemplate.feature.auth.navigation.di
+package com.lhacenmed.budget.feature.auth.navigation.di
 
-import com.ytapps.composetemplate.core.navigation.INavigationItem
-import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
+import com.lhacenmed.budget.core.navigation.INavigationItem
+import com.lhacenmed.budget.feature.auth.navigation.LoginRoute
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

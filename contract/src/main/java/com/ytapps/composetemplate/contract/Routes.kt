@@ -1,8 +1,8 @@
-package com.ytapps.composetemplate.contract
+package com.lhacenmed.budget.contract
 
 import androidx.compose.material3.Icon
-import com.ytapps.composetemplate.core.navigation.IBottomBarItem
-import com.ytapps.composetemplate.core.navigation.INavigationItem
+import com.lhacenmed.budget.core.navigation.IBottomBarItem
+import com.lhacenmed.budget.core.navigation.INavigationItem
 import kotlinx.serialization.Serializable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home

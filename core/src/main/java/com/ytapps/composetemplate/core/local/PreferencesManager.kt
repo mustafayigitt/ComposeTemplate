@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.core.local
+package com.lhacenmed.budget.core.local
 
 import android.content.Context
 import androidx.datastore.core.DataStore

@@ -1,13 +1,13 @@
-package com.ytapps.composetemplate.feature.auth.data.repository
+package com.lhacenmed.budget.feature.auth.data.repository
 
 import com.google.common.truth.Truth
-import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.core.local.IPreferencesManager
-import com.ytapps.composetemplate.feature.auth.data.AuthRepository
-import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
-import com.ytapps.composetemplate.feature.auth.data.model.AuthResponseModel
-import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
-import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
+import com.lhacenmed.budget.core.api.Result
+import com.lhacenmed.budget.core.local.IPreferencesManager
+import com.lhacenmed.budget.feature.auth.data.AuthRepository
+import com.lhacenmed.budget.feature.auth.data.model.AuthRequestModel
+import com.lhacenmed.budget.feature.auth.data.model.AuthResponseModel
+import com.lhacenmed.budget.feature.auth.data.remote.AuthService
+import com.lhacenmed.budget.feature.auth.domain.IAuthRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

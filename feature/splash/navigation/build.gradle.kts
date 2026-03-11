@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ytapps.composetemplate.feature.splash.navigation"
+    namespace = "com.lhacenmed.budget.feature.splash.navigation"
 }
 
 dependencies {

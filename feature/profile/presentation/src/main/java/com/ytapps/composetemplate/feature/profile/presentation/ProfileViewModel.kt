@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.feature.profile.presentation
+package com.lhacenmed.budget.feature.profile.presentation
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

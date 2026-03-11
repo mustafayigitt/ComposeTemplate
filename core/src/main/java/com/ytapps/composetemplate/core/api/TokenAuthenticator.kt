@@ -1,6 +1,6 @@
-package com.ytapps.composetemplate.core.api
+package com.lhacenmed.budget.core.api
 
-import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.lhacenmed.budget.core.local.IPreferencesManager
 import dagger.Lazy
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator

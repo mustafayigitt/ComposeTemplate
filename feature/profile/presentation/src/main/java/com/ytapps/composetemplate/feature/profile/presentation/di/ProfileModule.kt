@@ -1,7 +1,7 @@
-package com.ytapps.composetemplate.feature.profile.presentation.di
+package com.lhacenmed.budget.feature.profile.presentation.di
 
-import com.ytapps.composetemplate.core.navigation.IScreenProvider
-import com.ytapps.composetemplate.feature.profile.presentation.ProfileScreenProvider
+import com.lhacenmed.budget.core.navigation.IScreenProvider
+import com.lhacenmed.budget.feature.profile.presentation.ProfileScreenProvider
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

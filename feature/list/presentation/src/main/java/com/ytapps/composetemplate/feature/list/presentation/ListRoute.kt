@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.feature.list.presentation
+package com.lhacenmed.budget.feature.list.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ytapps.composetemplate.feature.detail.navigation.DetailRoute
-import com.ytapps.composetemplate.core.navigation.INavigationManager
+import com.lhacenmed.budget.feature.detail.navigation.DetailRoute
+import com.lhacenmed.budget.core.navigation.INavigationManager
 
 /**
  * Created by mustafayigitt on 02/12/2025

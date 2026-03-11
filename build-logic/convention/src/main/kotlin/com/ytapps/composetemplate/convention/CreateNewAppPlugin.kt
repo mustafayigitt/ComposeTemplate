@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.convention
+package com.lhacenmed.budget.convention
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -51,7 +51,7 @@ class CreateNewAppPlugin : Plugin<Project> {
                 updateContent(targetDir, finalAppId, finalAppName)
 
                 printStep("Restructuring directory hierarchy...")
-                refactorDirectories(targetDir, "com.ytapps.composetemplate", finalAppId)
+                refactorDirectories(targetDir, "com.lhacenmed.budget", finalAppId)
 
                 printStep("Removing setup logic and fixing formatting...")
                 cleanupNewProject(targetDir)
@@ -68,7 +68,7 @@ class CreateNewAppPlugin : Plugin<Project> {
     }
 
     private fun updateContent(targetDir: File, appId: String, appName: String) {
-        val oldPackage = "com.ytapps.composetemplate"
+        val oldPackage = "com.lhacenmed.budget"
         val oldPrefix = "composetemplate"
         val newPrefix = appId.substringAfterLast(".")
 

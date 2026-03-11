@@ -1,10 +1,10 @@
-package com.ytapps.composetemplate.feature.auth.domain.usecase
+package com.lhacenmed.budget.feature.auth.domain.usecase
 
 import com.google.common.truth.Truth
-import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
-import com.ytapps.composetemplate.feature.auth.domain.LoginUseCase
-import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
+import com.lhacenmed.budget.core.api.Result
+import com.lhacenmed.budget.feature.auth.domain.IAuthRepository
+import com.lhacenmed.budget.feature.auth.domain.LoginUseCase
+import com.lhacenmed.budget.feature.auth.domain.model.AuthModel
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking

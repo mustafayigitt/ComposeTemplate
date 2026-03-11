@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.core.navigation
+package com.lhacenmed.budget.core.navigation
 
 import androidx.compose.runtime.Composable
 import javax.inject.Inject

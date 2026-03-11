@@ -1,10 +1,10 @@
-package com.ytapps.composetemplate.core.base
+package com.lhacenmed.budget.core.base
 
 import com.google.common.truth.Truth.assertThat
-import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.core.api.getOrNull
-import com.ytapps.composetemplate.core.api.isError
-import com.ytapps.composetemplate.core.api.isSuccess
+import com.lhacenmed.budget.core.api.Result
+import com.lhacenmed.budget.core.api.getOrNull
+import com.lhacenmed.budget.core.api.isError
+import com.lhacenmed.budget.core.api.isSuccess
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest

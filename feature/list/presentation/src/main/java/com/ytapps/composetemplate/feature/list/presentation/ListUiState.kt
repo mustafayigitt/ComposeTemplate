@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.feature.list.presentation
+package com.lhacenmed.budget.feature.list.presentation
 
 import kotlin.collections.List
 

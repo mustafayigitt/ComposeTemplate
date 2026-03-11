@@ -1,8 +1,8 @@
-package com.ytapps.composetemplate.feature.home.navigation.di
+package com.lhacenmed.budget.feature.home.navigation.di
 
-import com.ytapps.composetemplate.core.navigation.IBottomBarItem
-import com.ytapps.composetemplate.core.navigation.INavigationItem
-import com.ytapps.composetemplate.feature.home.navigation.HomeRoute
+import com.lhacenmed.budget.core.navigation.IBottomBarItem
+import com.lhacenmed.budget.core.navigation.INavigationItem
+import com.lhacenmed.budget.feature.home.navigation.HomeRoute
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

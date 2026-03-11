@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ytapps.composetemplate.contract"
+    namespace = "com.lhacenmed.budget.contract"
 }
 
 dependencies {

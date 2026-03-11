@@ -2,7 +2,7 @@ plugins {
     `kotlin-dsl`
 }
 
-group = "com.ytapps.composetemplate.convention"
+group = "com.lhacenmed.budget.convention"
 
 dependencies {
     compileOnly(libs.android.gradle.plugin)
@@ -15,35 +15,35 @@ gradlePlugin {
     plugins {
         register("createNewApp") {
             id = "composetemplate.create.new.app"
-            implementationClass = "com.ytapps.composetemplate.convention.CreateNewAppPlugin"
+            implementationClass = "com.lhacenmed.budget.convention.CreateNewAppPlugin"
         }
         register("androidApplication") {
             id = "composetemplate.android.application"
-            implementationClass = "com.ytapps.composetemplate.convention.AndroidApplicationConventionPlugin"
+            implementationClass = "com.lhacenmed.budget.convention.AndroidApplicationConventionPlugin"
         }
         register("androidApplicationCompose") {
             id = "composetemplate.android.application.compose"
-            implementationClass = "com.ytapps.composetemplate.convention.AndroidComposeConventionPlugin"
+            implementationClass = "com.lhacenmed.budget.convention.AndroidComposeConventionPlugin"
         }
         register("androidLibrary") {
             id = "composetemplate.android.library"
-            implementationClass = "com.ytapps.composetemplate.convention.AndroidLibraryConventionPlugin"
+            implementationClass = "com.lhacenmed.budget.convention.AndroidLibraryConventionPlugin"
         }
         register("androidLibraryCompose") {
             id = "composetemplate.android.library.compose"
-            implementationClass = "com.ytapps.composetemplate.convention.AndroidComposeConventionPlugin"
+            implementationClass = "com.lhacenmed.budget.convention.AndroidComposeConventionPlugin"
         }
         register("androidHilt") {
             id = "composetemplate.android.hilt"
-            implementationClass = "com.ytapps.composetemplate.convention.AndroidHiltConventionPlugin"
+            implementationClass = "com.lhacenmed.budget.convention.AndroidHiltConventionPlugin"
         }
         register("test") {
             id = "composetemplate.test"
-            implementationClass = "com.ytapps.composetemplate.convention.TestConventionPlugin"
+            implementationClass = "com.lhacenmed.budget.convention.TestConventionPlugin"
         }
         register("feature") {
             id = "composetemplate.feature"
-            implementationClass = "com.ytapps.composetemplate.convention.FeatureConventionPlugin"
+            implementationClass = "com.lhacenmed.budget.convention.FeatureConventionPlugin"
         }
     }
 }

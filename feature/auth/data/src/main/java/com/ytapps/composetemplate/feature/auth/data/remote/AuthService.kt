@@ -1,7 +1,7 @@
-package com.ytapps.composetemplate.feature.auth.data.remote
+package com.lhacenmed.budget.feature.auth.data.remote
 
-import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
-import com.ytapps.composetemplate.feature.auth.data.model.AuthResponseModel
+import com.lhacenmed.budget.feature.auth.data.model.AuthRequestModel
+import com.lhacenmed.budget.feature.auth.data.model.AuthResponseModel
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST

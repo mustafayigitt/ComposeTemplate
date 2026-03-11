@@ -1,10 +1,10 @@
-package com.ytapps.composetemplate.feature.detail.presentation
+package com.lhacenmed.budget.feature.detail.presentation
 
 import androidx.compose.runtime.Composable
-import com.ytapps.composetemplate.core.navigation.INavigationItem
-import com.ytapps.composetemplate.core.navigation.INavigationManager
-import com.ytapps.composetemplate.core.navigation.IScreenProvider
-import com.ytapps.composetemplate.feature.detail.navigation.DetailRoute
+import com.lhacenmed.budget.core.navigation.INavigationItem
+import com.lhacenmed.budget.core.navigation.INavigationManager
+import com.lhacenmed.budget.core.navigation.IScreenProvider
+import com.lhacenmed.budget.feature.detail.navigation.DetailRoute
 import javax.inject.Inject
 
 /**

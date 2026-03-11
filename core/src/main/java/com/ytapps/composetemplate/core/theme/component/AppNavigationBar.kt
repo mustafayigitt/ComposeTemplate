@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.core.theme.component
+package com.lhacenmed.budget.core.theme.component
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -6,8 +6,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.ytapps.composetemplate.core.navigation.IBottomBarItem
-import com.ytapps.composetemplate.core.navigation.INavigationItem
+import com.lhacenmed.budget.core.navigation.IBottomBarItem
+import com.lhacenmed.budget.core.navigation.INavigationItem
 
 @Composable
 fun AppNavigationBar(

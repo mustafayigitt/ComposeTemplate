@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.core.util
+package com.lhacenmed.budget.core.util
 
 /**
  * Created by mustafayigitt on 26/08/2023

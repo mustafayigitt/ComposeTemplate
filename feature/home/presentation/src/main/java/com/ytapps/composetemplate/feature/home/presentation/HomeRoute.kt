@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.feature.home.presentation
+package com.lhacenmed.budget.feature.home.presentation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,8 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ytapps.composetemplate.feature.list.navigation.ListRoute
-import com.ytapps.composetemplate.core.navigation.INavigationManager
+import com.lhacenmed.budget.feature.list.navigation.ListRoute
+import com.lhacenmed.budget.core.navigation.INavigationManager
 
 /**
  * Created by mustafayigitt on 02/12/2025

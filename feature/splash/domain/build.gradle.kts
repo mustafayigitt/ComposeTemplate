@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ytapps.composetemplate.feature.splash.domain"
+    namespace = "com.lhacenmed.budget.feature.splash.domain"
 }
 
 dependencies {

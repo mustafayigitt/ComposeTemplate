@@ -1,9 +1,9 @@
-package com.ytapps.composetemplate.core.di
+package com.lhacenmed.budget.core.di
 
-import com.ytapps.composetemplate.core.local.IPreferencesManager
-import com.ytapps.composetemplate.core.local.PreferencesManager
-import com.ytapps.composetemplate.core.navigation.INavigationManager
-import com.ytapps.composetemplate.core.navigation.NavigationManager
+import com.lhacenmed.budget.core.local.IPreferencesManager
+import com.lhacenmed.budget.core.local.PreferencesManager
+import com.lhacenmed.budget.core.navigation.INavigationManager
+import com.lhacenmed.budget.core.navigation.NavigationManager
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

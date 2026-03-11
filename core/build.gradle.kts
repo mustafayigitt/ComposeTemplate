@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ytapps.composetemplate.core"
+    namespace = "com.lhacenmed.budget.core"
 }
 
 dependencies {

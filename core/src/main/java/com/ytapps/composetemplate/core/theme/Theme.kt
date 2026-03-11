@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.core.theme
+package com.lhacenmed.budget.core.theme
 
 import android.app.Activity
 import android.os.Build

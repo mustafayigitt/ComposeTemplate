@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ytapps.composetemplate.feature.profile.navigation"
+    namespace = "com.lhacenmed.budget.feature.profile.navigation"
 }
 
 dependencies {

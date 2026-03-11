@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.convention
+package com.lhacenmed.budget.convention
 
 import com.android.build.api.dsl.ApplicationExtension
 import org.gradle.api.Plugin

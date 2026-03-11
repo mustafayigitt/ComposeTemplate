@@ -1,4 +1,4 @@
-package com.ytapps.composetemplate.feature.auth.presentation
+package com.lhacenmed.budget.feature.auth.presentation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,9 +11,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
-import com.ytapps.composetemplate.feature.splash.navigation.SplashRoute
-import com.ytapps.composetemplate.core.navigation.INavigationManager
+import com.lhacenmed.budget.feature.auth.navigation.LoginRoute
+import com.lhacenmed.budget.feature.splash.navigation.SplashRoute
+import com.lhacenmed.budget.core.navigation.INavigationManager
 
 /**
  * Created by mustafayigitt on 26/08/2023

@@ -1,10 +1,10 @@
-package com.ytapps.composetemplate.feature.auth.presentation
+package com.lhacenmed.budget.feature.auth.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ytapps.composetemplate.core.api.onError
-import com.ytapps.composetemplate.core.api.onSuccess
-import com.ytapps.composetemplate.feature.auth.domain.LoginUseCase
+import com.lhacenmed.budget.core.api.onError
+import com.lhacenmed.budget.core.api.onSuccess
+import com.lhacenmed.budget.feature.auth.domain.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
