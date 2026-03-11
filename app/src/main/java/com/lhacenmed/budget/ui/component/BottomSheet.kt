@@ -15,7 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
-import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -34,17 +34,13 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun BudgetBottomSheet(
     onDismiss: () -> Unit,
-    sheetState: SheetState = SheetState(
-        skipPartiallyExpanded = true,
-        density = LocalDensity.current,
-        initialValue = SheetValue.Hidden
-    ),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     horizontalPadding: PaddingValues = PaddingValues(horizontal = 24.dp),
     content: @Composable ColumnScope.() -> Unit
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
+        sheetState       = sheetState,
     ) {
         Column(modifier = Modifier.padding(horizontalPadding)) {
             content()

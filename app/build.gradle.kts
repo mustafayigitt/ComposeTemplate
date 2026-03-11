@@ -5,12 +5,12 @@ import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
-    id("composetemplate.create.new.app")
-    id("composetemplate.android.application")
-    id("composetemplate.android.application.compose")
-    id("composetemplate.android.hilt")
-    id("composetemplate.test")
-    alias(libs.plugins.kotlin.serialization)
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.kotlin.plugin.serialization")
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
 
 // ── Versioning ────────────────────────────────────────────────────────────────
@@ -53,7 +53,8 @@ val currentVersion: Version = Version.Stable(
 // ── Build config ──────────────────────────────────────────────────────────────
 
 val localProperties = Properties().apply {
-    load(projectDir.resolve("../local.properties").inputStream())
+    val file = projectDir.resolve("../local.properties")
+    if (file.exists()) load(file.inputStream())
 }
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
@@ -69,19 +70,20 @@ android {
         keystoreProperties.load(FileInputStream(keystorePropertiesFile))
         signingConfigs {
             getByName("debug") {
-                keyAlias    = keystoreProperties["keyAlias"].toString()
-                keyPassword = keystoreProperties["keyPassword"].toString()
-                storeFile   = file(keystoreProperties["storeFile"]!!)
+                keyAlias      = keystoreProperties["keyAlias"].toString()
+                keyPassword   = keystoreProperties["keyPassword"].toString()
+                storeFile     = file(keystoreProperties["storeFile"]!!)
                 storePassword = keystoreProperties["storePassword"].toString()
             }
         }
     }
 
     defaultConfig {
-        applicationId          = "com.lhacenmed.budget"
-        targetSdk              = 36
-        versionCode            = currentVersion.run { versionMajor * 10000 + versionMinor * 100 + versionPatch }
-        versionName            = currentVersion.toVersionName()
+        applicationId             = "com.lhacenmed.budget"
+        minSdk                    = 23
+        targetSdk                 = 36
+        versionCode               = currentVersion.run { versionMajor * 10000 + versionMinor * 100 + versionPatch }
+        versionName               = currentVersion.toVersionName()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
@@ -115,6 +117,8 @@ android {
         }
     }
 
+    // TODO: fix this alert: w: [ksp] Schema export directory was not provided to the annotation processor so Room cannot export the schema. You can either provide `room.schemaLocation` annotation processor argument by applying the Room Gradle plugin (id 'androidx.room') OR set exportSchema to false.
+
     buildTypes {
         debug {
             isMinifyEnabled   = false
@@ -122,14 +126,14 @@ android {
             applicationIdSuffix  = ".debug"
             versionNameSuffix    = "-debug"
             resValue("string", "app_name", "Budget Debug")
-            buildConfigField("String", "BASE_URL", "\"${localProperties.getProperty("BASE_URL_DEBUG")}\"")
+            buildConfigField("String", "BASE_URL", "\"${localProperties.getProperty("BASE_URL_DEBUG") ?: ""}\"")
             if (keystorePropertiesFile.exists()) signingConfig = signingConfigs.getByName("debug")
         }
         release {
             isMinifyEnabled   = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            buildConfigField("String", "BASE_URL", "\"${localProperties.getProperty("BASE_URL")}\"")
+            buildConfigField("String", "BASE_URL", "\"${localProperties.getProperty("BASE_URL") ?: ""}\"")
             if (keystorePropertiesFile.exists()) signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -150,13 +154,17 @@ android {
         }
     }
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
     kotlinOptions {
         freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
     }
 
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        jniLibs.useLegacyPackaging = true
     }
 }
 
@@ -167,25 +175,6 @@ kotlin {
 // ── Dependencies ──────────────────────────────────────────────────────────────
 
 dependencies {
-    // Feature modules
-    implementation(project(":core"))
-    implementation(project(":contract"))
-    implementation(project(":feature:auth:data"))
-    implementation(project(":feature:auth:navigation"))
-    implementation(project(":feature:auth:presentation"))
-    implementation(project(":feature:detail:navigation"))
-    implementation(project(":feature:detail:presentation"))
-    implementation(project(":feature:home:navigation"))
-    implementation(project(":feature:home:presentation"))
-    implementation(project(":feature:list:navigation"))
-    implementation(project(":feature:list:presentation"))
-    implementation(project(":feature:profile:navigation"))
-    implementation(project(":feature:profile:presentation"))
-    implementation(project(":feature:search:navigation"))
-    implementation(project(":feature:search:presentation"))
-    implementation(project(":feature:splash:navigation"))
-    implementation(project(":feature:splash:presentation"))
-
     // Supabase
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.postgrest)
@@ -200,11 +189,21 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     // Compose
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.material)
-    implementation(libs.androidx.material3)
+    debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.android.material)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     // Room
     implementation(libs.room.runtime)

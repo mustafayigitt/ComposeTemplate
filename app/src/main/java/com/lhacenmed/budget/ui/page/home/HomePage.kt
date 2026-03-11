@@ -1,26 +1,35 @@
 package com.lhacenmed.budget.ui.page.home
 
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -33,8 +42,8 @@ import com.lhacenmed.budget.ui.common.formatDate
 import com.lhacenmed.budget.ui.page.auth.AuthViewModel
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePage(
     onNavigateToBudgetHistory: () -> Unit,
@@ -42,19 +51,30 @@ fun HomePage(
     viewModel: HomeViewModel = hiltViewModel(),
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
+    val state        by viewModel.state.collectAsStateWithLifecycle()
+    val drawerState   = rememberDrawerState(DrawerValue.Closed)
+    val scope         = rememberCoroutineScope()
+    val listState     = rememberLazyListState()
+
+    var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var showAddSpending by remember { mutableStateOf(false) }
     var showAddFunds    by remember { mutableStateOf(false) }
+
+    // Hide FAB when scrolled away, keep visible when menu is open
+    val fabVisible by remember {
+        derivedStateOf { listState.firstVisibleItemIndex == 0 || fabMenuExpanded }
+    }
+
+    // Collapse menu on back press
+    BackHandler(enabled = fabMenuExpanded) { fabMenuExpanded = false }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             DaysDrawer(
-                days = state.days,
-                selectedDay = state.selectedDay,
-                onDayClick = { day ->
+                days            = state.days,
+                selectedDay     = state.selectedDay,
+                onDayClick      = { day ->
                     viewModel.selectDay(day)
                     scope.launch { drawerState.close() }
                 },
@@ -62,29 +82,77 @@ fun HomePage(
                     scope.launch { drawerState.close() }
                     onNavigateToBudgetHistory()
                 },
-                onAppearance = {                   // ← add this
+                onAppearance    = {
                     scope.launch { drawerState.close() }
                     onNavigateToAppearance()
                 },
-                onSignOut = { authViewModel.signOut() }
+                onSignOut       = { authViewModel.signOut() }
             )
         }
     ) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(formatDate(state.selectedDay), fontWeight = FontWeight.SemiBold) },
+                    title = {
+                        Text(formatDate(state.selectedDay), fontWeight = FontWeight.SemiBold)
+                    },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
-                    },
-                    actions = {
-                        IconButton(onClick = { showAddSpending = true }) {
-                            Icon(Icons.Default.Add, contentDescription = "Add item")
-                        }
                     }
                 )
+            },
+            floatingActionButton = {
+                // ── M3 Expressive FAB Menu ─────────────────────────────────
+                FloatingActionButtonMenu(
+                    expanded = fabMenuExpanded,
+                    button   = {
+                        ToggleFloatingActionButton(
+                            modifier = Modifier
+                                .semantics {
+                                    traversalIndex     = -1f
+                                    stateDescription   = if (fabMenuExpanded) "Expanded" else "Collapsed"
+                                    contentDescription = "Toggle menu"
+                                }
+                                .animateFloatingActionButton(
+                                    visible   = fabVisible,
+                                    alignment = Alignment.BottomEnd,
+                                ),
+                            checked         = fabMenuExpanded,
+                            onCheckedChange = { fabMenuExpanded = it },
+                        ) {
+                            val imageVector by remember {
+                                derivedStateOf {
+                                    if (checkedProgress > 0.5f) Icons.Filled.Close
+                                    else Icons.Filled.Add
+                                }
+                            }
+                            Icon(
+                                imageVector        = imageVector,
+                                contentDescription = null,
+                                modifier           = Modifier.animateIcon({ checkedProgress }),
+                            )
+                        }
+                    }
+                ) {
+                    FloatingActionButtonMenuItem(
+                        onClick = {
+                            fabMenuExpanded = false
+                            showAddSpending = true
+                        },
+                        icon = { Icon(Icons.Default.ShoppingCart, contentDescription = null) },
+                        text = { Text("Add Spending") },
+                    )
+                    FloatingActionButtonMenuItem(
+                        onClick = {
+                            fabMenuExpanded = false
+                            showAddFunds    = true
+                        },
+                        icon = { Icon(Icons.Default.Payments, contentDescription = null) },
+                        text = { Text("Add Funds") },
+                    )
+                }
             }
         ) { padding ->
             if (state.isLoading) {
@@ -94,7 +162,6 @@ fun HomePage(
             } else {
                 Column(Modifier.padding(padding).fillMaxSize()) {
 
-                    // Offline banner
                     if (!state.isOnline || state.pendingCount > 0) {
                         Surface(color = MaterialTheme.colorScheme.tertiaryContainer) {
                             Text(
@@ -112,14 +179,19 @@ fun HomePage(
                     }
 
                     BudgetSummaryRow(
-                        daySpent = state.daySpent,
-                        remaining = state.remaining,
-                        onAddBudget = { showAddFunds = true }
+                        daySpent    = state.daySpent,
+                        remaining   = state.remaining,
+                        onAddBudget = {
+                            fabMenuExpanded = false
+                            showAddFunds    = true
+                        }
                     )
+
                     DayContent(
-                        modifier = Modifier.weight(1f),
-                        items = state.items,
-                        onDelete = { viewModel.deleteItem(it) }
+                        modifier  = Modifier.weight(1f),
+                        items     = state.items,
+                        listState = listState,
+                        onDelete  = { viewModel.deleteItem(it) }
                     )
                 }
             }
@@ -129,13 +201,12 @@ fun HomePage(
     if (showAddSpending) {
         AddSpendingSheet(
             shopperName = state.currentUserName,
-            onDismiss = { showAddSpending = false },
-            onConfirm = { name, quantity, price, description ->
+            onDismiss   = { showAddSpending = false },
+            onConfirm   = { name, quantity, price, description ->
                 viewModel.addItem(name, quantity, price, description)
             }
         )
     }
-
     if (showAddFunds) {
         AddFundsSheet(
             onDismiss = { showAddFunds = false },
@@ -160,35 +231,49 @@ private fun BudgetSummaryRow(
     ) {
         Card(
             modifier = Modifier.weight(1f),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+            colors   = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer
+            )
         ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Today's Spending",
+                Text(
+                    "Today's Spending",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer)
-                Text("${daySpent.format()} dh",
-                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+                Text(
+                    "${daySpent.format()} dh",
+                    style      = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onErrorContainer)
+                    color      = MaterialTheme.colorScheme.onErrorContainer
+                )
             }
         }
         Card(
-            onClick = onAddBudget,
+            onClick  = onAddBudget,
             modifier = Modifier.weight(1f),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            colors   = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
         ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Remaining",
+                Text(
+                    "Remaining",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer)
-                Text("${remaining.format()} dh",
-                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    "${remaining.format()} dh",
+                    style      = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = if (remaining < 0) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.onPrimaryContainer)
-                Text("Tap to add funds",
+                    color      = if (remaining < 0) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    "Tap to add funds",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f))
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                )
             }
         }
     }
@@ -208,43 +293,48 @@ private fun DaysDrawer(
 ) {
     ModalDrawerSheet {
         Spacer(Modifier.height(16.dp))
-        Text("Budget Days",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            fontWeight = FontWeight.Bold)
+        Text(
+            "Budget Days",
+            style      = MaterialTheme.typography.titleMedium,
+            modifier   = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            fontWeight = FontWeight.Bold
+        )
         HorizontalDivider()
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(days) { day ->
                 NavigationDrawerItem(
-                    label = { Text(formatDate(day)) },
+                    label    = { Text(formatDate(day)) },
                     selected = day == selectedDay,
-                    onClick = { onDayClick(day) },
+                    onClick  = { onDayClick(day) },
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
         }
         HorizontalDivider()
         NavigationDrawerItem(
-            label = { Text("Budget History") },
+            label    = { Text("Budget History") },
             selected = false,
-            onClick = onBudgetHistory,
-            icon = { Icon(Icons.Default.History, contentDescription = null) },
+            onClick  = onBudgetHistory,
+            icon     = { Icon(Icons.Default.History, contentDescription = null) },
             modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp, end = 16.dp)
         )
-        NavigationDrawerItem(                      // ← add this item
-            label = { Text("Appearance") },
+        NavigationDrawerItem(
+            label    = { Text("Appearance") },
             selected = false,
-            onClick = onAppearance,
-            icon = { Icon(Icons.Outlined.Palette, contentDescription = null) },
+            onClick  = onAppearance,
+            icon     = { Icon(Icons.Outlined.Palette, contentDescription = null) },
             modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp, end = 16.dp)
         )
         NavigationDrawerItem(
-            label = { Text("Sign Out", color = MaterialTheme.colorScheme.error) },
+            label    = { Text("Sign Out", color = MaterialTheme.colorScheme.error) },
             selected = false,
-            onClick = onSignOut,
-            icon = {
-                Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error)
+            onClick  = onSignOut,
+            icon     = {
+                Icon(
+                    Icons.AutoMirrored.Filled.ExitToApp,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
             },
             modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 8.dp, end = 16.dp)
         )
@@ -258,6 +348,7 @@ private fun DaysDrawer(
 private fun DayContent(
     modifier: Modifier,
     items: List<SpendingItem>,
+    listState: androidx.compose.foundation.lazy.LazyListState,
     onDelete: (String) -> Unit
 ) {
     val dayTotal = items.sumOf { it.price.toDouble() }
@@ -265,21 +356,24 @@ private fun DayContent(
     Column(modifier = modifier) {
         Text(
             "Spendings",
-            style = MaterialTheme.typography.titleSmall,
+            style      = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            color      = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier   = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
         LazyColumn(
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+            state           = listState,
+            modifier        = Modifier.weight(1f),
+            contentPadding  = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (items.isEmpty()) {
                 item {
                     Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No spendings yet. Tap + to add.",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "No spendings yet. Tap + to add.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             } else {
@@ -291,11 +385,17 @@ private fun DayContent(
                         Modifier.fillMaxWidth().padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Day total", fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium)
-                        Text("${dayTotal.format()} dh", fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary)
+                        Text(
+                            "Day total",
+                            fontWeight = FontWeight.Bold,
+                            style      = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            "${dayTotal.format()} dh",
+                            fontWeight = FontWeight.Bold,
+                            style      = MaterialTheme.typography.titleMedium,
+                            color      = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -307,27 +407,41 @@ private fun DayContent(
 private fun SpendingItemCard(item: SpendingItem, onDelete: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
+            Column(
+                Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
                     Text(item.name, fontWeight = FontWeight.Medium)
-                    Text(item.quantity,
+                    Text(
+                        item.quantity,
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 if (!item.description.isNullOrBlank()) {
-                    Text(item.description,
+                    Text(
+                        item.description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                Text("by ${item.shopper}",
+                Text(
+                    "by ${item.shopper}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline)
+                    color = MaterialTheme.colorScheme.outline
+                )
             }
             Text("${item.price.format()} dh", fontWeight = FontWeight.SemiBold)
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.error)
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
         }
     }
