@@ -1,5 +1,7 @@
 package com.lhacenmed.budget.ui.page
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -8,6 +10,7 @@ import com.lhacenmed.budget.ui.common.animatedComposable
 import com.lhacenmed.budget.ui.page.budget.BudgetHistoryPage
 import com.lhacenmed.budget.ui.page.home.HomePage
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppEntry() {
     val navController = rememberNavController()

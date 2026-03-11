@@ -27,14 +27,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhacenmed.budget.data.model.BudgetContribution
 import com.lhacenmed.budget.data.model.SpendingItem
+import com.lhacenmed.budget.ui.common.format
+import com.lhacenmed.budget.ui.common.formatDate
 import com.lhacenmed.budget.ui.page.auth.AuthViewModel
-import com.lhacenmed.budget.ui.common.formatDate      // ← from FormatUtils
-import com.lhacenmed.budget.ui.common.formatTimestamp  // ← from FormatUtils
-import com.lhacenmed.budget.ui.common.format           // ← from FormatUtils
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,8 +43,8 @@ fun HomePage(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var showAddSheet by remember { mutableStateOf(false) }
-    var showBudgetSheet by remember { mutableStateOf(false) }
+    var showAddSpending by remember { mutableStateOf(false) }
+    var showAddFunds    by remember { mutableStateOf(false) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -78,7 +74,7 @@ fun HomePage(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { showAddSheet = true }) {
+                        IconButton(onClick = { showAddSpending = true }) {
                             Icon(Icons.Default.Add, contentDescription = "Add item")
                         }
                     }
@@ -90,20 +86,16 @@ fun HomePage(
                     CircularProgressIndicator()
                 }
             } else {
-                Column(
-                    Modifier
-                        .padding(padding)
-                        .fillMaxSize()
-                ) {
+                Column(Modifier.padding(padding).fillMaxSize()) {
+
                     // Offline banner
                     if (!state.isOnline || state.pendingCount > 0) {
-                        val text = if (!state.isOnline)
-                            "You're offline — items will sync when reconnected"
-                        else
-                            "${state.pendingCount} item(s) syncing…"
                         Surface(color = MaterialTheme.colorScheme.tertiaryContainer) {
                             Text(
-                                text,
+                                text = if (!state.isOnline)
+                                    "You're offline — items will sync when reconnected"
+                                else
+                                    "${state.pendingCount} item(s) syncing…",
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -116,7 +108,7 @@ fun HomePage(
                     BudgetSummaryRow(
                         daySpent = state.daySpent,
                         remaining = state.remaining,
-                        onAddBudget = { showBudgetSheet = true }
+                        onAddBudget = { showAddFunds = true }
                     )
                     DayContent(
                         modifier = Modifier.weight(1f),
@@ -128,24 +120,20 @@ fun HomePage(
         }
     }
 
-    if (showAddSheet) {
-        AddItemSheet(
+    if (showAddSpending) {
+        AddSpendingSheet(
             shopperName = state.currentUserName,
-            onDismiss = { showAddSheet = false },
+            onDismiss = { showAddSpending = false },
             onConfirm = { name, quantity, price, description ->
                 viewModel.addItem(name, quantity, price, description)
-                showAddSheet = false
             }
         )
     }
 
-    if (showBudgetSheet) {
-        AddBudgetSheet(
-            onDismiss = { showBudgetSheet = false },
-            onConfirm = { amount ->
-                viewModel.addContribution(amount)
-                showBudgetSheet = false
-            }
+    if (showAddFunds) {
+        AddFundsSheet(
+            onDismiss = { showAddFunds = false },
+            onConfirm = { amount -> viewModel.addContribution(amount) }
         )
     }
 }
@@ -158,65 +146,43 @@ private fun BudgetSummaryRow(
     remaining: Float,
     onAddBudget: () -> Unit
 ) {
-    val remainingColor = if (remaining < 0) MaterialTheme.colorScheme.error
-    else MaterialTheme.colorScheme.primary
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Today's spending
         Card(
             modifier = Modifier.weight(1f),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
         ) {
-            Column(
-                Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    "Today's Spending",
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Today's Spending",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-                Text(
-                    "${daySpent.format()} dh",
+                    color = MaterialTheme.colorScheme.onErrorContainer)
+                Text("${daySpent.format()} dh",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
+                    color = MaterialTheme.colorScheme.onErrorContainer)
             }
         }
-
-        // Remaining budget
         Card(
             onClick = onAddBudget,
             modifier = Modifier.weight(1f),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
-            Column(
-                Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    "Remaining",
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Remaining",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    "${remaining.format()} dh",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer)
+                Text("${remaining.format()} dh",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = if (remaining < 0) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    "Tap to add funds",
+                    else MaterialTheme.colorScheme.onPrimaryContainer)
+                Text("Tap to add funds",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                )
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f))
             }
         }
     }
@@ -235,12 +201,10 @@ private fun DaysDrawer(
 ) {
     ModalDrawerSheet {
         Spacer(Modifier.height(16.dp))
-        Text(
-            "Budget Days",
+        Text("Budget Days",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            fontWeight = FontWeight.Bold
-        )
+            fontWeight = FontWeight.Bold)
         HorizontalDivider()
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(days) { day ->
@@ -248,7 +212,7 @@ private fun DaysDrawer(
                     label = { Text(formatDate(day)) },
                     selected = day == selectedDay,
                     onClick = { onDayClick(day) },
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
             }
         }
@@ -258,18 +222,15 @@ private fun DaysDrawer(
             selected = false,
             onClick = onBudgetHistory,
             icon = { Icon(Icons.Default.History, contentDescription = null) },
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
         NavigationDrawerItem(
             label = { Text("Sign Out", color = MaterialTheme.colorScheme.error) },
             selected = false,
             onClick = onSignOut,
             icon = {
-                Icon(
-                    Icons.AutoMirrored.Filled.ExitToApp,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
+                Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error)
             },
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
@@ -280,7 +241,11 @@ private fun DaysDrawer(
 // ── Day Content ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun DayContent(modifier: Modifier, items: List<SpendingItem>, onDelete: (String) -> Unit) {
+private fun DayContent(
+    modifier: Modifier,
+    items: List<SpendingItem>,
+    onDelete: (String) -> Unit
+) {
     val dayTotal = items.sumOf { it.price.toDouble() }
 
     Column(modifier = modifier) {
@@ -299,10 +264,8 @@ private fun DayContent(modifier: Modifier, items: List<SpendingItem>, onDelete: 
             if (items.isEmpty()) {
                 item {
                     Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            "No spendings yet. Tap + to add.",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Text("No spendings yet. Tap + to add.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             } else {
@@ -311,9 +274,7 @@ private fun DayContent(modifier: Modifier, items: List<SpendingItem>, onDelete: 
                 }
                 item {
                     Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                        Modifier.fillMaxWidth().padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("Day total", fontWeight = FontWeight.Bold,
@@ -333,16 +294,12 @@ private fun SpendingItemCard(item: SpendingItem, onDelete: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
                     Text(item.name, fontWeight = FontWeight.Medium)
-                    Text(
-                        item.quantity,
+                    Text(item.quantity,
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (!item.description.isNullOrBlank()) {
                     Text(item.description,
@@ -358,113 +315,6 @@ private fun SpendingItemCard(item: SpendingItem, onDelete: () -> Unit) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete",
                     tint = MaterialTheme.colorScheme.error)
             }
-        }
-    }
-}
-
-// ── Add Budget Sheet ──────────────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddBudgetSheet(onDismiss: () -> Unit, onConfirm: (Float) -> Unit) {
-    var amount by remember { mutableStateOf("") }
-    val isValid = amount.toFloatOrNull()?.let { it > 0 } == true
-
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text("Add Funds", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = amount, onValueChange = { amount = it },
-                    label = { Text("Amount (dh)") },
-                    modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
-                )
-                Button(
-                    onClick = { onConfirm(amount.toFloat()) },
-                    enabled = isValid,
-                    modifier = Modifier.height(56.dp)
-                ) { Text("Add") }
-            }
-        }
-    }
-}
-
-// ── Add Item Sheet ────────────────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddItemSheet(
-    shopperName: String,
-    onDismiss: () -> Unit,
-    onConfirm: (String, String, Float, String?) -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf("") }
-    var price by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-
-    val isValid = name.isNotBlank() && quantity.isNotBlank() && price.toFloatOrNull() != null
-
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text("Add Spending", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            OutlinedTextField(
-                value = shopperName, onValueChange = {},
-                label = { Text("Shopper") },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = false, singleLine = true
-            )
-            OutlinedTextField(
-                value = name, onValueChange = { name = it },
-                label = { Text("Item name") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    value = quantity, onValueChange = { quantity = it },
-                    label = { Text("Quantity") },
-                    placeholder = { Text("1kg, 2 bottles…", style = MaterialTheme.typography.bodySmall) },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = price, onValueChange = { price = it },
-                    label = { Text("Price (dh)") },
-                    modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
-                )
-            }
-            OutlinedTextField(
-                value = description, onValueChange = { description = it },
-                label = { Text("Description (optional)") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            Button(
-                onClick = { onConfirm(name, quantity, price.toFloat(), description) },
-                enabled = isValid,
-                modifier = Modifier.fillMaxWidth()
-            ) { Text("Add") }
         }
     }
 }

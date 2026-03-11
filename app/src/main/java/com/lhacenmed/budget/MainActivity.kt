@@ -29,6 +29,7 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var supabase: SupabaseClient
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

@@ -1,5 +1,4 @@
 import java.util.Properties
-import kotlin.apply
 
 plugins {
     id("composetemplate.create.new.app")
@@ -12,12 +11,13 @@ plugins {
 
 android {
     namespace = "com.lhacenmed.budget"
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.lhacenmed.budget"
+        targetSdk = 36
         versionCode = libs.versions.versionCode.get().toInt()
         versionName = libs.versions.versionName.get()
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -25,18 +25,17 @@ android {
     val localProperties = Properties().apply {
         load(projectDir.resolve("../local.properties").inputStream())
     }
+
     buildTypes {
         debug {
             isMinifyEnabled = false
             isShrinkResources = false
-            "\"${localProperties.getProperty("BASE_URL_DEBUG")}\""
             buildConfigField(
                 "String",
                 "BASE_URL",
                 "\"${localProperties.getProperty("BASE_URL_DEBUG")}\""
             )
         }
-        
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -52,7 +51,7 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
-    
+
     buildFeatures {
         buildConfig = true
     }
@@ -79,8 +78,8 @@ dependencies {
 
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.postgrest)
-    implementation(libs.ktor.client.android)
     implementation(libs.supabase.auth)
+    implementation(libs.ktor.client.android)
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
@@ -89,14 +88,9 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-
-    implementation(libs.androidx.navigation3.ui)
-    implementation(libs.androidx.navigation3.runtime)
-    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
-    implementation(libs.androidx.material3.adaptive.navigation3)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.material)
     implementation(libs.kotlinx.serialization.core)
-    implementation(libs.androidx.navigation.compose)
-
 }
