@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhacenmed.budget.data.model.SpendingItem
+import com.lhacenmed.budget.ui.auth.AuthViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -30,7 +32,10 @@ import java.time.format.DateTimeFormatter
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(
+    viewModel: HomeViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel()
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -45,7 +50,8 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
                 onDayClick = { day ->
                     viewModel.selectDay(day)
                     scope.launch { drawerState.close() }
-                }
+                },
+                onSignOut = { authViewModel.signOut() }
             )
         }
     ) {
@@ -93,7 +99,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-private fun DaysDrawer(days: List<String>, selectedDay: String, onDayClick: (String) -> Unit) {
+private fun DaysDrawer(days: List<String>, selectedDay: String, onDayClick: (String) -> Unit, onSignOut: () -> Unit) {
     ModalDrawerSheet {
         Spacer(Modifier.height(16.dp))
         Text(
@@ -113,6 +119,16 @@ private fun DaysDrawer(days: List<String>, selectedDay: String, onDayClick: (Str
                 )
             }
         }
+        Spacer(Modifier.weight(1f))
+        HorizontalDivider()
+        NavigationDrawerItem(
+            label = { Text("Sign Out", color = MaterialTheme.colorScheme.error) },
+            selected = false,
+            onClick = onSignOut,
+            icon = { Icon(Icons.Default.ExitToApp, contentDescription = null,
+                tint = MaterialTheme.colorScheme.error) },
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+        )
     }
 }
 
