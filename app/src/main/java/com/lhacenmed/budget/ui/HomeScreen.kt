@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
@@ -88,9 +89,10 @@ fun HomeScreen(
 
     if (showAddSheet) {
         AddItemSheet(
+            shopperName = state.currentUserName,
             onDismiss = { showAddSheet = false },
-            onConfirm = { shopper, name, qty, price ->
-                viewModel.addItem(shopper, name, qty, price)
+            onConfirm = { name, qty, price ->
+                viewModel.addItem(name, qty, price)
                 showAddSheet = false
             }
         )
@@ -99,7 +101,12 @@ fun HomeScreen(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-private fun DaysDrawer(days: List<String>, selectedDay: String, onDayClick: (String) -> Unit, onSignOut: () -> Unit) {
+private fun DaysDrawer(
+    days: List<String>,
+    selectedDay: String,
+    onDayClick: (String) -> Unit,
+    onSignOut: () -> Unit
+) {
     ModalDrawerSheet {
         Spacer(Modifier.height(16.dp))
         Text(
@@ -109,7 +116,7 @@ private fun DaysDrawer(days: List<String>, selectedDay: String, onDayClick: (Str
             fontWeight = FontWeight.Bold
         )
         HorizontalDivider()
-        LazyColumn {
+        LazyColumn(modifier = Modifier.weight(1f)) {
             items(days) { day ->
                 NavigationDrawerItem(
                     label = { Text(formatDate(day)) },
@@ -119,14 +126,18 @@ private fun DaysDrawer(days: List<String>, selectedDay: String, onDayClick: (Str
                 )
             }
         }
-        Spacer(Modifier.weight(1f))
         HorizontalDivider()
         NavigationDrawerItem(
             label = { Text("Sign Out", color = MaterialTheme.colorScheme.error) },
             selected = false,
             onClick = onSignOut,
-            icon = { Icon(Icons.Default.ExitToApp, contentDescription = null,
-                tint = MaterialTheme.colorScheme.error) },
+            icon = {
+                Icon(
+                    Icons.AutoMirrored.Filled.ExitToApp,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
         )
     }
@@ -155,7 +166,10 @@ private fun DayContent(modifier: Modifier, items: List<SpendingItem>, onDelete: 
             if (items.isEmpty()) {
                 item {
                     Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No spendings yet. Tap + to add.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "No spendings yet. Tap + to add.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             } else {
@@ -168,13 +182,16 @@ private fun DayContent(modifier: Modifier, items: List<SpendingItem>, onDelete: 
         if (items.isNotEmpty()) {
             HorizontalDivider()
             Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                Modifier.fillMaxWidth().padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text("Total", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                Text("${total.format()} dh", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    "${total.format()} dh",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
@@ -183,10 +200,7 @@ private fun DayContent(modifier: Modifier, items: List<SpendingItem>, onDelete: 
 @Composable
 private fun SpendingItemCard(item: SpendingItem, onDelete: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(item.name, fontWeight = FontWeight.Medium)
                 Text(
@@ -205,8 +219,11 @@ private fun SpendingItemCard(item: SpendingItem, onDelete: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddItemSheet(onDismiss: () -> Unit, onConfirm: (String, String, Float, Float) -> Unit) {
-    var shopper by remember { mutableStateOf("") }
+private fun AddItemSheet(
+    shopperName: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String, Float, Float) -> Unit   // shopper removed from signature
+) {
     var name by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("1") }
     var price by remember { mutableStateOf("") }
@@ -221,34 +238,44 @@ private fun AddItemSheet(onDismiss: () -> Unit, onConfirm: (String, String, Floa
         ) {
             Text("Add Spending", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
 
+            // Pre-filled and disabled — shopper is always the logged-in user
             OutlinedTextField(
-                value = shopper, onValueChange = { shopper = it },
-                label = { Text("Shopper (you / friend name)") },
-                modifier = Modifier.fillMaxWidth(), singleLine = true
+                value = shopperName,
+                onValueChange = {},
+                label = { Text("Shopper") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = false,
+                singleLine = true
             )
             OutlinedTextField(
                 value = name, onValueChange = { name = it },
                 label = { Text("Item name") },
-                modifier = Modifier.fillMaxWidth(), singleLine = true
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = quantity, onValueChange = { quantity = it },
-                    label = { Text("Qty") }, modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true
+                    label = { Text("Qty") },
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
                 )
                 OutlinedTextField(
                     value = price, onValueChange = { price = it },
-                    label = { Text("Price (dh)") }, modifier = Modifier.weight(2f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true
+                    label = { Text("Price (dh)") },
+                    modifier = Modifier.weight(2f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
                 )
             }
 
-            val isValid = shopper.isNotBlank() && name.isNotBlank() &&
-                    quantity.toFloatOrNull() != null && price.toFloatOrNull() != null
+            val isValid = name.isNotBlank() &&
+                    quantity.toFloatOrNull() != null &&
+                    price.toFloatOrNull() != null
 
             Button(
-                onClick = { onConfirm(shopper, name, quantity.toFloat(), price.toFloat()) },
+                onClick = { onConfirm(name, quantity.toFloat(), price.toFloat()) },
                 enabled = isValid,
                 modifier = Modifier.fillMaxWidth()
             ) { Text("Add") }

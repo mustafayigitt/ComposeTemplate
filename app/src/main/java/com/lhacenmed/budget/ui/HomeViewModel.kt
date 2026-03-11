@@ -7,10 +7,13 @@ import androidx.lifecycle.viewModelScope
 import com.lhacenmed.budget.data.model.SpendingItem
 import com.lhacenmed.budget.data.repository.SpendingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.jsonPrimitive
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -19,6 +22,7 @@ data class HomeUiState(
     val days: List<String> = emptyList(),
     val selectedDay: String = LocalDate.now().toString(),
     val items: List<SpendingItem> = emptyList(),
+    val currentUserName: String = "",
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -26,13 +30,28 @@ data class HomeUiState(
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repository: SpendingRepository
+    private val repository: SpendingRepository,
+    private val supabase: SupabaseClient
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
     val state = _state.asStateFlow()
 
-    init { loadDays() }
+    init {
+        loadCurrentUser()
+        loadDays()
+    }
+
+    private fun loadCurrentUser() {
+        val user = supabase.auth.currentUserOrNull() ?: return
+        val name = user.userMetadata
+            ?.get("display_name")
+            ?.jsonPrimitive?.content
+            ?.takeIf { it.isNotBlank() }
+            ?: user.email?.substringBefore("@")
+            ?: "Me"
+        _state.update { it.copy(currentUserName = name) }
+    }
 
     fun loadDays() = viewModelScope.launch {
         _state.update { it.copy(isLoading = true) }
@@ -57,10 +76,10 @@ class HomeViewModel @Inject constructor(
             .onFailure { e -> _state.update { it.copy(error = e.message) } }
     }
 
-    fun addItem(shopper: String, name: String, quantity: Float, price: Float) = viewModelScope.launch {
+    fun addItem(name: String, quantity: Float, price: Float) = viewModelScope.launch {
         val item = SpendingItem(
             date = _state.value.selectedDay,
-            shopper = shopper,
+            shopper = _state.value.currentUserName,
             name = name,
             quantity = quantity,
             price = price
