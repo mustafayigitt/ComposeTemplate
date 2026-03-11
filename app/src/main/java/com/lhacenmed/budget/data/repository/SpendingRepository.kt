@@ -40,15 +40,13 @@ class SpendingRepository @Inject constructor(
         supabase.from("spending_items").select().decodeList()
 
     /**
-     * Offline-first add:
-     * 1. Save to local Room queue immediately
-     * 2. Try to push to Supabase
-     * 3. On success → remove from local queue
-     * 4. On failure → stays in queue for later sync
+     * Offline-first:
+     * 1. Save to Room immediately (always works)
+     * 2. Try Supabase — on success, remove from Room
+     * 3. On failure — stays in Room for syncPending()
      */
     suspend fun addItem(item: SpendingItem) {
-        val pending = item.toPending()
-        val localId = dao.insert(pending).toInt()
+        val localId = dao.insert(item.toPending()).toInt()
         runCatching {
             supabase.from("spending_items").insert(item)
             dao.deleteById(localId)
@@ -56,13 +54,12 @@ class SpendingRepository @Inject constructor(
         // failure is silent — item stays in queue, syncPending() will retry
     }
 
-    /**
-     * Called when connectivity is restored.
-     * Drains the local queue to Supabase.
-     */
+    /** Drains the local queue to Supabase. Called when connectivity is restored. */
     suspend fun syncPending() {
         dao.getAll().forEach { pending ->
             runCatching {
+                // id and createdAt are left as defaults ("") → @EncodeDefault(NEVER)
+                // ensures they are excluded from serialization → Supabase generates them
                 supabase.from("spending_items").insert(pending.toSpendingItem())
                 dao.deleteById(pending.localId)
             }
@@ -102,7 +99,7 @@ class SpendingRepository @Inject constructor(
         name = name,
         quantity = quantity,
         price = price,
-        description = description,
-        createdAt = createdAt
+        description = description
+        // id and createdAt intentionally omitted → default "" → not serialized by @EncodeDefault(NEVER)
     )
 }
