@@ -1,4 +1,4 @@
-package com.lhacenmed.budget.ui.auth
+package com.lhacenmed.budget.ui.page.auth
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,7 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(
+fun RegisterPage(
     onNavigateBack: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -37,10 +37,7 @@ fun RegisterScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(state.error) {
-        state.error?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearError()
-        }
+        state.error?.let { snackbarHostState.showSnackbar(it); viewModel.clearError() }
     }
 
     Scaffold(
@@ -64,55 +61,38 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            OutlinedTextField(
-                value = displayName, onValueChange = { displayName = it },
-                label = { Text("Your name") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            OutlinedTextField(value = displayName, onValueChange = { displayName = it },
+                label = { Text("Your name") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             Spacer(Modifier.height(12.dp))
-            OutlinedTextField(
-                value = email, onValueChange = { email = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true
-            )
+            OutlinedTextField(value = email, onValueChange = { email = it },
+                label = { Text("Email") }, modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), singleLine = true)
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(
                 value = password, onValueChange = { password = it },
-                label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                label = { Text("Password") }, modifier = Modifier.fillMaxWidth(), singleLine = true,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = "Toggle password")
+                        Icon(if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null)
                     }
                 },
-                supportingText = if (password.isNotEmpty() && password.length < 6)
-                {{ Text("Minimum 6 characters") }} else null
+                supportingText = if (password.isNotEmpty() && password.length < 6) {{ Text("Minimum 6 characters") }} else null
             )
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(
                 value = confirmPassword, onValueChange = { confirmPassword = it },
-                label = { Text("Confirm password") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                isError = passwordMismatch,
+                label = { Text("Confirm password") }, modifier = Modifier.fillMaxWidth(),
+                singleLine = true, isError = passwordMismatch,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 supportingText = if (passwordMismatch) {{ Text("Passwords don't match") }} else null
             )
-
             Spacer(Modifier.height(24.dp))
-
             Button(
                 onClick = { viewModel.register(email.trim(), password, displayName.trim()) },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                enabled = isValid
+                modifier = Modifier.fillMaxWidth().height(50.dp), enabled = isValid
             ) {
                 if (state.isLoading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp,
                     color = MaterialTheme.colorScheme.onPrimary)

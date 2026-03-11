@@ -1,4 +1,4 @@
-package com.lhacenmed.budget.ui
+package com.lhacenmed.budget.ui.page.home
 
 import android.os.Build
 import androidx.annotation.RequiresApi

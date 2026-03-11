@@ -1,4 +1,4 @@
-package com.lhacenmed.budget.ui
+package com.lhacenmed.budget.ui.page.home
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -27,7 +27,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhacenmed.budget.data.model.BudgetContribution
 import com.lhacenmed.budget.data.model.SpendingItem
-import com.lhacenmed.budget.ui.auth.AuthViewModel
+import com.lhacenmed.budget.ui.page.auth.AuthViewModel
+import com.lhacenmed.budget.ui.common.formatDate      // ← from FormatUtils
+import com.lhacenmed.budget.ui.common.formatTimestamp  // ← from FormatUtils
+import com.lhacenmed.budget.ui.common.format           // ← from FormatUtils
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -36,7 +39,7 @@ import java.time.format.DateTimeFormatter
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
+fun HomePage(
     onNavigateToBudgetHistory: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
     authViewModel: AuthViewModel = hiltViewModel()
@@ -465,27 +468,3 @@ private fun AddItemSheet(
         }
     }
 }
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-@RequiresApi(Build.VERSION_CODES.O)
-internal fun formatDate(date: String): String = runCatching {
-    val d = LocalDate.parse(date)
-    val today = LocalDate.now()
-    when (d) {
-        today                -> "Today — ${d.format(DateTimeFormatter.ofPattern("MMM d"))}"
-        today.minusDays(1)   -> "Yesterday — ${d.format(DateTimeFormatter.ofPattern("MMM d"))}"
-        else                 -> d.format(DateTimeFormatter.ofPattern("EEE, MMM d"))
-    }
-}.getOrDefault(date)
-
-@RequiresApi(Build.VERSION_CODES.O)
-internal fun formatTimestamp(raw: String): String = runCatching {
-    ZonedDateTime.parse(raw).format(DateTimeFormatter.ofPattern("MMM d, HH:mm"))
-}.getOrDefault(raw)
-
-internal fun Float.format() =
-    if (this == kotlin.math.floor(this)) this.toInt().toString() else "%.2f".format(this)
-
-internal fun Double.format() =
-    if (this == kotlin.math.floor(this)) this.toInt().toString() else "%.2f".format(this)

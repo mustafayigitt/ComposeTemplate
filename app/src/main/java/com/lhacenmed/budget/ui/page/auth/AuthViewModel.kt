@@ -1,4 +1,4 @@
-package com.lhacenmed.budget.ui.auth
+package com.lhacenmed.budget.ui.page.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

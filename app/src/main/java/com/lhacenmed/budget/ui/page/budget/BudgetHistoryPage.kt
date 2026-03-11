@@ -1,4 +1,4 @@
-package com.lhacenmed.budget.ui
+package com.lhacenmed.budget.ui.page.budget
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -17,6 +17,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhacenmed.budget.data.model.BudgetContribution
 import com.lhacenmed.budget.data.model.SpendingItem
+import com.lhacenmed.budget.ui.common.formatDate
+import com.lhacenmed.budget.ui.common.formatTimestamp
+import com.lhacenmed.budget.ui.common.format
+import com.lhacenmed.budget.ui.page.home.HomeViewModel
 
 // Unified entry for the mixed timeline
 private sealed class HistoryEntry {
@@ -37,7 +41,7 @@ private enum class HistoryFilter(val label: String) {
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BudgetHistoryScreen(
+fun BudgetHistoryPage(
     onNavigateBack: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -129,7 +133,10 @@ private fun ContributionEntry(contribution: BudgetContribution) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(
+                Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Text(
                     contribution.contributor,
                     fontWeight = FontWeight.Medium,

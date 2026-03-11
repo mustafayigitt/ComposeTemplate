@@ -11,15 +11,13 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhacenmed.budget.core.theme.BudgetTheme
-import com.lhacenmed.budget.ui.BudgetHistoryScreen
-import com.lhacenmed.budget.ui.HomeScreen
-import com.lhacenmed.budget.ui.auth.LoginScreen
-import com.lhacenmed.budget.ui.auth.RegisterScreen
+import com.lhacenmed.budget.ui.page.AppEntry
+import com.lhacenmed.budget.ui.page.auth.AuthEntry
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
@@ -31,7 +29,6 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var supabase: SupabaseClient
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -40,33 +37,14 @@ class MainActivity : ComponentActivity() {
                 val sessionStatus by supabase.auth.sessionStatus.collectAsStateWithLifecycle(
                     initialValue = SessionStatus.Initializing
                 )
-                var showRegister      by remember { mutableStateOf(false) }
-                var showBudgetHistory by remember { mutableStateOf(false) }
-
-                // Back handling — budget history takes priority over register
-                BackHandler(enabled = showBudgetHistory) { showBudgetHistory = false }
-                BackHandler(enabled = showRegister)      { showRegister = false }
-
-                AnimatedContent(targetState = sessionStatus, label = "auth") { status ->
+                AnimatedContent(targetState = sessionStatus, label = "auth_gate") { status ->
                     when (status) {
-                        SessionStatus.Initializing -> Box(
-                            Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-                        ) { CircularProgressIndicator() }
-
-                        is SessionStatus.Authenticated -> when {
-                            showBudgetHistory -> BudgetHistoryScreen(
-                                onNavigateBack = { showBudgetHistory = false }
-                            )
-                            else -> HomeScreen(
-                                onNavigateToBudgetHistory = { showBudgetHistory = true }
-                            )
-                        }
-
-                        else -> if (showRegister) {
-                            RegisterScreen(onNavigateBack = { showRegister = false })
-                        } else {
-                            LoginScreen(onNavigateToRegister = { showRegister = true })
-                        }
+                        SessionStatus.Initializing ->
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        is SessionStatus.Authenticated -> AppEntry()
+                        else -> AuthEntry()
                     }
                 }
             }
