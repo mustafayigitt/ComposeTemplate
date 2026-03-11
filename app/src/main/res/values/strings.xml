@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">Budget</string>
+    <string name="appearance">Appearance</string>
+    <string name="dark_theme">Dark Theme</string>
+    <string name="dynamic_color">Dynamic Color</string>
+    <string name="dynamic_color_desc">Use wallpaper colors (Android 12+)</string>
+    <string name="follow_system">Follow System</string>
+    <string name="dark_theme_on">On</string>
+    <string name="dark_theme_off">Off</string>
+    <string name="high_contrast">High Contrast</string>
+    <string name="theme_color">Theme Color</string>
+    <string name="additional_settings">Additional settings</string>
 </resources>

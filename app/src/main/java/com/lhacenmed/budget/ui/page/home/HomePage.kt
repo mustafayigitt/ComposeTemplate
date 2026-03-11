@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,6 +38,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomePage(
     onNavigateToBudgetHistory: () -> Unit,
+    onNavigateToAppearance: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -59,6 +61,10 @@ fun HomePage(
                 onBudgetHistory = {
                     scope.launch { drawerState.close() }
                     onNavigateToBudgetHistory()
+                },
+                onAppearance = {                   // ← add this
+                    scope.launch { drawerState.close() }
+                    onNavigateToAppearance()
                 },
                 onSignOut = { authViewModel.signOut() }
             )
@@ -197,6 +203,7 @@ private fun DaysDrawer(
     selectedDay: String,
     onDayClick: (String) -> Unit,
     onBudgetHistory: () -> Unit,
+    onAppearance: () -> Unit,
     onSignOut: () -> Unit
 ) {
     ModalDrawerSheet {
@@ -212,7 +219,7 @@ private fun DaysDrawer(
                     label = { Text(formatDate(day)) },
                     selected = day == selectedDay,
                     onClick = { onDayClick(day) },
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
         }
@@ -222,7 +229,14 @@ private fun DaysDrawer(
             selected = false,
             onClick = onBudgetHistory,
             icon = { Icon(Icons.Default.History, contentDescription = null) },
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp, end = 16.dp)
+        )
+        NavigationDrawerItem(                      // ← add this item
+            label = { Text("Appearance") },
+            selected = false,
+            onClick = onAppearance,
+            icon = { Icon(Icons.Outlined.Palette, contentDescription = null) },
+            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp, end = 16.dp)
         )
         NavigationDrawerItem(
             label = { Text("Sign Out", color = MaterialTheme.colorScheme.error) },
@@ -232,7 +246,7 @@ private fun DaysDrawer(
                 Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null,
                     tint = MaterialTheme.colorScheme.error)
             },
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 8.dp, end = 16.dp)
         )
         Spacer(Modifier.height(8.dp))
     }
