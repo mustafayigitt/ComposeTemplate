@@ -48,6 +48,10 @@ android {
             )
         }
     }
+
+    packaging {
+        resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+    }
     
     buildFeatures {
         buildConfig = true
@@ -72,6 +76,10 @@ dependencies {
     implementation(project(":feature:search:presentation"))
     implementation(project(":feature:splash:navigation"))
     implementation(project(":feature:splash:presentation"))
+
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.postgrest)
+    implementation(libs.ktor.client.android)
 
     implementation(libs.androidx.core)
     implementation(libs.androidx.lifecycle.runtime.ktx)

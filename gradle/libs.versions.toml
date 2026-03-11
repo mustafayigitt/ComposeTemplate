@@ -19,6 +19,8 @@ androidx-datastore = "1.1.1"
 retrofit = "2.11.0"
 converter-gson = "2.11.0"
 logging-interceptor = "4.12.0"
+supabase = "3.4.1"
+ktor = "3.4.1"
 
 # Dependency Injection
 hilt-android = "2.57.1"
@@ -75,6 +77,9 @@ androidx-datastore-preferences = { module = "androidx.datastore:datastore-prefer
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converter-gson" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "logging-interceptor" }
+supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "supabase" }
+supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
+ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
 
 # Dependency Injection
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-android" }
