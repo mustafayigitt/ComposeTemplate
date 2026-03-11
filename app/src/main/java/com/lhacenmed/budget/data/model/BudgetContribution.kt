@@ -4,13 +4,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SpendingItem(
+data class BudgetContribution(
     val id: String = "",
-    val date: String,
-    val shopper: String,
-    val name: String,
-    val quantity: String,
-    val price: Float,
-    val description: String? = null,
+    val contributor: String,
+    val amount: Float,
     @SerialName("created_at") val createdAt: String = ""
 )
