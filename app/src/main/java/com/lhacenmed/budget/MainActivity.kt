@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhacenmed.budget.core.theme.BudgetTheme
+import com.lhacenmed.budget.ui.BudgetHistoryScreen
 import com.lhacenmed.budget.ui.HomeScreen
 import com.lhacenmed.budget.ui.auth.LoginScreen
 import com.lhacenmed.budget.ui.auth.RegisterScreen
@@ -39,12 +40,12 @@ class MainActivity : ComponentActivity() {
                 val sessionStatus by supabase.auth.sessionStatus.collectAsStateWithLifecycle(
                     initialValue = SessionStatus.Initializing
                 )
-                var showRegister by remember { mutableStateOf(false) }
+                var showRegister      by remember { mutableStateOf(false) }
+                var showBudgetHistory by remember { mutableStateOf(false) }
 
-                // Intercept back gesture when on register screen → go to login, not exit
-                BackHandler(enabled = showRegister) {
-                    showRegister = false
-                }
+                // Back handling — budget history takes priority over register
+                BackHandler(enabled = showBudgetHistory) { showBudgetHistory = false }
+                BackHandler(enabled = showRegister)      { showRegister = false }
 
                 AnimatedContent(targetState = sessionStatus, label = "auth") { status ->
                     when (status) {
@@ -52,7 +53,14 @@ class MainActivity : ComponentActivity() {
                             Modifier.fillMaxSize(), contentAlignment = Alignment.Center
                         ) { CircularProgressIndicator() }
 
-                        is SessionStatus.Authenticated -> HomeScreen()
+                        is SessionStatus.Authenticated -> when {
+                            showBudgetHistory -> BudgetHistoryScreen(
+                                onNavigateBack = { showBudgetHistory = false }
+                            )
+                            else -> HomeScreen(
+                                onNavigateToBudgetHistory = { showBudgetHistory = true }
+                            )
+                        }
 
                         else -> if (showRegister) {
                             RegisterScreen(onNavigateBack = { showRegister = false })

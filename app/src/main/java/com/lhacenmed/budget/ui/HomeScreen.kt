@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
@@ -36,6 +37,7 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    onNavigateToBudgetHistory: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -54,6 +56,10 @@ fun HomeScreen(
                 onDayClick = { day ->
                     viewModel.selectDay(day)
                     scope.launch { drawerState.close() }
+                },
+                onBudgetHistory = {
+                    scope.launch { drawerState.close() }
+                    onNavigateToBudgetHistory()
                 },
                 onSignOut = { authViewModel.signOut() }
             )
@@ -81,12 +87,15 @@ fun HomeScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                Column(Modifier.padding(padding).fillMaxSize()) {
-                    BudgetCard(
-                        totalBudget = state.totalBudget,
-                        totalSpent = state.totalSpent,
+                Column(
+                    Modifier
+                        .padding(padding)
+                        .fillMaxSize()
+                ) {
+                    BudgetSummaryRow(
+                        daySpent = state.daySpent,
                         remaining = state.remaining,
-                        onClick = { showBudgetSheet = true }
+                        onAddBudget = { showBudgetSheet = true }
                     )
                     DayContent(
                         modifier = Modifier.weight(1f),
@@ -110,10 +119,9 @@ fun HomeScreen(
     }
 
     if (showBudgetSheet) {
-        BudgetSheet(
-            contributions = state.contributions,
+        AddBudgetSheet(
             onDismiss = { showBudgetSheet = false },
-            onAddContribution = { amount ->
+            onConfirm = { amount ->
                 viewModel.addContribution(amount)
                 showBudgetSheet = false
             }
@@ -121,142 +129,75 @@ fun HomeScreen(
     }
 }
 
-// ── Budget Card ───────────────────────────────────────────────────────────────
+// ── Budget Summary Row ────────────────────────────────────────────────────────
 
 @Composable
-private fun BudgetCard(
-    totalBudget: Float,
-    totalSpent: Float,
+private fun BudgetSummaryRow(
+    daySpent: Float,
     remaining: Float,
-    onClick: () -> Unit
+    onAddBudget: () -> Unit
 ) {
-    val isNegative = remaining < 0
-    val remainingColor = if (isNegative) MaterialTheme.colorScheme.error
+    val remainingColor = if (remaining < 0) MaterialTheme.colorScheme.error
     else MaterialTheme.colorScheme.primary
 
-    Card(
-        onClick = onClick,
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Budget", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(
-                    "Tap to manage",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            HorizontalDivider()
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                BudgetStat(label = "Added", value = "+${totalBudget.format()} dh",
-                    color = MaterialTheme.colorScheme.secondary)
-                BudgetStat(label = "Spent", value = "-${totalSpent.format()} dh",
-                    color = MaterialTheme.colorScheme.error)
-                BudgetStat(label = "Remaining", value = "${remaining.format()} dh",
-                    color = remainingColor, bold = true)
-            }
-            if (totalBudget > 0) {
-                val progress = (totalSpent / totalBudget).coerceIn(0f, 1f)
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier.fillMaxWidth(),
-                    color = if (isNegative) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun BudgetStat(label: String, value: String, color: androidx.compose.ui.graphics.Color, bold: Boolean = false) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.bodyMedium, color = color,
-            fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
-    }
-}
-
-// ── Budget Sheet ──────────────────────────────────────────────────────────────
-
-@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun BudgetSheet(
-    contributions: List<BudgetContribution>,
-    onDismiss: () -> Unit,
-    onAddContribution: (Float) -> Unit
-) {
-    var amount by remember { mutableStateOf("") }
-    val isValid = amount.toFloatOrNull()?.let { it > 0 } == true
-
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        // Today's spending
+        Card(
+            modifier = Modifier.weight(1f),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
         ) {
-            Text("Budget", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                OutlinedTextField(
-                    value = amount, onValueChange = { amount = it },
-                    label = { Text("Add amount (dh)") },
-                    modifier = Modifier.weight(1f),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
+                Text(
+                    "Today's Spending",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer
                 )
-                Button(
-                    onClick = { onAddContribution(amount.toFloat()) },
-                    enabled = isValid,
-                    modifier = Modifier.height(56.dp)
-                ) { Text("Add") }
-            }
-
-            if (contributions.isNotEmpty()) {
-                Text("History", style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.heightIn(max = 300.dp)
-                ) {
-                    items(contributions, key = { it.id }) { ContributionRow(it) }
-                }
+                Text(
+                    "${daySpent.format()} dh",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
             }
         }
-    }
-}
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-private fun ContributionRow(contribution: BudgetContribution) {
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column {
-            Text(contribution.contributor, style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium)
-            Text(formatTimestamp(contribution.createdAt),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // Remaining budget
+        Card(
+            onClick = onAddBudget,
+            modifier = Modifier.weight(1f),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        ) {
+            Column(
+                Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    "Remaining",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    "${remaining.format()} dh",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = if (remaining < 0) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    "Tap to add funds",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                )
+            }
         }
-        Text("+${contribution.amount.format()} dh",
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.secondary)
     }
 }
 
@@ -268,13 +209,17 @@ private fun DaysDrawer(
     days: List<String>,
     selectedDay: String,
     onDayClick: (String) -> Unit,
+    onBudgetHistory: () -> Unit,
     onSignOut: () -> Unit
 ) {
     ModalDrawerSheet {
         Spacer(Modifier.height(16.dp))
-        Text("Budget Days", style = MaterialTheme.typography.titleMedium,
+        Text(
+            "Budget Days",
+            style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            fontWeight = FontWeight.Bold)
+            fontWeight = FontWeight.Bold
+        )
         HorizontalDivider()
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(days) { day ->
@@ -282,21 +227,32 @@ private fun DaysDrawer(
                     label = { Text(formatDate(day)) },
                     selected = day == selectedDay,
                     onClick = { onDayClick(day) },
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
                 )
             }
         }
         HorizontalDivider()
         NavigationDrawerItem(
+            label = { Text("Budget History") },
+            selected = false,
+            onClick = onBudgetHistory,
+            icon = { Icon(Icons.Default.History, contentDescription = null) },
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+        )
+        NavigationDrawerItem(
             label = { Text("Sign Out", color = MaterialTheme.colorScheme.error) },
             selected = false,
             onClick = onSignOut,
             icon = {
-                Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error)
+                Icon(
+                    Icons.AutoMirrored.Filled.ExitToApp,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
             },
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
+        Spacer(Modifier.height(8.dp))
     }
 }
 
@@ -306,32 +262,45 @@ private fun DaysDrawer(
 private fun DayContent(modifier: Modifier, items: List<SpendingItem>, onDelete: (String) -> Unit) {
     val dayTotal = items.sumOf { it.price.toDouble() }
 
-    LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        if (items.isEmpty()) {
-            item {
-                Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No spendings yet. Tap + to add.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Column(modifier = modifier) {
+        Text(
+            "Spendings",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+        )
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (items.isEmpty()) {
+                item {
+                    Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            "No spendings yet. Tap + to add.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
-            }
-        } else {
-            items(items, key = { it.id }) { item ->
-                SpendingItemCard(item = item, onDelete = { onDelete(item.id) })
-            }
-            item {
-                Row(
-                    Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Day total", fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium)
-                    Text("${dayTotal.format()} dh", fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary)
+            } else {
+                items(items, key = { it.id }) { item ->
+                    SpendingItemCard(item = item, onDelete = { onDelete(item.id) })
+                }
+                item {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Day total", fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium)
+                        Text("${dayTotal.format()} dh", fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary)
+                    }
                 }
             }
         }
@@ -343,12 +312,16 @@ private fun SpendingItemCard(item: SpendingItem, onDelete: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(item.name, fontWeight = FontWeight.Medium)
-                    Text(item.quantity,
+                    Text(
+                        item.quantity,
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 if (!item.description.isNullOrBlank()) {
                     Text(item.description,
@@ -363,6 +336,45 @@ private fun SpendingItemCard(item: SpendingItem, onDelete: () -> Unit) {
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete",
                     tint = MaterialTheme.colorScheme.error)
+            }
+        }
+    }
+}
+
+// ── Add Budget Sheet ──────────────────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddBudgetSheet(onDismiss: () -> Unit, onConfirm: (Float) -> Unit) {
+    var amount by remember { mutableStateOf("") }
+    val isValid = amount.toFloatOrNull()?.let { it > 0 } == true
+
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text("Add Funds", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = amount, onValueChange = { amount = it },
+                    label = { Text("Amount (dh)") },
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+                Button(
+                    onClick = { onConfirm(amount.toFloat()) },
+                    enabled = isValid,
+                    modifier = Modifier.height(56.dp)
+                ) { Text("Add") }
             }
         }
     }
@@ -393,7 +405,6 @@ private fun AddItemSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text("Add Spending", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-
             OutlinedTextField(
                 value = shopperName, onValueChange = {},
                 label = { Text("Shopper") },
@@ -428,7 +439,6 @@ private fun AddItemSheet(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
-
             Button(
                 onClick = { onConfirm(name, quantity, price.toFloat(), description) },
                 enabled = isValid,
@@ -441,21 +451,23 @@ private fun AddItemSheet(
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 @RequiresApi(Build.VERSION_CODES.O)
-private fun formatDate(date: String): String = runCatching {
+internal fun formatDate(date: String): String = runCatching {
     val d = LocalDate.parse(date)
     val today = LocalDate.now()
     when (d) {
-        today -> "Today — ${d.format(DateTimeFormatter.ofPattern("MMM d"))}"
-        today.minusDays(1) -> "Yesterday — ${d.format(DateTimeFormatter.ofPattern("MMM d"))}"
-        else -> d.format(DateTimeFormatter.ofPattern("EEE, MMM d"))
+        today                -> "Today — ${d.format(DateTimeFormatter.ofPattern("MMM d"))}"
+        today.minusDays(1)   -> "Yesterday — ${d.format(DateTimeFormatter.ofPattern("MMM d"))}"
+        else                 -> d.format(DateTimeFormatter.ofPattern("EEE, MMM d"))
     }
 }.getOrDefault(date)
 
 @RequiresApi(Build.VERSION_CODES.O)
-private fun formatTimestamp(raw: String): String = runCatching {
-    val zdt = ZonedDateTime.parse(raw)
-    zdt.format(DateTimeFormatter.ofPattern("MMM d, HH:mm"))
+internal fun formatTimestamp(raw: String): String = runCatching {
+    ZonedDateTime.parse(raw).format(DateTimeFormatter.ofPattern("MMM d, HH:mm"))
 }.getOrDefault(raw)
 
-private fun Float.format() = if (this == kotlin.math.floor(this)) this.toInt().toString() else "%.2f".format(this)
-private fun Double.format() = if (this == kotlin.math.floor(this)) this.toInt().toString() else "%.2f".format(this)
+internal fun Float.format() =
+    if (this == kotlin.math.floor(this)) this.toInt().toString() else "%.2f".format(this)
+
+internal fun Double.format() =
+    if (this == kotlin.math.floor(this)) this.toInt().toString() else "%.2f".format(this)

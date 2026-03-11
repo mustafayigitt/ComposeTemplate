@@ -25,6 +25,7 @@ data class HomeUiState(
     val days: List<String> = emptyList(),
     val selectedDay: String = LocalDate.now().toString(),
     val items: List<SpendingItem> = emptyList(),
+    val allSpending: List<SpendingItem> = emptyList(),
     val contributions: List<BudgetContribution> = emptyList(),
     val totalBudget: Float = 0f,
     val totalSpent: Float = 0f,
@@ -33,6 +34,7 @@ data class HomeUiState(
     val error: String? = null
 ) {
     val remaining get() = totalBudget - totalSpent
+    val daySpent get() = items.sumOf { it.price.toDouble() }.toFloat()
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -66,20 +68,21 @@ class HomeViewModel @Inject constructor(
         _state.update { it.copy(isLoading = true) }
         runCatching {
             coroutineScope {
-                val daysDeferred = async { repository.getDays() }
+                val daysDeferred          = async { repository.getDays() }
                 val contributionsDeferred = async { repository.getContributions() }
-                val allSpendingDeferred = async { repository.getAllSpending() }
+                val allSpendingDeferred   = async { repository.getAllSpending() }
                 Triple(daysDeferred.await(), contributionsDeferred.await(), allSpendingDeferred.await())
             }
         }.onSuccess { (days, contributions, allSpending) ->
-            val today = LocalDate.now().toString()
-            val allDays = if (today in days) days else listOf(today) + days
+            val today      = LocalDate.now().toString()
+            val allDays    = if (today in days) days else listOf(today) + days
             val totalBudget = contributions.sumOf { it.amount.toDouble() }.toFloat()
-            val totalSpent = allSpending.sumOf { it.price.toDouble() }.toFloat()
+            val totalSpent  = allSpending.sumOf { it.price.toDouble() }.toFloat()
             _state.update {
                 it.copy(
                     days = allDays,
                     contributions = contributions,
+                    allSpending = allSpending,
                     totalBudget = totalBudget,
                     totalSpent = totalSpent,
                     isLoading = false
