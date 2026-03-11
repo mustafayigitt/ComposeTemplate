@@ -22,6 +22,7 @@ logging-interceptor = "4.12.0"
 supabase = "3.4.1"
 ktor = "3.4.1"
 supabase-auth = "3.4.1"
+room = "2.7.1"
 
 # Dependency Injection
 hilt-android = "2.57.1"
@@ -83,6 +84,9 @@ supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "s
 supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
 supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt", version.ref = "supabase-auth" }
+room-runtime  = { module = "androidx.room:room-runtime",  version.ref = "room" }
+room-ktx      = { module = "androidx.room:room-ktx",      version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 
 # Dependency Injection
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-android" }

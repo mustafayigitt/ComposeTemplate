@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.lhacenmed.budget.data.model.BudgetContribution
 import com.lhacenmed.budget.data.model.SpendingItem
 import com.lhacenmed.budget.data.repository.SpendingRepository
+import com.lhacenmed.budget.data.util.ConnectivityObserver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
@@ -30,6 +31,8 @@ data class HomeUiState(
     val totalBudget: Float = 0f,
     val totalSpent: Float = 0f,
     val currentUserName: String = "",
+    val isOnline: Boolean = true,
+    val pendingCount: Int = 0,
     val isLoading: Boolean = false,
     val error: String? = null
 ) {
@@ -41,7 +44,8 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: SpendingRepository,
-    private val supabase: SupabaseClient
+    private val supabase: SupabaseClient,
+    private val connectivity: ConnectivityObserver
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
@@ -50,6 +54,7 @@ class HomeViewModel @Inject constructor(
     init {
         loadCurrentUser()
         refresh()
+        observeConnectivity()
     }
 
     private fun loadCurrentUser() {
@@ -63,7 +68,19 @@ class HomeViewModel @Inject constructor(
         _state.update { it.copy(currentUserName = name) }
     }
 
-    // Load days, budget, and contributions in parallel
+    /** When connectivity is restored, sync pending items then refresh. */
+    private fun observeConnectivity() = viewModelScope.launch {
+        connectivity.isOnline.collect { online ->
+            _state.update { it.copy(isOnline = online) }
+            if (online) {
+                repository.syncPending()
+                refresh()
+            } else {
+                updatePendingCount()
+            }
+        }
+    }
+
     fun refresh() = viewModelScope.launch {
         _state.update { it.copy(isLoading = true) }
         runCatching {
@@ -74,8 +91,8 @@ class HomeViewModel @Inject constructor(
                 Triple(daysDeferred.await(), contributionsDeferred.await(), allSpendingDeferred.await())
             }
         }.onSuccess { (days, contributions, allSpending) ->
-            val today      = LocalDate.now().toString()
-            val allDays    = if (today in days) days else listOf(today) + days
+            val today       = LocalDate.now().toString()
+            val allDays     = if (today in days) days else listOf(today) + days
             val totalBudget = contributions.sumOf { it.amount.toDouble() }.toFloat()
             val totalSpent  = allSpending.sumOf { it.price.toDouble() }.toFloat()
             _state.update {
@@ -89,6 +106,7 @@ class HomeViewModel @Inject constructor(
                 )
             }
             loadItemsForDay(_state.value.selectedDay)
+            updatePendingCount()
         }.onFailure { e ->
             _state.update { it.copy(error = e.message, isLoading = false) }
         }
@@ -115,7 +133,7 @@ class HomeViewModel @Inject constructor(
             description = description?.takeIf { it.isNotBlank() }
         )
         runCatching { repository.addItem(item) }
-            .onSuccess { refresh() }
+            .onSuccess { if (_state.value.isOnline) refresh() else updatePendingCount() }
             .onFailure { e -> _state.update { it.copy(error = e.message) } }
     }
 
@@ -132,5 +150,9 @@ class HomeViewModel @Inject constructor(
     fun deleteItem(id: String) = viewModelScope.launch {
         runCatching { repository.deleteItem(id) }
             .onSuccess { refresh() }
+    }
+
+    private fun updatePendingCount() = viewModelScope.launch {
+        _state.update { it.copy(pendingCount = repository.pendingCount()) }
     }
 }

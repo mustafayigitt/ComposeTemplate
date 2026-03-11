@@ -1,10 +1,14 @@
 package com.lhacenmed.budget.di
 
+import android.content.Context
+import androidx.room.Room
 import com.lhacenmed.budget.BuildConfig
+import com.lhacenmed.budget.data.local.AppDatabase
 import com.lhacenmed.budget.data.repository.SpendingRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
@@ -32,5 +36,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSpendingRepository(client: SupabaseClient) = SpendingRepository(client)
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
+        Room.databaseBuilder(context, AppDatabase::class.java, "budget.db").build()
+
+    @Provides
+    @Singleton
+    fun provideSpendingRepository(
+        client: SupabaseClient,
+        db: AppDatabase
+    ) = SpendingRepository(client, db)
 }

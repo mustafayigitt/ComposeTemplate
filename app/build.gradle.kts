@@ -82,6 +82,10 @@ dependencies {
     implementation(libs.ktor.client.android)
     implementation(libs.supabase.auth)
 
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
     implementation(libs.androidx.core)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

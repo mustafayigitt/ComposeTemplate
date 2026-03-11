@@ -92,6 +92,24 @@ fun HomeScreen(
                         .padding(padding)
                         .fillMaxSize()
                 ) {
+                    // Offline banner
+                    if (!state.isOnline || state.pendingCount > 0) {
+                        val text = if (!state.isOnline)
+                            "You're offline — items will sync when reconnected"
+                        else
+                            "${state.pendingCount} item(s) syncing…"
+                        Surface(color = MaterialTheme.colorScheme.tertiaryContainer) {
+                            Text(
+                                text,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
+                    }
+
                     BudgetSummaryRow(
                         daySpent = state.daySpent,
                         remaining = state.remaining,
