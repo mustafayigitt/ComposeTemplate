@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lhacenmed.budget.ui.common.PredictiveExitHandler
 import com.lhacenmed.budget.ui.common.SettingsProvider
 import com.lhacenmed.budget.ui.common.motion.materialSharedAxisZIn
 import com.lhacenmed.budget.ui.common.motion.materialSharedAxisZOut
@@ -40,24 +41,32 @@ class MainActivity : ComponentActivity() {
         setContent {
             SettingsProvider {
                 BudgetTheme {
-                    val sessionStatus by supabase.auth.sessionStatus
-                        .collectAsStateWithLifecycle(initialValue = SessionStatus.Initializing)
+                    // PredictiveExitHandler wraps everything so the exit gesture
+                    // works regardless of which auth state the user is in.
+                    PredictiveExitHandler(onExit = { finish() }) {
+                        val sessionStatus by supabase.auth.sessionStatus
+                            .collectAsStateWithLifecycle(
+                                initialValue = SessionStatus.Initializing
+                            )
 
-                    AnimatedContent(
-                        targetState   = sessionStatus,
-                        label         = "auth_gate",
-                        transitionSpec = {
-                            materialSharedAxisZIn(forward = true) togetherWith
-                                    materialSharedAxisZOut(forward = true)
-                        },
-                    ) { status ->
-                        when (status) {
-                            SessionStatus.Initializing ->
-                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator()
-                                }
-                            is SessionStatus.Authenticated -> AppEntry()
-                            else -> AuthEntry()
+                        AnimatedContent(
+                            targetState    = sessionStatus,
+                            label          = "auth_gate",
+                            transitionSpec = {
+                                materialSharedAxisZIn(forward = true) togetherWith
+                                        materialSharedAxisZOut(forward = true)
+                            },
+                        ) { status ->
+                            when (status) {
+                                SessionStatus.Initializing ->
+                                    Box(
+                                        Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center,
+                                    ) { CircularProgressIndicator() }
+
+                                is SessionStatus.Authenticated -> AppEntry()
+                                else -> AuthEntry()
+                            }
                         }
                     }
                 }
