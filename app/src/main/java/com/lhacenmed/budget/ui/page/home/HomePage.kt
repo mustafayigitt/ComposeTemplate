@@ -7,148 +7,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.*
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.lhacenmed.budget.data.model.SpendingItem
 import com.lhacenmed.budget.ui.common.format
-import com.lhacenmed.budget.ui.common.formatDate
-
-// ── App Drawer (shared with all tabs via MainScreen) ──────────────────────────
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun AppDrawer(
-    days: List<String>,
-    selectedDay: String,
-    onDayClick: (String) -> Unit,
-    onBudgetHistory: () -> Unit,
-    onAppearance: () -> Unit,
-    onSignOut: () -> Unit
-) {
-    ModalDrawerSheet {
-        Spacer(Modifier.height(16.dp))
-        Text(
-            "Budget Days",
-            style      = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            modifier   = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-        HorizontalDivider()
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            items(days) { day ->
-                NavigationDrawerItem(
-                    label    = { Text(formatDate(day)) },
-                    selected = day == selectedDay,
-                    onClick  = { onDayClick(day) },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
-        }
-        HorizontalDivider()
-        NavigationDrawerItem(
-            label    = { Text("Budget History") },
-            selected = false,
-            onClick  = onBudgetHistory,
-            icon     = { Icon(Icons.Default.History, contentDescription = null) },
-            modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp, end = 16.dp)
-        )
-        NavigationDrawerItem(
-            label    = { Text("Appearance") },
-            selected = false,
-            onClick  = onAppearance,
-            icon     = { Icon(Icons.Outlined.Palette, contentDescription = null) },
-            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp, end = 16.dp)
-        )
-        NavigationDrawerItem(
-            label    = { Text("Sign Out", color = MaterialTheme.colorScheme.error) },
-            selected = false,
-            onClick  = onSignOut,
-            icon     = {
-                Icon(
-                    Icons.AutoMirrored.Filled.ExitToApp,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-            },
-            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 8.dp, end = 16.dp)
-        )
-        Spacer(Modifier.height(8.dp))
-    }
-}
-
-// ── Home FAB (owned by MainScreen, passed into Scaffold.floatingActionButton) ─
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun HomeFab(
-    expanded: Boolean,
-    visible: Boolean,
-    onToggle: (Boolean) -> Unit,
-    onAddSpending: () -> Unit,
-    onAddFunds: () -> Unit
-) {
-    FloatingActionButtonMenu(
-        expanded = expanded,
-        button   = {
-            ToggleFloatingActionButton(
-                modifier = Modifier
-                    .semantics {
-                        traversalIndex     = -1f
-                        stateDescription   = if (expanded) "Expanded" else "Collapsed"
-                        contentDescription = "Toggle menu"
-                    }
-                    .animateFloatingActionButton(
-                        visible   = visible,
-                        alignment = Alignment.BottomEnd,
-                    ),
-                checked         = expanded,
-                onCheckedChange = onToggle,
-            ) {
-                val imageVector by remember {
-                    derivedStateOf {
-                        if (checkedProgress > 0.5f) Icons.Filled.Close else Icons.Filled.Add
-                    }
-                }
-                Icon(
-                    imageVector        = imageVector,
-                    contentDescription = null,
-                    modifier           = Modifier.animateIcon({ checkedProgress }),
-                )
-            }
-        }
-    ) {
-        FloatingActionButtonMenuItem(
-            onClick = onAddSpending,
-            icon    = { Icon(Icons.Default.ShoppingCart, contentDescription = null) },
-            text    = { Text("Add Spending") },
-        )
-        FloatingActionButtonMenuItem(
-            onClick = onAddFunds,
-            icon    = { Icon(Icons.Default.Payments, contentDescription = null) },
-            text    = { Text("Add Funds") },
-        )
-    }
-}
-
-// ── Home Content (the scrollable body, no Scaffold/Drawer) ────────────────────
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -170,40 +37,23 @@ fun HomeContent(
         if (!state.isOnline || state.pendingCount > 0) {
             Surface(color = MaterialTheme.colorScheme.tertiaryContainer) {
                 Text(
-                    text = if (!state.isOnline)
-                        "You're offline — items will sync when reconnected"
-                    else
-                        "${state.pendingCount} item(s) syncing…",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                    text     = if (!state.isOnline) "You're offline — items will sync when reconnected"
+                    else "${state.pendingCount} item(s) syncing…",
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    style    = MaterialTheme.typography.labelMedium,
+                    color    = MaterialTheme.colorScheme.onTertiaryContainer
                 )
             }
         }
-        BudgetSummaryRow(
-            daySpent   = state.daySpent,
-            remaining  = state.remaining,
-            onAddFunds = onAddFunds
-        )
-        DayContent(
-            modifier  = Modifier.weight(1f),
-            items     = state.items,
-            listState = listState,
-            onDelete  = onDelete
-        )
+        BudgetSummaryRow(daySpent = state.daySpent, remaining = state.remaining, onAddFunds = onAddFunds)
+        DayContent(modifier = Modifier.weight(1f), items = state.items, listState = listState, onDelete = onDelete)
     }
 }
 
 // ── Private composables ───────────────────────────────────────────────────────
 
 @Composable
-private fun BudgetSummaryRow(
-    daySpent: Float,
-    remaining: Float,
-    onAddFunds: () -> Unit
-) {
+private fun BudgetSummaryRow(daySpent: Float, remaining: Float, onAddFunds: () -> Unit) {
     Row(
         modifier              = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -213,17 +63,10 @@ private fun BudgetSummaryRow(
             colors   = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
         ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    "Today's Spending",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-                Text(
-                    "${daySpent.format()} dh",
-                    style      = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.onErrorContainer
-                )
+                Text("Today's Spending", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer)
+                Text("${daySpent.format()} dh", style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer)
             }
         }
         Card(
@@ -232,11 +75,8 @@ private fun BudgetSummaryRow(
             colors   = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    "Remaining",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                Text("Remaining", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer)
                 Text(
                     "${remaining.format()} dh",
                     style      = MaterialTheme.typography.titleLarge,
@@ -244,23 +84,15 @@ private fun BudgetSummaryRow(
                     color      = if (remaining < 0) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.onPrimaryContainer
                 )
-                Text(
-                    "Tap to add funds",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                )
+                Text("Tap to add funds", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f))
             }
         }
     }
 }
 
 @Composable
-private fun DayContent(
-    modifier: Modifier,
-    items: List<SpendingItem>,
-    listState: LazyListState,
-    onDelete: (String) -> Unit
-) {
+private fun DayContent(modifier: Modifier, items: List<SpendingItem>, listState: LazyListState, onDelete: (String) -> Unit) {
     Column(modifier = modifier) {
         Text(
             "Spendings",
@@ -278,10 +110,8 @@ private fun DayContent(
             if (items.isEmpty()) {
                 item {
                     Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            "No spendings yet. Tap + to add.",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Text("No spendings yet. Tap + to add.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             } else {
@@ -290,18 +120,13 @@ private fun DayContent(
                 }
                 item {
                     val dayTotal = items.sumOf { it.price.toDouble() }
-                    Row(
-                        Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
+                    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Day total", fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            "${dayTotal.format()} dh",
-                            fontWeight = FontWeight.Bold,
-                            style      = MaterialTheme.typography.titleMedium,
-                            color      = MaterialTheme.colorScheme.primary
-                        )
+                        Text("${dayTotal.format()} dh", fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -314,37 +139,23 @@ private fun SpendingItemCard(item: SpendingItem, onDelete: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment     = Alignment.CenterVertically
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
                     Text(item.name, fontWeight = FontWeight.Medium)
-                    Text(
-                        item.quantity,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(item.quantity, style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (!item.description.isNullOrBlank()) {
-                    Text(
-                        item.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(item.description, style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Text(
-                    "by ${item.shopper}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline
-                )
+                Text("by ${item.shopper}", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.outline)
             }
             Text("${item.price.format()} dh", fontWeight = FontWeight.SemiBold)
             IconButton(onClick = onDelete) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint               = MaterialTheme.colorScheme.error
-                )
+                Icon(Icons.Default.Delete, contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.error)
             }
         }
     }

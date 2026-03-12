@@ -5,7 +5,6 @@ import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -14,28 +13,30 @@ import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.lhacenmed.budget.data.local.GroceryItem
+import com.lhacenmed.budget.ui.common.HapticFeedback.longPressHapticFeedback
+import com.lhacenmed.budget.ui.common.Route
 import com.lhacenmed.budget.ui.common.animatedComposable
 import com.lhacenmed.budget.ui.common.formatDate
-import com.lhacenmed.budget.ui.common.Route
+import com.lhacenmed.budget.ui.component.AppDrawer
+import com.lhacenmed.budget.ui.component.AppFab
 import com.lhacenmed.budget.ui.page.appearance.AppearancePage
 import com.lhacenmed.budget.ui.page.appearance.DarkThemePage
+import com.lhacenmed.budget.ui.page.auth.AuthViewModel
 import com.lhacenmed.budget.ui.page.budget.BudgetHistoryPage
 import com.lhacenmed.budget.ui.page.grocery.GroceryContent
 import com.lhacenmed.budget.ui.page.grocery.GroceryItemSheet
 import com.lhacenmed.budget.ui.page.grocery.GroceryViewModel
 import com.lhacenmed.budget.ui.page.home.AddFundsSheet
 import com.lhacenmed.budget.ui.page.home.AddSpendingSheet
-import com.lhacenmed.budget.ui.page.home.AppDrawer
-import com.lhacenmed.budget.ui.page.home.HomeFab
 import com.lhacenmed.budget.ui.page.home.HomeContent
 import com.lhacenmed.budget.ui.page.home.HomeViewModel
-import com.lhacenmed.budget.ui.page.auth.AuthViewModel
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -89,6 +90,7 @@ private fun MainScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val listState   = rememberLazyListState()
     val scope       = rememberCoroutineScope()
+    val view        = LocalView.current
 
     val fabVisible by remember {
         derivedStateOf { listState.firstVisibleItemIndex == 0 || fabMenuExpanded }
@@ -106,14 +108,8 @@ private fun MainScreen(
                     homeViewModel.selectDay(day)
                     scope.launch { drawerState.close() }
                 },
-                onBudgetHistory = {
-                    scope.launch { drawerState.close() }
-                    onNavigateToBudgetHistory()
-                },
-                onAppearance    = {
-                    scope.launch { drawerState.close() }
-                    onNavigateToAppearance()
-                },
+                onBudgetHistory = { scope.launch { drawerState.close() }; onNavigateToBudgetHistory() },
+                onAppearance    = { scope.launch { drawerState.close() }; onNavigateToAppearance() },
                 onSignOut       = { authViewModel.signOut() }
             )
         }
@@ -136,7 +132,7 @@ private fun MainScreen(
                 NavigationBar {
                     NavigationBarItem(
                         selected = selectedTab == 0,
-                        onClick  = { selectedTab = 0; fabMenuExpanded = false },
+                        onClick  = { view.longPressHapticFeedback(); selectedTab = 0; fabMenuExpanded = false },
                         icon     = {
                             Icon(
                                 if (selectedTab == 0) Icons.Filled.Home else Icons.Outlined.Home,
@@ -147,7 +143,7 @@ private fun MainScreen(
                     )
                     NavigationBarItem(
                         selected = selectedTab == 1,
-                        onClick  = { selectedTab = 1; fabMenuExpanded = false },
+                        onClick  = { view.longPressHapticFeedback(); selectedTab = 1; fabMenuExpanded = false },
                         icon     = {
                             Icon(
                                 if (selectedTab == 1) Icons.Filled.ShoppingCart else Icons.Outlined.ShoppingCart,
@@ -159,26 +155,23 @@ private fun MainScreen(
                 }
             },
             floatingActionButton = {
-                when (selectedTab) {
-                    0 -> HomeFab(
-                        expanded      = fabMenuExpanded,
-                        visible       = fabVisible,
-                        onToggle      = { fabMenuExpanded = it },
-                        onAddSpending = { fabMenuExpanded = false; showAddSpending = true },
-                        onAddFunds    = { fabMenuExpanded = false; showAddFunds = true }
-                    )
-                    1 -> FloatingActionButton(onClick = { showAddGrocery = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Grocery")
-                    }
-                }
+                AppFab(
+                    selectedTab   = selectedTab,
+                    expanded      = fabMenuExpanded,
+                    visible       = fabVisible,
+                    onToggle      = { fabMenuExpanded = it },
+                    onAddSpending = { fabMenuExpanded = false; showAddSpending = true },
+                    onAddFunds    = { fabMenuExpanded = false; showAddFunds = true },
+                    onAddGrocery  = { showAddGrocery = true }
+                )
             }
         ) { padding ->
             when (selectedTab) {
                 0 -> HomeContent(
-                    state     = homeState,
-                    padding   = padding,
-                    listState = listState,
-                    onDelete  = homeViewModel::deleteItem,
+                    state      = homeState,
+                    padding    = padding,
+                    listState  = listState,
+                    onDelete   = homeViewModel::deleteItem,
                     onAddFunds = { showAddFunds = true }
                 )
                 1 -> GroceryContent(
@@ -198,9 +191,7 @@ private fun MainScreen(
         AddSpendingSheet(
             shopperName = homeState.currentUserName,
             onDismiss   = { showAddSpending = false },
-            onConfirm   = { name, quantity, price, description ->
-                homeViewModel.addItem(name, quantity, price, description)
-            }
+            onConfirm   = { name, qty, price, desc -> homeViewModel.addItem(name, qty, price, desc) }
         )
     }
     if (showAddFunds) {
