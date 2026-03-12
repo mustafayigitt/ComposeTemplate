@@ -32,6 +32,7 @@ fun AppFab(
     onAddGrocery: () -> Unit,
 ) {
     when (selectedTab) {
+        // Home — expressive FAB menu
         0 -> AnimatedVisibility(
             visible = visible,
             enter   = scaleIn(initialScale = 0.8f) + fadeIn(),
@@ -72,6 +73,7 @@ fun AppFab(
             }
         }
 
+        // Groceries — simple FAB, same Scaffold positioning as home
         1 -> AnimatedVisibility(
             visible = visible,
             enter   = scaleIn(initialScale = 0.8f) + fadeIn(),
@@ -81,5 +83,8 @@ fun AppFab(
                 Icon(Icons.Default.Add, contentDescription = "Add Grocery")
             }
         }
+
+        // Status saver — no FAB (read-only feature)
+        else -> Unit
     }
 }

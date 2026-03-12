@@ -15,6 +15,7 @@ androidx-navigation-compose = "2.8.9"
 androidx-datastore = "1.1.4"
 android-material = "1.11.0"
 material3 = "1.4.0-alpha17"
+documentfile = "1.0.1"
 
 # Network
 retrofit = "2.11.0"
@@ -23,6 +24,9 @@ logging-interceptor = "4.12.0"
 supabase = "3.1.4"
 ktor = "3.1.3"
 room = "2.7.1"
+
+# Images
+coil = "2.6.0"
 
 # Dependency Injection
 hilt-android = "2.56.2"
@@ -51,6 +55,7 @@ androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-cor
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfile" }
 
 # Compose
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "androidx-compose-bom" }
@@ -82,6 +87,9 @@ supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+
+# Images
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 
 # Dependency Injection
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-android" }

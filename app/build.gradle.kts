@@ -200,6 +200,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.android.material)
 
+    // Media
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.documentfile)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)

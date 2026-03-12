@@ -5,9 +5,11 @@ import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
@@ -37,6 +39,8 @@ import com.lhacenmed.budget.ui.page.home.AddFundsSheet
 import com.lhacenmed.budget.ui.page.home.AddSpendingSheet
 import com.lhacenmed.budget.ui.page.home.HomeContent
 import com.lhacenmed.budget.ui.page.home.HomeViewModel
+import com.lhacenmed.budget.ui.page.status.StatusContent
+import com.lhacenmed.budget.ui.page.status.StatusViewModel
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -75,10 +79,12 @@ private fun MainScreen(
     onNavigateToAppearance: () -> Unit,
     homeViewModel:    HomeViewModel    = hiltViewModel(),
     groceryViewModel: GroceryViewModel = hiltViewModel(),
+    statusViewModel:  StatusViewModel  = hiltViewModel(),
     authViewModel:    AuthViewModel    = hiltViewModel(),
 ) {
     val homeState    by homeViewModel.state.collectAsStateWithLifecycle()
     val groceryItems by groceryViewModel.items.collectAsStateWithLifecycle()
+    val statusState  by statusViewModel.state.collectAsStateWithLifecycle()
 
     var selectedTab     by rememberSaveable { mutableIntStateOf(0) }
     var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
@@ -87,10 +93,11 @@ private fun MainScreen(
     var showAddGrocery  by remember { mutableStateOf(false) }
     var editingGrocery  by remember { mutableStateOf<GroceryItem?>(null) }
 
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val listState   = rememberLazyListState()
-    val scope       = rememberCoroutineScope()
-    val view        = LocalView.current
+    val drawerState      = rememberDrawerState(DrawerValue.Closed)
+    val listState        = rememberLazyListState()
+    val snackbarState    = remember { SnackbarHostState() }
+    val scope            = rememberCoroutineScope()
+    val view             = LocalView.current
 
     val fabVisible by remember {
         derivedStateOf { listState.firstVisibleItemIndex == 0 || fabMenuExpanded }
@@ -115,10 +122,15 @@ private fun MainScreen(
         }
     ) {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarState) },
             topBar = {
                 TopAppBar(
                     title = {
-                        val title = if (selectedTab == 0) formatDate(homeState.selectedDay) else "Groceries"
+                        val title = when (selectedTab) {
+                            0    -> formatDate(homeState.selectedDay)
+                            1    -> "Groceries"
+                            else -> "Status Saver"
+                        }
                         Text(title, fontWeight = FontWeight.SemiBold)
                     },
                     navigationIcon = {
@@ -133,24 +145,20 @@ private fun MainScreen(
                     NavigationBarItem(
                         selected = selectedTab == 0,
                         onClick  = { view.longPressHapticFeedback(); selectedTab = 0; fabMenuExpanded = false },
-                        icon     = {
-                            Icon(
-                                if (selectedTab == 0) Icons.Filled.Home else Icons.Outlined.Home,
-                                contentDescription = "Home"
-                            )
-                        },
-                        label = { Text("Home") }
+                        icon     = { Icon(if (selectedTab == 0) Icons.Filled.Home else Icons.Outlined.Home, "Home") },
+                        label    = { Text("Home") }
                     )
                     NavigationBarItem(
                         selected = selectedTab == 1,
                         onClick  = { view.longPressHapticFeedback(); selectedTab = 1; fabMenuExpanded = false },
-                        icon     = {
-                            Icon(
-                                if (selectedTab == 1) Icons.Filled.ShoppingCart else Icons.Outlined.ShoppingCart,
-                                contentDescription = "Groceries"
-                            )
-                        },
-                        label = { Text("Groceries") }
+                        icon     = { Icon(if (selectedTab == 1) Icons.Filled.ShoppingCart else Icons.Outlined.ShoppingCart, "Groceries") },
+                        label    = { Text("Groceries") }
+                    )
+                    NavigationBarItem(
+                        selected = selectedTab == 2,
+                        onClick  = { view.longPressHapticFeedback(); selectedTab = 2; fabMenuExpanded = false },
+                        icon     = { Icon(if (selectedTab == 2) Icons.Filled.CloudDownload else Icons.Outlined.CloudDownload, "Status") },
+                        label    = { Text("Status") }
                     )
                 }
             },
@@ -180,6 +188,16 @@ private fun MainScreen(
                     onToggle = groceryViewModel::toggleItem,
                     onDelete = groceryViewModel::deleteItem,
                     onEdit   = { editingGrocery = it }
+                )
+                2 -> StatusContent(
+                    state               = statusState,
+                    padding             = padding,
+                    onPermissionGranted = statusViewModel::onPermissionGranted,
+                    onSave              = statusViewModel::saveStatus,
+                    onShowSnackbar      = { msg ->
+                        statusViewModel.clearMessage()
+                        scope.launch { snackbarState.showSnackbar(msg) }
+                    }
                 )
             }
         }
