@@ -1,6 +1,6 @@
 # Show-FolderTree.ps1
 # Displays a tree-like structure of all files and folders in a given directory
-
+# run: .\Show-FolderTree.ps1 -Path "C:\Users\lhacenmed\AndroidStudioProjects\Budget\app\src"
 param (
     [Parameter(Mandatory = $false)]
     [string]$Path = ".",

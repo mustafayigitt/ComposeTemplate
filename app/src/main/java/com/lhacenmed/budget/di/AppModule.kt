@@ -1,6 +1,8 @@
 package com.lhacenmed.budget.di
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.room.Room
 import com.lhacenmed.budget.BuildConfig
 import com.lhacenmed.budget.data.local.AppDatabase
@@ -15,7 +17,10 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import javax.inject.Singleton
+import com.lhacenmed.budget.data.local.GroceryDao
+import com.lhacenmed.budget.data.local.PendingItemDao
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
@@ -37,7 +42,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(context, AppDatabase::class.java, "budget.db").build()
+        Room.databaseBuilder(context, AppDatabase::class.java, "budget_db")
+            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .build()
 
     @Provides
     @Singleton
@@ -45,4 +52,10 @@ object AppModule {
         client: SupabaseClient,
         db: AppDatabase
     ) = SpendingRepository(client, db)
+
+    @Provides
+    fun providePendingItemDao(db: AppDatabase): PendingItemDao = db.pendingItemDao()
+
+    @Provides
+    fun provideGroceryDao(db: AppDatabase): GroceryDao = db.groceryDao()
 }
