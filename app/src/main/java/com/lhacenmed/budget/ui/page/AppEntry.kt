@@ -194,8 +194,8 @@ private fun MainScreen(
                     padding             = padding,
                     onPermissionGranted = statusViewModel::onPermissionGranted,
                     onSave              = statusViewModel::saveStatus,
-                    onVideoClick        = statusViewModel::playVideo,
-                    onClosePlayer       = statusViewModel::stopVideo,
+                    onItemClick         = statusViewModel::openPreview,
+                    onClosePreview      = statusViewModel::closePreview,
                     onShowSnackbar      = { msg ->
                         statusViewModel.clearMessage()
                         scope.launch { snackbarState.showSnackbar(msg) }

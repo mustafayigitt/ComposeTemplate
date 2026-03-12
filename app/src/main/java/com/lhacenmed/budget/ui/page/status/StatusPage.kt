@@ -4,8 +4,6 @@ import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
-import android.view.ViewGroup
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -17,7 +15,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.PlayCircle
@@ -32,11 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.media3.common.MediaItem
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import com.lhacenmed.budget.data.model.StatusItem
 import com.lhacenmed.budget.data.repository.StatusSaverRepository
@@ -52,8 +44,8 @@ fun StatusContent(
     padding: PaddingValues,
     onPermissionGranted: (Uri?) -> Unit,
     onSave: (StatusItem) -> Unit,
-    onVideoClick: (StatusItem) -> Unit,
-    onClosePlayer: () -> Unit,
+    onItemClick: (StatusItem) -> Unit,
+    onClosePreview: () -> Unit,
     onShowSnackbar: (String) -> Unit
 ) {
     LaunchedEffect(state.message) {
@@ -64,12 +56,13 @@ fun StatusContent(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri -> onPermissionGranted(uri) }
 
-    // Video player overlay — rendered above everything
-    if (state.playingVideo != null) {
-        VideoPlayerScreen(
-            uri     = state.playingVideo.uri,
-            title   = state.playingVideo.name,
-            onClose = onClosePlayer
+    // Preview overlay — covers everything including top/bottom bars
+    if (state.previewItem != null) {
+        MediaPreviewScreen(
+            item     = state.previewItem,
+            isSaving = state.savingUri == state.previewItem.uri,
+            onBack   = onClosePreview,
+            onSave   = { onSave(state.previewItem) }
         )
         return
     }
@@ -82,64 +75,7 @@ fun StatusContent(
             state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-            else -> StatusGrid(state = state, onSave = onSave, onVideoClick = onVideoClick)
-        }
-    }
-}
-
-// ── Video player screen ───────────────────────────────────────────────────────
-
-@Composable
-fun VideoPlayerScreen(uri: Uri, title: String, onClose: () -> Unit) {
-    val context   = LocalContext.current
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-
-    BackHandler(onBack = onClose)
-
-    val player = remember {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(uri))
-            prepare()
-            playWhenReady = true
-        }
-    }
-
-    DisposableEffect(lifecycle) {
-        onDispose { player.release() }
-    }
-
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory  = {
-                PlayerView(it).apply {
-                    this.player = player
-                    useController = true
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                }
-            }
-        )
-
-        // Back button
-        IconButton(
-            onClick  = onClose,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(8.dp)
-                .background(Color.Black.copy(alpha = 0.4f), MaterialTheme.shapes.small)
-        ) {
-            Icon(
-                imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint               = Color.White
-            )
+            else -> StatusGrid(state = state, onSave = onSave, onItemClick = onItemClick)
         }
     }
 }
@@ -153,20 +89,15 @@ private fun PermissionScreen(onGrant: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            imageVector        = Icons.Default.FolderOpen,
-            contentDescription = null,
-            modifier           = Modifier.size(72.dp),
-            tint               = MaterialTheme.colorScheme.primary
-        )
+        Icon(Icons.Default.FolderOpen, contentDescription = null,
+            modifier = Modifier.size(72.dp), tint = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(24.dp))
         Text("WhatsApp Status Saver", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
         Text(
             "Grant access to your WhatsApp statuses folder to view and save statuses you've already watched.",
-            style     = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            color     = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(32.dp))
         Button(onClick = onGrant, modifier = Modifier.fillMaxWidth()) {
@@ -177,9 +108,8 @@ private fun PermissionScreen(onGrant: () -> Unit) {
         Spacer(Modifier.height(12.dp))
         Text(
             "Navigate to: Android → media → com.whatsapp → WhatsApp → accounts → 1002 → Media → .Statuses",
-            style     = MaterialTheme.typography.labelSmall,
-            textAlign = TextAlign.Center,
-            color     = MaterialTheme.colorScheme.outline
+            style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.outline
         )
     }
 }
@@ -191,7 +121,7 @@ private fun PermissionScreen(onGrant: () -> Unit) {
 private fun StatusGrid(
     state: StatusUiState,
     onSave: (StatusItem) -> Unit,
-    onVideoClick: (StatusItem) -> Unit
+    onItemClick: (StatusItem) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val items = if (selectedTab == 0) state.images else state.videos
@@ -209,8 +139,7 @@ private fun StatusGrid(
                 Text(
                     if (selectedTab == 0) "No images found.\nView some statuses in WhatsApp first."
                     else "No videos found.\nView some statuses in WhatsApp first.",
-                    textAlign = TextAlign.Center,
-                    color     = MaterialTheme.colorScheme.onSurfaceVariant
+                    textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {
@@ -223,10 +152,10 @@ private fun StatusGrid(
             ) {
                 items(items, key = { it.uri }) { item ->
                     StatusItemCell(
-                        item       = item,
-                        isSaving   = state.savingUri == item.uri,
-                        onSave     = { onSave(item) },
-                        onVideoClick = { onVideoClick(item) }
+                        item     = item,
+                        isSaving = state.savingUri == item.uri,
+                        onSave   = { onSave(item) },
+                        onClick  = { onItemClick(item) }
                     )
                 }
             }
@@ -239,51 +168,41 @@ private fun StatusGrid(
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 private fun StatusItemCell(
-    item: StatusItem,
-    isSaving: Boolean,
-    onSave: () -> Unit,
-    onVideoClick: () -> Unit
+    item: StatusItem, isSaving: Boolean,
+    onSave: () -> Unit, onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .then(if (item.isVideo) Modifier.clickable(onClick = onVideoClick) else Modifier)
+            .clickable(onClick = onClick)
     ) {
         if (item.isVideo) {
             VideoThumbnail(uri = item.uri, modifier = Modifier.fillMaxSize())
             Icon(
-                imageVector        = Icons.Default.PlayCircle,
-                contentDescription = null,
-                modifier           = Modifier.align(Alignment.Center).size(36.dp),
-                tint               = Color.White.copy(alpha = 0.9f)
+                imageVector = Icons.Default.PlayCircle, contentDescription = null,
+                modifier    = Modifier.align(Alignment.Center).size(36.dp),
+                tint        = Color.White.copy(alpha = 0.9f)
             )
         } else {
             AsyncImage(
-                model              = item.uri,
-                contentDescription = item.name,
-                contentScale       = ContentScale.Crop,
-                modifier           = Modifier.fillMaxSize()
+                model = item.uri, contentDescription = item.name,
+                contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()
             )
         }
 
         // Save button
         Box(
             modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(4.dp)
+                .align(Alignment.BottomEnd).padding(4.dp)
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f), MaterialTheme.shapes.small)
         ) {
             if (isSaving) {
                 CircularProgressIndicator(modifier = Modifier.size(28.dp).padding(4.dp), strokeWidth = 2.dp)
             } else {
                 IconButton(onClick = onSave, modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        imageVector        = Icons.Default.Download,
-                        contentDescription = "Save",
-                        modifier           = Modifier.size(18.dp),
-                        tint               = MaterialTheme.colorScheme.primary
-                    )
+                    Icon(Icons.Default.Download, contentDescription = "Save",
+                        modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
                 }
             }
         }

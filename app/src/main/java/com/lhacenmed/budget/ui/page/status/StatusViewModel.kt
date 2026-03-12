@@ -19,7 +19,7 @@ data class StatusUiState(
     val isLoading: Boolean       = false,
     val savingUri: Uri?          = null,
     val message: String?         = null,
-    val playingVideo: StatusItem? = null   // non-null = player is open
+    val previewItem: StatusItem? = null  // non-null = preview open (image or video)
 )
 
 @HiltViewModel
@@ -38,8 +38,8 @@ class StatusViewModel @Inject constructor(
         load(uri)
     }
 
-    fun playVideo(item: StatusItem) = _state.update { it.copy(playingVideo = item) }
-    fun stopVideo()                 = _state.update { it.copy(playingVideo = null) }
+    fun openPreview(item: StatusItem) = _state.update { it.copy(previewItem = item) }
+    fun closePreview()                = _state.update { it.copy(previewItem = null) }
 
     fun saveStatus(item: StatusItem) = viewModelScope.launch {
         _state.update { it.copy(savingUri = item.uri) }
