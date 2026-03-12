@@ -43,7 +43,7 @@ import com.lhacenmed.budget.ui.page.status.StatusContent
 import com.lhacenmed.budget.ui.page.status.StatusViewModel
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.O)
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun AppEntry() {
     val navController = rememberNavController()
@@ -71,7 +71,7 @@ fun AppEntry() {
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 
-@RequiresApi(Build.VERSION_CODES.O)
+@RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainScreen(
@@ -194,6 +194,8 @@ private fun MainScreen(
                     padding             = padding,
                     onPermissionGranted = statusViewModel::onPermissionGranted,
                     onSave              = statusViewModel::saveStatus,
+                    onVideoClick        = statusViewModel::playVideo,
+                    onClosePlayer       = statusViewModel::stopVideo,
                     onShowSnackbar      = { msg ->
                         statusViewModel.clearMessage()
                         scope.launch { snackbarState.showSnackbar(msg) }

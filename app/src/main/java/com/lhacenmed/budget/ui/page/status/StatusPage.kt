@@ -1,23 +1,23 @@
 package com.lhacenmed.budget.ui.page.status
 
-// Requires in build.gradle:
-//   implementation("io.coil-kt:coil-compose:<latest>")
-//   implementation("androidx.documentfile:documentfile:<latest>")
-
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
+import android.view.ViewGroup
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.PlayCircle
@@ -32,6 +32,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import com.lhacenmed.budget.data.model.StatusItem
 import com.lhacenmed.budget.data.repository.StatusSaverRepository
@@ -47,9 +52,10 @@ fun StatusContent(
     padding: PaddingValues,
     onPermissionGranted: (Uri?) -> Unit,
     onSave: (StatusItem) -> Unit,
+    onVideoClick: (StatusItem) -> Unit,
+    onClosePlayer: () -> Unit,
     onShowSnackbar: (String) -> Unit
 ) {
-    // Show snackbar when message arrives
     LaunchedEffect(state.message) {
         state.message?.let { onShowSnackbar(it) }
     }
@@ -57,6 +63,16 @@ fun StatusContent(
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri -> onPermissionGranted(uri) }
+
+    // Video player overlay — rendered above everything
+    if (state.playingVideo != null) {
+        VideoPlayerScreen(
+            uri     = state.playingVideo.uri,
+            title   = state.playingVideo.name,
+            onClose = onClosePlayer
+        )
+        return
+    }
 
     Box(Modifier.fillMaxSize().padding(padding)) {
         when {
@@ -66,7 +82,64 @@ fun StatusContent(
             state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-            else -> StatusGrid(state = state, onSave = onSave)
+            else -> StatusGrid(state = state, onSave = onSave, onVideoClick = onVideoClick)
+        }
+    }
+}
+
+// ── Video player screen ───────────────────────────────────────────────────────
+
+@Composable
+fun VideoPlayerScreen(uri: Uri, title: String, onClose: () -> Unit) {
+    val context   = LocalContext.current
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+
+    BackHandler(onBack = onClose)
+
+    val player = remember {
+        ExoPlayer.Builder(context).build().apply {
+            setMediaItem(MediaItem.fromUri(uri))
+            prepare()
+            playWhenReady = true
+        }
+    }
+
+    DisposableEffect(lifecycle) {
+        onDispose { player.release() }
+    }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory  = {
+                PlayerView(it).apply {
+                    this.player = player
+                    useController = true
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                }
+            }
+        )
+
+        // Back button
+        IconButton(
+            onClick  = onClose,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(8.dp)
+                .background(Color.Black.copy(alpha = 0.4f), MaterialTheme.shapes.small)
+        ) {
+            Icon(
+                imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint               = Color.White
+            )
         }
     }
 }
@@ -76,22 +149,18 @@ fun StatusContent(
 @Composable
 private fun PermissionScreen(onGrant: () -> Unit) {
     Column(
-        modifier              = Modifier.fillMaxSize().padding(32.dp),
-        horizontalAlignment   = Alignment.CenterHorizontally,
-        verticalArrangement   = Arrangement.Center
+        modifier            = Modifier.fillMaxSize().padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = Icons.Default.FolderOpen,
+            imageVector        = Icons.Default.FolderOpen,
             contentDescription = null,
-            modifier    = Modifier.size(72.dp),
-            tint        = MaterialTheme.colorScheme.primary
+            modifier           = Modifier.size(72.dp),
+            tint               = MaterialTheme.colorScheme.primary
         )
         Spacer(Modifier.height(24.dp))
-        Text(
-            "WhatsApp Status Saver",
-            style      = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
+        Text("WhatsApp Status Saver", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
         Text(
             "Grant access to your WhatsApp statuses folder to view and save statuses you've already watched.",
@@ -119,22 +188,20 @@ private fun PermissionScreen(onGrant: () -> Unit) {
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
-private fun StatusGrid(state: StatusUiState, onSave: (StatusItem) -> Unit) {
+private fun StatusGrid(
+    state: StatusUiState,
+    onSave: (StatusItem) -> Unit,
+    onVideoClick: (StatusItem) -> Unit
+) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val items = if (selectedTab == 0) state.images else state.videos
 
     Column(Modifier.fillMaxSize()) {
         TabRow(selectedTabIndex = selectedTab) {
-            Tab(
-                selected = selectedTab == 0,
-                onClick  = { selectedTab = 0 },
-                text     = { Text("Images (${state.images.size})") }
-            )
-            Tab(
-                selected = selectedTab == 1,
-                onClick  = { selectedTab = 1 },
-                text     = { Text("Videos (${state.videos.size})") }
-            )
+            Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 },
+                text = { Text("Images (${state.images.size})") })
+            Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 },
+                text = { Text("Videos (${state.videos.size})") })
         }
 
         if (items.isEmpty()) {
@@ -148,17 +215,18 @@ private fun StatusGrid(state: StatusUiState, onSave: (StatusItem) -> Unit) {
             }
         } else {
             LazyVerticalGrid(
-                columns             = GridCells.Fixed(3),
-                modifier            = Modifier.fillMaxSize(),
-                contentPadding      = PaddingValues(4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                columns               = GridCells.Fixed(3),
+                modifier              = Modifier.fillMaxSize(),
+                contentPadding        = PaddingValues(4.dp),
+                verticalArrangement   = Arrangement.spacedBy(4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 items(items, key = { it.uri }) { item ->
                     StatusItemCell(
-                        item     = item,
-                        isSaving = state.savingUri == item.uri,
-                        onSave   = { onSave(item) }
+                        item       = item,
+                        isSaving   = state.savingUri == item.uri,
+                        onSave     = { onSave(item) },
+                        onVideoClick = { onVideoClick(item) }
                     )
                 }
             }
@@ -170,11 +238,17 @@ private fun StatusGrid(state: StatusUiState, onSave: (StatusItem) -> Unit) {
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
-private fun StatusItemCell(item: StatusItem, isSaving: Boolean, onSave: () -> Unit) {
+private fun StatusItemCell(
+    item: StatusItem,
+    isSaving: Boolean,
+    onSave: () -> Unit,
+    onVideoClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
             .background(MaterialTheme.colorScheme.surfaceVariant)
+            .then(if (item.isVideo) Modifier.clickable(onClick = onVideoClick) else Modifier)
     ) {
         if (item.isVideo) {
             VideoThumbnail(uri = item.uri, modifier = Modifier.fillMaxSize())
@@ -186,28 +260,22 @@ private fun StatusItemCell(item: StatusItem, isSaving: Boolean, onSave: () -> Un
             )
         } else {
             AsyncImage(
-                model             = item.uri,
+                model              = item.uri,
                 contentDescription = item.name,
-                contentScale      = ContentScale.Crop,
-                modifier          = Modifier.fillMaxSize()
+                contentScale       = ContentScale.Crop,
+                modifier           = Modifier.fillMaxSize()
             )
         }
 
-        // Save button — bottom end
+        // Save button
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(4.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
-                    shape = MaterialTheme.shapes.small
-                )
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f), MaterialTheme.shapes.small)
         ) {
             if (isSaving) {
-                CircularProgressIndicator(
-                    modifier  = Modifier.size(28.dp).padding(4.dp),
-                    strokeWidth = 2.dp
-                )
+                CircularProgressIndicator(modifier = Modifier.size(28.dp).padding(4.dp), strokeWidth = 2.dp)
             } else {
                 IconButton(onClick = onSave, modifier = Modifier.size(32.dp)) {
                     Icon(
@@ -231,20 +299,16 @@ private fun VideoThumbnail(uri: Uri, modifier: Modifier) {
     val bitmap by produceState<Bitmap?>(initialValue = null, uri) {
         value = withContext(Dispatchers.IO) {
             try {
-                MediaMetadataRetriever().use { retriever ->
-                    retriever.setDataSource(context, uri)
-                    retriever.getFrameAtTime(0)
+                MediaMetadataRetriever().use { r ->
+                    r.setDataSource(context, uri)
+                    r.getFrameAtTime(0)
                 }
             } catch (e: Exception) { null }
         }
     }
     if (bitmap != null) {
-        Image(
-            bitmap             = bitmap!!.asImageBitmap(),
-            contentDescription = null,
-            contentScale       = ContentScale.Crop,
-            modifier           = modifier
-        )
+        Image(bitmap = bitmap!!.asImageBitmap(), contentDescription = null,
+            contentScale = ContentScale.Crop, modifier = modifier)
     } else {
         Box(modifier, contentAlignment = Alignment.Center) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)

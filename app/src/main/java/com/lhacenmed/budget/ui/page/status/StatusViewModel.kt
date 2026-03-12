@@ -13,12 +13,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class StatusUiState(
-    val hasPermission: Boolean  = false,
+    val hasPermission: Boolean   = false,
     val images: List<StatusItem> = emptyList(),
     val videos: List<StatusItem> = emptyList(),
-    val isLoading: Boolean      = false,
-    val savingUri: Uri?         = null, // tracks which item is currently saving
-    val message: String?        = null
+    val isLoading: Boolean       = false,
+    val savingUri: Uri?          = null,
+    val message: String?         = null,
+    val playingVideo: StatusItem? = null   // non-null = player is open
 )
 
 @HiltViewModel
@@ -29,16 +30,16 @@ class StatusViewModel @Inject constructor(
     private val _state = MutableStateFlow(StatusUiState())
     val state = _state.asStateFlow()
 
-    init {
-        // Restore persisted permission on restart
-        repository.getSavedUri()?.let { load(it) }
-    }
+    init { repository.getSavedUri()?.let { load(it) } }
 
     fun onPermissionGranted(uri: Uri?) {
         if (uri == null) return
         repository.persistUri(uri)
         load(uri)
     }
+
+    fun playVideo(item: StatusItem) = _state.update { it.copy(playingVideo = item) }
+    fun stopVideo()                 = _state.update { it.copy(playingVideo = null) }
 
     fun saveStatus(item: StatusItem) = viewModelScope.launch {
         _state.update { it.copy(savingUri = item.uri) }
@@ -51,19 +52,15 @@ class StatusViewModel @Inject constructor(
 
     fun clearMessage() = _state.update { it.copy(message = null) }
 
-    private fun load(treeUri: Uri) {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, hasPermission = true) }
-            val all    = repository.getStatuses(treeUri)
-            val noAccess = all.isEmpty() && repository.getSavedUri() == null
-            _state.update {
-                it.copy(
-                    isLoading     = false,
-                    hasPermission = !noAccess,
-                    images        = all.filter { s -> !s.isVideo },
-                    videos        = all.filter { s ->  s.isVideo }
-                )
-            }
-        }
+    private fun load(treeUri: Uri) = viewModelScope.launch {
+        _state.update { it.copy(isLoading = true, hasPermission = true) }
+        val all      = repository.getStatuses(treeUri)
+        val noAccess = all.isEmpty() && repository.getSavedUri() == null
+        _state.update { it.copy(
+            isLoading     = false,
+            hasPermission = !noAccess,
+            images        = all.filter { s -> !s.isVideo },
+            videos        = all.filter { s ->  s.isVideo }
+        )}
     }
 }

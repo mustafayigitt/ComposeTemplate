@@ -203,6 +203,8 @@ dependencies {
     // Media
     implementation(libs.coil.compose)
     implementation(libs.androidx.documentfile)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
 
     // Hilt
     implementation(libs.hilt.android)
