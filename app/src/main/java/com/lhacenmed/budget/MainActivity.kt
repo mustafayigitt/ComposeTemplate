@@ -7,10 +7,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.runtime.getValue
@@ -19,8 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lhacenmed.budget.ui.common.PredictiveExitHandler
 import com.lhacenmed.budget.ui.common.SettingsProvider
-import com.lhacenmed.budget.ui.common.motion.materialSharedAxisZIn
-import com.lhacenmed.budget.ui.common.motion.materialSharedAxisZOut
 import com.lhacenmed.budget.ui.page.AppEntry
 import com.lhacenmed.budget.ui.page.auth.AuthEntry
 import com.lhacenmed.budget.ui.theme.BudgetTheme
@@ -29,6 +30,8 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import javax.inject.Inject
+
+private enum class AuthGate { Loading, App, Auth }
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -47,30 +50,28 @@ class MainActivity : ComponentActivity() {
                         val sessionStatus by supabase.auth.sessionStatus
                             .collectAsStateWithLifecycle(initialValue = SessionStatus.Initializing)
 
+                        val gate = when {
+                            sessionStatus is SessionStatus.Authenticated -> AuthGate.App
+                            sessionStatus is SessionStatus.NotAuthenticated && (sessionStatus as SessionStatus.NotAuthenticated).isSignOut -> AuthGate.Auth
+                            else -> AuthGate.Loading
+                        }
+
                         AnimatedContent(
-                            targetState    = sessionStatus,
+                            targetState    = gate,
                             label          = "auth_gate",
                             transitionSpec = {
-                                materialSharedAxisZIn(forward = true) togetherWith
-                                        materialSharedAxisZOut(forward = true)
+                                val forward = targetState == AuthGate.App
+                                slideInHorizontally { if (forward) it else -it } + fadeIn() togetherWith
+                                        slideOutHorizontally { if (forward) -it else it } + fadeOut()
                             },
-                        ) { status ->
-                            when {
-                                // Session loaded from local storage or freshly authenticated
-                                status is SessionStatus.Authenticated ->
-                                    AppEntry()
-
-                                // Explicit sign-out — user intentionally logged out
-                                status is SessionStatus.NotAuthenticated && status.isSignOut ->
-                                    AuthEntry()
-
-                                // Initializing OR network error OR token couldn't refresh offline
-                                // → stay on loading screen; the session will resolve once
-                                //   connectivity returns or alwaysAutoRefresh kicks in
-                                else ->
-                                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                        LoadingIndicator()
-                                    }
+                        ) { target ->
+                            when (target) {
+                                AuthGate.App  -> AppEntry()
+                                AuthGate.Auth -> AuthEntry()
+                                AuthGate.Loading -> Box(
+                                    Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) { LoadingIndicator() }
                             }
                         }
                     }

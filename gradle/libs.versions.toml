@@ -17,6 +17,7 @@ android-material = "1.11.0"
 material3 = "1.4.0-alpha17"
 documentfile = "1.0.1"
 media3 = "1.6.1"
+material = "1.10.5"
 
 # Network
 retrofit = "2.11.0"
@@ -70,7 +71,7 @@ androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
-androidx-compose-material = { group = "androidx.compose.material", name = "material" }
+androidx-compose-material = { group = "androidx.compose.material", name = "material", version.ref = "material" }
 android-material = { group = "com.google.android.material", name = "material", version.ref = "android-material" }
 
 # Navigation

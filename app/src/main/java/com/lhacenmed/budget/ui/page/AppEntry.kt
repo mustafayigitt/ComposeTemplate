@@ -1,22 +1,31 @@
 package com.lhacenmed.budget.ui.page
 
 import android.os.Build
+import android.util.TypedValue
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
+import androidx.appcompat.graphics.drawable.DrawerArrowDrawable
+import androidx.appcompat.widget.AppCompatImageButton
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
+// import androidx.compose.material.BottomNavigation
+// import androidx.compose.material.BottomNavigationItem
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.ViewCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
@@ -93,11 +102,11 @@ private fun MainScreen(
     var showAddGrocery  by remember { mutableStateOf(false) }
     var editingGrocery  by remember { mutableStateOf<GroceryItem?>(null) }
 
-    val drawerState      = rememberDrawerState(DrawerValue.Closed)
-    val listState        = rememberLazyListState()
-    val snackbarState    = remember { SnackbarHostState() }
-    val scope            = rememberCoroutineScope()
-    val view             = LocalView.current
+    val drawerState   = rememberDrawerState(DrawerValue.Closed)
+    val listState     = rememberLazyListState()
+    val snackbarState = remember { SnackbarHostState() }
+    val scope         = rememberCoroutineScope()
+    val view          = LocalView.current
 
     val fabVisible by remember {
         derivedStateOf { listState.firstVisibleItemIndex == 0 || fabMenuExpanded }
@@ -134,9 +143,30 @@ private fun MainScreen(
                         Text(title, fontWeight = FontWeight.SemiBold)
                     },
                     navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu")
-                        }
+                        AndroidView(
+                            modifier = Modifier.size(48.dp),
+                            factory  = { ctx ->
+                                AppCompatImageButton(ctx).apply {
+                                    setImageDrawable(
+                                        DrawerArrowDrawable(ctx).apply { progress = 0f }
+                                    )
+                                    val tv = TypedValue()
+                                    ctx.theme.resolveAttribute(
+                                        android.R.attr.selectableItemBackgroundBorderless,
+                                        tv, true
+                                    )
+                                    setBackgroundResource(tv.resourceId)
+                                    ViewCompat.setTooltipText(this, "Open navigation drawer")
+                                    setOnClickListener { scope.launch { drawerState.open() } }
+                                    contentDescription = "Menu"
+                                }
+                            }
+                        )
+                        // Return it to this if want the ripple effect
+                        // IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                        //     Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        // }
+
                     }
                 )
             },
