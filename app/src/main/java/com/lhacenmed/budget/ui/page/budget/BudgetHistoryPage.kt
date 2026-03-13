@@ -39,7 +39,7 @@ private enum class HistoryFilter(val label: String) {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BudgetHistoryPage(
     onNavigateBack: () -> Unit,
@@ -98,7 +98,7 @@ fun BudgetHistoryPage(
 
             if (state.isLoading) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    LoadingIndicator()
                 }
             } else if (filtered.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

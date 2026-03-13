@@ -160,6 +160,7 @@ private fun VideoPlayer(uri: android.net.Uri, modifier: Modifier) {
 
 // ── Small helpers ─────────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ActionButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -169,9 +170,8 @@ private fun ActionButton(
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         if (loading) {
-            CircularProgressIndicator(
+            LoadingIndicator(
                 modifier    = Modifier.size(24.dp).padding(bottom = 4.dp),
-                strokeWidth = 2.dp,
                 color       = Color.White
             )
         } else {

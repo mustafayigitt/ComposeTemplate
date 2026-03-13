@@ -37,6 +37,7 @@ import kotlinx.coroutines.withContext
 
 // ── Content ───────────────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun StatusContent(
@@ -73,7 +74,7 @@ fun StatusContent(
                 launcher.launch(StatusSaverRepository.WHATSAPP_STATUSES_URI)
             }
             state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                LoadingIndicator()
             }
             else -> StatusGrid(state = state, onSave = onSave, onItemClick = onItemClick)
         }
@@ -165,6 +166,7 @@ private fun StatusGrid(
 
 // ── Grid cell ─────────────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 private fun StatusItemCell(
@@ -198,7 +200,7 @@ private fun StatusItemCell(
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.75f), MaterialTheme.shapes.small)
         ) {
             if (isSaving) {
-                CircularProgressIndicator(modifier = Modifier.size(28.dp).padding(4.dp), strokeWidth = 2.dp)
+                LoadingIndicator(modifier = Modifier.size(28.dp).padding(4.dp))
             } else {
                 IconButton(onClick = onSave, modifier = Modifier.size(32.dp)) {
                     Icon(Icons.Default.Download, contentDescription = "Save",
@@ -211,6 +213,7 @@ private fun StatusItemCell(
 
 // ── Video thumbnail ───────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 private fun VideoThumbnail(uri: Uri, modifier: Modifier) {
@@ -230,7 +233,7 @@ private fun VideoThumbnail(uri: Uri, modifier: Modifier) {
             contentScale = ContentScale.Crop, modifier = modifier)
     } else {
         Box(modifier, contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+            LoadingIndicator(modifier = Modifier.size(24.dp))
         }
     }
 }

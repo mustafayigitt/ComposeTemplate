@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RegisterPage(
     onNavigateBack: () -> Unit,
@@ -94,7 +94,7 @@ fun RegisterPage(
                 onClick = { viewModel.register(email.trim(), password, displayName.trim()) },
                 modifier = Modifier.fillMaxWidth().height(50.dp), enabled = isValid
             ) {
-                if (state.isLoading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp,
+                if (state.isLoading) LoadingIndicator(Modifier.size(20.dp),
                     color = MaterialTheme.colorScheme.onPrimary)
                 else Text("Create Account")
             }

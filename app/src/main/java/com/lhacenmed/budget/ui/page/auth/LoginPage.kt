@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.lhacenmed.budget.R
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LoginPage(
     onNavigateToRegister: () -> Unit,
@@ -78,7 +79,7 @@ fun LoginPage(
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 enabled = email.isNotBlank() && password.isNotBlank() && !state.isLoading
             ) {
-                if (state.isLoading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp,
+                if (state.isLoading) LoadingIndicator(Modifier.size(20.dp),
                     color = MaterialTheme.colorScheme.onPrimary)
                 else Text("Sign In")
             }

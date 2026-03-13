@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.lhacenmed.budget.data.model.SpendingItem
 import com.lhacenmed.budget.ui.common.format
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeContent(
@@ -28,7 +29,7 @@ fun HomeContent(
 ) {
     if (state.isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+            LoadingIndicator()
         }
         return
     }
