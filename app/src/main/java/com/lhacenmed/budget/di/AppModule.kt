@@ -34,8 +34,15 @@ object AppModule {
         supabaseKey = "sb_publishable__oIzuu76wpHYpnw63o_XAg_KS_BqXBi"
     ) {
         install(Auth) {
-            alwaysAutoRefresh  = false
+            // Load any stored session from SharedPreferences immediately on startup —
+            // no network call required. If a valid (or recently-expired) session exists,
+            // the SDK emits Authenticated right away so the user enters the app offline.
             autoLoadFromStorage = true
+
+            // Do NOT force a token refresh on every cold start. The SDK will refresh
+            // lazily when a network request actually needs a fresh token. This prevents
+            // the app blocking on startup when the device is offline.
+            alwaysAutoRefresh = false
         }
         install(Postgrest)
     }

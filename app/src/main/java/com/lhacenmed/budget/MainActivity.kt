@@ -50,10 +50,12 @@ class MainActivity : ComponentActivity() {
                         val sessionStatus by supabase.auth.sessionStatus
                             .collectAsStateWithLifecycle(initialValue = SessionStatus.Initializing)
 
-                        val gate = when {
-                            sessionStatus is SessionStatus.Authenticated -> AuthGate.App
-                            sessionStatus is SessionStatus.NotAuthenticated && (sessionStatus as SessionStatus.NotAuthenticated).isSignOut -> AuthGate.Auth
-                            else -> AuthGate.Loading
+                        val gate = when (sessionStatus) {
+                            is SessionStatus.Initializing     -> AuthGate.Loading
+                            is SessionStatus.Authenticated    -> AuthGate.App
+                            is SessionStatus.NotAuthenticated -> AuthGate.Auth
+                            is SessionStatus.RefreshFailure   -> AuthGate.App
+                            else                              -> AuthGate.Loading
                         }
 
                         AnimatedContent(
@@ -61,13 +63,13 @@ class MainActivity : ComponentActivity() {
                             label          = "auth_gate",
                             transitionSpec = {
                                 val forward = targetState == AuthGate.App
-                                slideInHorizontally { if (forward) it else -it } + fadeIn() togetherWith
+                                slideInHorizontally  { if (forward) it else -it } + fadeIn() togetherWith
                                         slideOutHorizontally { if (forward) -it else it } + fadeOut()
                             },
                         ) { target ->
                             when (target) {
-                                AuthGate.App  -> AppEntry()
-                                AuthGate.Auth -> AuthEntry()
+                                AuthGate.App     -> AppEntry()
+                                AuthGate.Auth    -> AuthEntry()
                                 AuthGate.Loading -> Box(
                                     Modifier.fillMaxSize(),
                                     contentAlignment = Alignment.Center
