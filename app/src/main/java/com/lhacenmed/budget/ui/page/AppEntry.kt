@@ -126,7 +126,9 @@ private fun MainScreen(
                 },
                 onBudgetHistory = { scope.launch { drawerState.close() }; onNavigateToBudgetHistory() },
                 onAppearance    = { scope.launch { drawerState.close() }; onNavigateToAppearance() },
-                onSignOut       = { authViewModel.signOut() }
+                onSignOut       = { authViewModel.signOut() },
+                userName    = homeState.currentUserName,
+                userEmail   = homeState.currentUserEmail,
             )
         }
     ) {

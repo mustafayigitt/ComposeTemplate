@@ -31,6 +31,7 @@ data class HomeUiState(
     val totalBudget: Float = 0f,
     val totalSpent: Float = 0f,
     val currentUserName: String = "",
+    val currentUserEmail: String = "",
     val isOnline: Boolean = true,
     val pendingCount: Int = 0,
     val isLoading: Boolean = false,
@@ -65,10 +66,10 @@ class HomeViewModel @Inject constructor(
             ?.takeIf { it.isNotBlank() }
             ?: user.email?.substringBefore("@")
             ?: "Me"
-        _state.update { it.copy(currentUserName = name) }
+        val email = user.email.orEmpty()
+        _state.update { it.copy(currentUserName = name, currentUserEmail = email) }
     }
 
-    /** When connectivity is restored, sync pending items then refresh. */
     private fun observeConnectivity() = viewModelScope.launch {
         connectivity.isOnline.collect { online ->
             _state.update { it.copy(isOnline = online) }
