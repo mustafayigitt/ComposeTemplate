@@ -1,6 +1,6 @@
 package com.ytapps.composetemplate.di
 
-import com.ytapps.composetemplate.BuildConfig
+import com.ytapps.composetemplate.core.util.SecretManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,5 +12,5 @@ import javax.inject.Singleton
 object AppModule {
     @Provides
     @Singleton
-    fun provideBaseUrl(): String = BuildConfig.BASE_URL
+    fun provideBaseUrl(): String = SecretManager.getBaseUrl()
 }

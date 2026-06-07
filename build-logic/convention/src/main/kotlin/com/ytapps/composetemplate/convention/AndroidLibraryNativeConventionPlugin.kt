@@ -11,17 +11,26 @@ class AndroidLibraryNativeConventionPlugin : Plugin<Project> {
             val mask = secrets.getProperty("XOR_MASK")?.replace("\"", "") ?: "DEFAULT_MASK"
             val expectedSignature = secrets.getProperty("EXPECTED_SIGNATURE_HASH")?.replace("\"", "") ?: ""
 
-            fun encrypt(data: String): String {
-                val input = data.replace("\"", "")
-                val output = StringBuilder()
-                for (i in input.indices) {
-                    output.append((input[i].code xor mask[i % mask.length].code).toChar())
-                }
-                return output.toString()
+            fun toHex(data: String): String {
+                return data.toByteArray().joinToString("") { byte -> "%02x".format(byte) }
             }
 
-            val apiKeyDebug = encrypt(secrets.getProperty("API_KEY_DEBUG") ?: "")
-            val apiKeyRelease = encrypt(secrets.getProperty("API_KEY_RELEASE") ?: "")
+            fun encryptToHex(data: String): String {
+                val input = data.replace("\"", "")
+                val bytes = input.toByteArray()
+                val maskBytes = mask.toByteArray()
+                val encrypted = bytes.mapIndexed { i, byte ->
+                    (byte.toInt() xor maskBytes[i % maskBytes.size].toInt()).toByte()
+                }
+                return encrypted.joinToString("") { byte -> "%02x".format(byte) }
+            }
+
+            val apiKeyDebugHex = encryptToHex(secrets.getProperty("API_KEY_DEBUG") ?: "")
+            val apiKeyReleaseHex = encryptToHex(secrets.getProperty("API_KEY_RELEASE") ?: "")
+            val baseUrlDebugHex = encryptToHex(secrets.getProperty("BASE_URL_DEBUG") ?: "")
+            val baseUrlReleaseHex = encryptToHex(secrets.getProperty("BASE_URL_RELEASE") ?: "")
+            val maskHex = toHex(mask)
+            val expectedSignatureHex = toHex(expectedSignature)
 
             extensions.configure<LibraryExtension> {
                 ndkVersion = libs.findVersion("ndk").get().toString()
@@ -37,10 +46,12 @@ class AndroidLibraryNativeConventionPlugin : Plugin<Project> {
                         cmake {
                             cppFlags("")
                             arguments(
-                                "-DAPI_KEY_DEBUG=$apiKeyDebug",
-                                "-DAPI_KEY_RELEASE=$apiKeyRelease",
-                                "-DXOR_MASK=$mask",
-                                "-DEXPECTED_SIGNATURE_HASH=$expectedSignature"
+                                "-DAPI_KEY_DEBUG=\"$apiKeyDebugHex\"",
+                                "-DAPI_KEY_RELEASE=\"$apiKeyReleaseHex\"",
+                                "-DBASE_URL_DEBUG=\"$baseUrlDebugHex\"",
+                                "-DBASE_URL_RELEASE=\"$baseUrlReleaseHex\"",
+                                "-DXOR_MASK=\"$maskHex\"",
+                                "-DEXPECTED_SIGNATURE_HASH=\"$expectedSignatureHex\""
                             )
                         }
                     }

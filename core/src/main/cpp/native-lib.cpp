@@ -1,12 +1,26 @@
 #include <jni.h>
 #include <string>
 #include <vector>
+#include <cstdlib>
+
+/**
+ * Converts a hex string back to a regular string.
+ */
+std::string hexToString(const std::string& hex) {
+    std::string output;
+    for (size_t i = 0; i < hex.length(); i += 2) {
+        std::string byteString = hex.substr(i, 2);
+        char byte = (char) strtol(byteString.c_str(), nullptr, 16);
+        output.push_back(byte);
+    }
+    return output;
+}
 
 /**
  * Decrypts data using the dynamic XOR mask passed from Gradle.
  */
 std::string decrypt(std::string data) {
-    std::string key = XOR_MASK;
+    std::string key = hexToString(XOR_MASK);
     std::string output = data;
     for (size_t i = 0; i < data.size(); i++) {
         output[i] = data[i] ^ key[i % key.size()];
@@ -63,7 +77,7 @@ bool isSignatureValid(JNIEnv* env, jobject context) {
     }
     env->ReleaseByteArrayElements(hashBytes, buffer, JNI_ABORT);
 
-    return (std::string(hex) == EXPECTED_SIGNATURE_HASH);
+    return (std::string(hex) == hexToString(EXPECTED_SIGNATURE_HASH));
 }
 
 extern "C" JNIEXPORT jstring JNICALL
@@ -78,6 +92,24 @@ Java_com_ytapps_composetemplate_core_util_SecretManager_getApiKeyNative(
         return env->NewStringUTF("UNAUTHORIZED_ACCESS");
     }
 
-    std::string encrypted_key = isDebug ? API_KEY_DEBUG : API_KEY_RELEASE;
+    std::string encrypted_hex = isDebug ? API_KEY_DEBUG : API_KEY_RELEASE;
+    std::string encrypted_key = hexToString(encrypted_hex);
+    return env->NewStringUTF(decrypt(encrypted_key).c_str());
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_ytapps_composetemplate_core_util_SecretManager_getBaseUrlNative(
+        JNIEnv* env,
+        jobject thiz,
+        jobject context,
+        jboolean isDebug) {
+
+    // Release modunda imza hash kontrolü yap
+    if (!isDebug && !isSignatureValid(env, context)) {
+        return env->NewStringUTF("UNAUTHORIZED_ACCESS");
+    }
+
+    std::string encrypted_hex = isDebug ? BASE_URL_DEBUG : BASE_URL_RELEASE;
+    std::string encrypted_key = hexToString(encrypted_hex);
     return env->NewStringUTF(decrypt(encrypted_key).c_str());
 }

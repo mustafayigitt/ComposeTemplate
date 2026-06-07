@@ -1,4 +1,5 @@
 import java.util.Properties
+import com.ytapps.composetemplate.convention.secrets
 
 plugins {
     id("composetemplate.create.new.app")
@@ -24,38 +25,37 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
 
-    val localProperties =
-        Properties().apply {
-            load(projectDir.resolve("../local.properties").inputStream())
+    val localProperties = Properties().apply {
+        load(projectDir.resolve("../local.properties").inputStream())
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(localProperties.getProperty("STORE_FILE"))
+            keyAlias = secrets.getProperty("KEY_ALIAS")?.replace("\"", "")
+            keyPassword = secrets.getProperty("KEY_PASSWORD")?.replace("\"", "")
+            storePassword = secrets.getProperty("STORE_PASSWORD")?.replace("\"", "")
         }
+    }
+
     buildTypes {
         debug {
-            "\"${localProperties.getProperty("BASE_URL_DEBUG")}\""
-            buildConfigField(
-                "String",
-                "BASE_URL",
-                "\"${localProperties.getProperty("BASE_URL_DEBUG")}\"",
-            )
         }
 
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
-            )
-            buildConfigField(
-                "String",
-                "BASE_URL",
-                "\"${localProperties.getProperty("BASE_URL")}\"",
             )
         }
 
         create("benchmark") {
             initWith(getByName("release"))
             matchingFallbacks += listOf("release")
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "benchmark-rules.pro",
