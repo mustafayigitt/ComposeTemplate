@@ -14,20 +14,21 @@ fun AppNavigationBar(
     modifier: Modifier = Modifier,
     currentRoute: INavigationItem,
     items: List<IBottomBarItem>,
-    onItemClick: (IBottomBarItem) -> Unit
+    onItemClick: (IBottomBarItem) -> Unit,
 ) {
     NavigationBar(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
         items.forEach { item ->
             NavigationBarItem(
                 icon = item.icon,
                 selected = currentRoute.route == item.route,
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurface
-                ),
+                colors =
+                    NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurface,
+                    ),
                 onClick = { onItemClick(item) },
             )
         }
