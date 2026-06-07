@@ -3,6 +3,7 @@
 minSdk = "23"
 compileSdk = "37"
 targetSdk = "36"
+ndk = "27.0.12077973"
 versionCode = "1"
 versionName = "1.0.0"
 

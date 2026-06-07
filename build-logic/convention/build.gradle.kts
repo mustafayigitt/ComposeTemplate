@@ -51,5 +51,9 @@ gradlePlugin {
             id = "composetemplate.static.analysis"
             implementationClass = "com.ytapps.composetemplate.convention.StaticAnalysisConventionPlugin"
         }
+        register("androidLibraryNative") {
+            id = "composetemplate.android.library.native"
+            implementationClass = "com.ytapps.composetemplate.convention.AndroidLibraryNativeConventionPlugin"
+        }
     }
 }

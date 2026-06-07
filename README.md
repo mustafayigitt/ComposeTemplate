@@ -133,6 +133,11 @@ For detailed build configuration documentation, see [build-logic/README.md](buil
 - **Centralized Rules**: Manage static analysis globally via convention plugins
 - **CI Enforcement**: Automatic checks on pull requests via GitHub Actions
 
+### Secure Secret Management
+- **NDK-based Protection**: API keys are stored in native C++ binaries for better security
+- **Git-ignored Secrets**: Use `secrets.properties` to keep sensitive data out of source control
+- **Build-time Injection**: Keys are injected during the compilation process
+
 ### Navigation System
 - **Navigation3 Integration**: Uses the latest Navigation3 library with type-safe navigation
 - **Custom NavigationManager**: Flexible navigation management with back stack handling
@@ -199,6 +204,7 @@ For detailed build configuration documentation, see [build-logic/README.md](buil
 
 - **Header and Refresh Token Interceptor**: Automatic token management with refresh token support
 - **Safe Network Calls**: Error-handled network function
+- **Secure Secret Storage**: NDK-based API key protection system
 - **Flexible Navigation Structure**: Custom navigation manager with Navigation3
 - **Preferences Manager**: Local data storage with SharedPreferences
 - **Auth Flow**: Complete authentication flow with token management
@@ -440,6 +446,13 @@ navigationManager.navigateToTop(Home)
     // Save credentials (for auth)
     prefs.saveCredentials(authResponse)
 }
+```
+
+### Secure Secrets Usage
+
+```kotlin
+// Retrieve your API key from the NDK layer
+val apiKey = SecretManager.apiKey
 ```
 
 ## Architecture

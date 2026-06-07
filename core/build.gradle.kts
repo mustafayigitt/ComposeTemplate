@@ -2,6 +2,7 @@ plugins {
     id("composetemplate.android.library")
     id("composetemplate.android.library.compose")
     id("composetemplate.android.hilt")
+    id("composetemplate.android.library.native")
     id("composetemplate.test")
 }
 

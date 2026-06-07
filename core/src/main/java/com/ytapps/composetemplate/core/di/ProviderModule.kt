@@ -2,6 +2,7 @@ package com.ytapps.composetemplate.core.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.ytapps.composetemplate.core.BuildConfig
 import com.ytapps.composetemplate.core.api.AuthInterceptor
 import com.ytapps.composetemplate.core.api.TokenAuthenticator
 import com.ytapps.composetemplate.core.util.Constants
@@ -9,6 +10,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -20,10 +22,23 @@ import javax.inject.Singleton
 internal object ProviderModule {
     @Provides
     @Singleton
+    fun provideCertificatePinner(): CertificatePinner =
+        CertificatePinner
+            .Builder()
+            // .add("api.example.com", "sha256/HASH_KEY_BURAYA")
+            .build()
+
+    @Provides
+    @Singleton
     fun provideLoggingInterceptor(): HttpLoggingInterceptor =
         HttpLoggingInterceptor()
             .apply {
-                setLevel(HttpLoggingInterceptor.Level.BODY)
+                level =
+                    if (BuildConfig.DEBUG) {
+                        HttpLoggingInterceptor.Level.BODY
+                    } else {
+                        HttpLoggingInterceptor.Level.NONE
+                    }
             }
 
     @Provides
@@ -32,12 +47,14 @@ internal object ProviderModule {
         loggingInterceptor: HttpLoggingInterceptor,
         authInterceptor: AuthInterceptor,
         tokenAuthenticator: TokenAuthenticator,
+        certificatePinner: CertificatePinner,
     ): OkHttpClient =
         OkHttpClient
             .Builder()
             .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
             .authenticator(tokenAuthenticator)
+            .certificatePinner(certificatePinner)
             .build()
 
     @Provides
