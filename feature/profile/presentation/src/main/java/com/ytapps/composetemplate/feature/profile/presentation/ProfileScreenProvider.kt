@@ -11,18 +11,20 @@ import javax.inject.Inject
  * Screen provider for Profile feature.
  * Provides screens for ProfileRoute.
  */
-class ProfileScreenProvider @Inject constructor() : IScreenProvider {
-    @Composable
-    override fun provideScreen(
-        route: INavigationItem,
-        navigationManager: INavigationManager
-    ): Boolean {
-        return when (route) {
-            is ProfileRoute -> {
-                ProfileScreen(navigationManager)
-                true
+class ProfileScreenProvider
+    @Inject
+    constructor() : IScreenProvider {
+        @Composable
+        override fun provideScreen(
+            route: INavigationItem,
+            navigationManager: INavigationManager,
+        ): Boolean {
+            return when (route) {
+                is ProfileRoute -> {
+                    ProfileScreen(navigationManager)
+                    true
+                }
+                else -> false
             }
-            else -> false
         }
     }
-}

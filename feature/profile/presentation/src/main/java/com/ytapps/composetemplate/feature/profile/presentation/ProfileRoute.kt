@@ -9,27 +9,21 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 
-/**
- * Created by mustafayigitt on 02/12/2025
- * mustafa.yt65@gmail.com
- */
 @Composable
-fun ProfileScreen(
-    navigationManager: INavigationManager,
-) {
+fun ProfileScreen(navigationManager: INavigationManager) {
     ProfileScreenInternal(
-        navigationManager = navigationManager
+        navigationManager = navigationManager,
     )
 }
 
 @Composable
 internal fun ProfileScreenInternal(
     navigationManager: INavigationManager,
-    viewModel: ProfileViewModel = hiltViewModel()
+    viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(text = "Profile Screen")
     }

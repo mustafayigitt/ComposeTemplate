@@ -18,53 +18,47 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 
-/**
- * Created by mustafayigitt on 02/12/2025
- * mustafa.yt65@gmail.com
- */
-
 @Composable
 fun DetailScreen(
     navigationManager: INavigationManager,
-    id: String
+    id: String,
 ) {
     DetailScreenInternal(
         navigationManager = navigationManager,
-        id = id
+        id = id,
     )
 }
-
 
 @Composable
 internal fun DetailScreenInternal(
     navigationManager: INavigationManager,
     id: String,
-    viewModel: DetailViewModel = hiltViewModel()
+    viewModel: DetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(text = "Detail id: ${uiState.id}")
 
         IconButton(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(
-                    start = 16.dp,
-                    top = 16.dp
-                ),
+            modifier =
+                Modifier
+                    .align(Alignment.TopStart)
+                    .padding(
+                        start = 16.dp,
+                        top = 16.dp,
+                    ),
             onClick = {
                 navigationManager.navigateBack()
-            }
+            },
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
             )
         }
-
     }
 
     LaunchedEffect(id) {

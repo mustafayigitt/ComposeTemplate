@@ -11,18 +11,20 @@ import javax.inject.Inject
  * Screen provider for Detail feature.
  * Provides screens for DetailRoute.
  */
-class DetailScreenProvider @Inject constructor() : IScreenProvider {
-    @Composable
-    override fun provideScreen(
-        route: INavigationItem,
-        navigationManager: INavigationManager
-    ): Boolean {
-        return when (route) {
-            is DetailRoute -> {
-                DetailScreen(navigationManager, route.id)
-                true
+class DetailScreenProvider
+    @Inject
+    constructor() : IScreenProvider {
+        @Composable
+        override fun provideScreen(
+            route: INavigationItem,
+            navigationManager: INavigationManager,
+        ): Boolean {
+            return when (route) {
+                is DetailRoute -> {
+                    DetailScreen(navigationManager, route.id)
+                    true
+                }
+                else -> false
             }
-            else -> false
         }
     }
-}

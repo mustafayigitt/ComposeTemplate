@@ -9,22 +9,18 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * Created by mustafayigitt on 02/12/2025
- * mustafa.yt65@gmail.com
- */
-
 @HiltViewModel
-internal class DetailViewModel @Inject constructor() : ViewModel() {
+internal class DetailViewModel
+    @Inject
+    constructor() : ViewModel() {
+        private val _uiState = MutableStateFlow(DetailUiState())
+        val uiState = _uiState.asStateFlow()
 
-    private val _uiState = MutableStateFlow(DetailUiState())
-    val uiState = _uiState.asStateFlow()
-
-    fun setDetailId(id: String) {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(id = id)
+        fun setDetailId(id: String) {
+            viewModelScope.launch {
+                _uiState.update {
+                    it.copy(id = id)
+                }
             }
         }
     }
-}

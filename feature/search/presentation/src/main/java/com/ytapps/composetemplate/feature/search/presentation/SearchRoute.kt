@@ -9,27 +9,21 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 
-/**
- * Created by mustafayigitt on 02/12/2025
- * mustafa.yt65@gmail.com
- */
 @Composable
-fun SearchScreen(
-    navigationManager: INavigationManager,
-) {
+fun SearchScreen(navigationManager: INavigationManager) {
     SearchScreenInternal(
-        navigationManager = navigationManager
+        navigationManager = navigationManager,
     )
 }
 
 @Composable
 internal fun SearchScreenInternal(
     navigationManager: INavigationManager,
-    viewModel: SearchViewModel = hiltViewModel()
+    viewModel: SearchViewModel = hiltViewModel(),
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(text = "Search Screen")
     }

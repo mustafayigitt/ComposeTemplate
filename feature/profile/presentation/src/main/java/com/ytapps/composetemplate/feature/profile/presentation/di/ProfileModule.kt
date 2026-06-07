@@ -13,7 +13,5 @@ import dagger.multibindings.IntoSet
 internal abstract class ProfileModule {
     @Binds
     @IntoSet
-    abstract fun bindProfileScreenProvider(
-        provider: ProfileScreenProvider
-    ): IScreenProvider
+    abstract fun bindProfileScreenProvider(provider: ProfileScreenProvider): IScreenProvider
 }

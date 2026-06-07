@@ -14,4 +14,3 @@ dependencies {
     implementation(project(":contract"))
     implementation(libs.kotlinx.serialization.core)
 }
-

@@ -13,7 +13,5 @@ import dagger.multibindings.IntoSet
 internal abstract class HomeModule {
     @Binds
     @IntoSet
-    abstract fun bindHomeScreenProvider(
-        provider: HomeScreenProvider
-    ): IScreenProvider
+    abstract fun bindHomeScreenProvider(provider: HomeScreenProvider): IScreenProvider
 }

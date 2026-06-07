@@ -11,18 +11,20 @@ import javax.inject.Inject
  * Screen provider for Search feature.
  * Provides screens for SearchRoute.
  */
-class SearchScreenProvider @Inject constructor() : IScreenProvider {
-    @Composable
-    override fun provideScreen(
-        route: INavigationItem,
-        navigationManager: INavigationManager
-    ): Boolean {
-        return when (route) {
-            is SearchRoute -> {
-                SearchScreen(navigationManager)
-                true
+class SearchScreenProvider
+    @Inject
+    constructor() : IScreenProvider {
+        @Composable
+        override fun provideScreen(
+            route: INavigationItem,
+            navigationManager: INavigationManager,
+        ): Boolean {
+            return when (route) {
+                is SearchRoute -> {
+                    SearchScreen(navigationManager)
+                    true
+                }
+                else -> false
             }
-            else -> false
         }
     }
-}

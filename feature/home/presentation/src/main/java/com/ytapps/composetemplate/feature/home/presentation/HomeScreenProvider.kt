@@ -11,18 +11,20 @@ import javax.inject.Inject
  * Screen provider for Home feature.
  * Provides screens for HomeRoute.
  */
-class HomeScreenProvider @Inject constructor() : IScreenProvider {
-    @Composable
-    override fun provideScreen(
-        route: INavigationItem,
-        navigationManager: INavigationManager
-    ): Boolean {
-        return when (route) {
-            is HomeRoute -> {
-                HomeScreen(navigationManager)
-                true
+class HomeScreenProvider
+    @Inject
+    constructor() : IScreenProvider {
+        @Composable
+        override fun provideScreen(
+            route: INavigationItem,
+            navigationManager: INavigationManager,
+        ): Boolean {
+            return when (route) {
+                is HomeRoute -> {
+                    HomeScreen(navigationManager)
+                    true
+                }
+                else -> false
             }
-            else -> false
         }
     }
-}

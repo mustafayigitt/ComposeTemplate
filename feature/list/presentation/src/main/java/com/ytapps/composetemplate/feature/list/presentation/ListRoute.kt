@@ -14,41 +14,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ytapps.composetemplate.feature.detail.navigation.DetailRoute
 import com.ytapps.composetemplate.core.navigation.INavigationManager
+import com.ytapps.composetemplate.feature.detail.navigation.DetailRoute
 
-/**
- * Created by mustafayigitt on 02/12/2025
- * mustafa.yt65@gmail.com
- */
 @Composable
-fun ListScreen(
-    navigationManager: INavigationManager,
-) {
+fun ListScreen(navigationManager: INavigationManager) {
     ListScreenInternal(
-        navigationManager = navigationManager
+        navigationManager = navigationManager,
     )
 }
 
 @Composable
 internal fun ListScreenInternal(
     navigationManager: INavigationManager,
-    viewModel: ListViewModel = hiltViewModel()
+    viewModel: ListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            horizontal = 16.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        contentPadding =
+            PaddingValues(
+                horizontal = 16.dp,
+            ),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         items(uiState.items) {
             Button(
                 onClick = {
                     navigationManager.navigate(DetailRoute(it))
-                }
+                },
             ) {
                 Text(
                     text = "Item $it",

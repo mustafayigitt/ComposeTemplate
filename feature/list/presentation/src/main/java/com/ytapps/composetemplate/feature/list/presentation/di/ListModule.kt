@@ -13,7 +13,5 @@ import dagger.multibindings.IntoSet
 internal abstract class ListModule {
     @Binds
     @IntoSet
-    abstract fun bindListScreenProvider(
-        provider: ListScreenProvider
-    ): IScreenProvider
+    abstract fun bindListScreenProvider(provider: ListScreenProvider): IScreenProvider
 }
