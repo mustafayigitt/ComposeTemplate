@@ -4,7 +4,9 @@ import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginExtension
 
 class AndroidComposeConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -15,6 +17,20 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
             when (androidExt) {
                 is ApplicationExtension -> androidExt.buildFeatures { compose = true }
                 is LibraryExtension -> androidExt.buildFeatures { compose = true }
+            }
+
+            val enableMetrics =
+                providers.gradleProperty("composetemplate.composeCompilerMetricsEnabled").getOrElse("false").toBoolean()
+            val enableReports =
+                providers.gradleProperty("composetemplate.composeCompilerReportsEnabled").getOrElse("false").toBoolean()
+
+            extensions.configure<ComposeCompilerGradlePluginExtension> {
+                if (enableMetrics) {
+                    metricsDestination.set(layout.buildDirectory.dir("compose-metrics"))
+                }
+                if (enableReports) {
+                    reportsDestination.set(layout.buildDirectory.dir("compose-reports"))
+                }
             }
 
             dependencies {
