@@ -26,6 +26,19 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Create local.properties and secrets.properties
+        run: |
+          touch local.properties
+          echo "API_KEY_DEBUG=\"debug\"" > secrets.properties
+          echo "API_KEY_RELEASE=\"release\"" >> secrets.properties
+          echo "BASE_URL_DEBUG=\"https://example.com\"" >> secrets.properties
+          echo "BASE_URL_RELEASE=\"https://example.com\"" >> secrets.properties
+          echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
+          echo "KEY_PASSWORD=\"android\"" >> secrets.properties
+          echo "STORE_PASSWORD=\"android\"" >> secrets.properties
+          echo "XOR_MASK=\"mask\"" >> secrets.properties
+          echo "EXPECTED_SIGNATURE_HASH=\"hash\"" >> secrets.properties
+
       - name: Run ktlint
         run: ./gradlew ktlintCheck
 
@@ -47,10 +60,18 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Create local.properties
+      - name: Create local.properties and secrets.properties
         run: |
-          echo "BASE_URL_DEBUG=https://example.com" > local.properties
-          echo "BASE_URL=https://example.com" >> local.properties
+          touch local.properties
+          echo "API_KEY_DEBUG=\"debug\"" > secrets.properties
+          echo "API_KEY_RELEASE=\"release\"" >> secrets.properties
+          echo "BASE_URL_DEBUG=\"https://example.com\"" >> secrets.properties
+          echo "BASE_URL_RELEASE=\"https://example.com\"" >> secrets.properties
+          echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
+          echo "KEY_PASSWORD=\"android\"" >> secrets.properties
+          echo "STORE_PASSWORD=\"android\"" >> secrets.properties
+          echo "XOR_MASK=\"mask\"" >> secrets.properties
+          echo "EXPECTED_SIGNATURE_HASH=\"hash\"" >> secrets.properties
 
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest
@@ -70,10 +91,18 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Create local.properties
+      - name: Create local.properties and secrets.properties
         run: |
-          echo "BASE_URL_DEBUG=https://example.com" > local.properties
-          echo "BASE_URL=https://example.com" >> local.properties
+          touch local.properties
+          echo "API_KEY_DEBUG=\"debug\"" > secrets.properties
+          echo "API_KEY_RELEASE=\"release\"" >> secrets.properties
+          echo "BASE_URL_DEBUG=\"https://example.com\"" >> secrets.properties
+          echo "BASE_URL_RELEASE=\"https://example.com\"" >> secrets.properties
+          echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
+          echo "KEY_PASSWORD=\"android\"" >> secrets.properties
+          echo "STORE_PASSWORD=\"android\"" >> secrets.properties
+          echo "XOR_MASK=\"mask\"" >> secrets.properties
+          echo "EXPECTED_SIGNATURE_HASH=\"hash\"" >> secrets.properties
 
       - name: Assemble debug
         run: ./gradlew assembleDebug

@@ -4,38 +4,49 @@ Shared utilities, base classes, and infrastructure.
 
 ## 🔐 Secret Management (NDK)
 
-This module uses Android NDK to securely store and retrieve API keys.
+This module uses Android NDK to securely store and retrieve sensitive information like API keys and Base URLs.
 
-### Usage
+### Configuration
 
 1. Create a `secrets.properties` file in the root directory (this file is git-ignored).
-2. Add your keys:
+2. Add your secrets:
    ```properties
    API_KEY_DEBUG="your_debug_key"
    API_KEY_RELEASE="your_release_key"
+   BASE_URL_DEBUG="https://api-debug.test.com"
+   BASE_URL_RELEASE="https://api.test.com"
    XOR_MASK="your_mask"
    EXPECTED_SIGNATURE_HASH="SHA256_HASH"
    ```
-3. Retrieve the key in Kotlin:
-   ```kotlin
-   val apiKey = SecretManager.getApiKey(context)
-   ```
 
-### 💡 Finding your Signature Hash
-To get your SHA-256 hash for `secrets.properties`:
-```bash
-./gradlew signingReport
+### Initialization
+
+Initialize the manager once in your `Application` class:
+
+```kotlin
+class App : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        SecretManager.initialize(this)
+    }
+}
 ```
-Look for `SHA-256` in the output for your `release` or `debug` variant.
 
-### 🛡️ ProGuard / R8
-The native bridge and secret management are protected via `proguard-rules.pro`. These rules ensure that native methods and SecretManager members are not removed or renamed.
+### Usage
+
+Retrieve secrets anywhere without needing a `Context`:
+
+```kotlin
+val baseUrl = SecretManager.getBaseUrl()
+val apiKey = SecretManager.getApiKey()
+```
 
 ### How it works
-- Secrets are read from `secrets.properties` during build time.
-- They are passed as XOR-encrypted compiler definitions to the C++ compiler.
-- JNI functions in `native-lib.cpp` verify the app's signature hash before decrypting and returning the key.
-- This provides elite-level security against both static analysis and repackaging.
+- **Build-time Encryption**: Secrets are read from `secrets.properties`, Hex-encrypted, and passed to the C++ compiler as definitions.
+- **NDK Layer**: `native-lib.cpp` decodes the Hex strings and performs XOR decryption at runtime.
+- **Signature Validation**: In non-debug builds, the native layer verifies the app's signature hash before returning any secrets, preventing unauthorized access via repackaging.
+
+---
 
 ## 🏛️ Base Architecture
 
