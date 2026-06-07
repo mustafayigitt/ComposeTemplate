@@ -9,7 +9,12 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":core:common"))
+    implementation(project(":core:ui"))
+    implementation(project(":core:navigation"))
+    implementation(project(":core:data"))
+    implementation(project(":core:network"))
+    implementation(project(":core:secrets"))
     implementation(project(":contract"))
     implementation(project(":feature:detail:domain"))
     implementation(project(":feature:detail:navigation"))

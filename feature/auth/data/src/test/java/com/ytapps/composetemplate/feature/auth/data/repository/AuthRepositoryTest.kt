@@ -1,8 +1,8 @@
 package com.ytapps.composetemplate.feature.auth.data.repository
 
 import com.google.common.truth.Truth
-import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.ytapps.composetemplate.core.common.Result
+import com.ytapps.composetemplate.core.data.IPreferencesManager
 import com.ytapps.composetemplate.feature.auth.data.AuthRepository
 import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
 import com.ytapps.composetemplate.feature.auth.data.model.AuthResponseModel

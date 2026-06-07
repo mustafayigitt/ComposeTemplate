@@ -90,7 +90,18 @@ class CreateNewAppPlugin : Plugin<Project> {
     private fun refactorDirectories(targetDir: File, oldPkg: String, newPkg: String) {
         val oldPath = oldPkg.replace(".", File.separator)
         val newPath = newPkg.replace(".", File.separator)
-        val sourceRoots = listOf("app/src/main/java", "app/src/androidTest/java", "app/src/test/java", "build-logic/convention/src/main/kotlin")
+        val sourceRoots = listOf(
+            "app/src/main/java",
+            "app/src/androidTest/java",
+            "app/src/test/java",
+            "build-logic/convention/src/main/kotlin",
+            "core/common/src/main/java",
+            "core/secrets/src/main/java",
+            "core/data/src/main/java",
+            "core/network/src/main/java",
+            "core/ui/src/main/java",
+            "core/navigation/src/main/java"
+        )
 
         sourceRoots.forEach { path ->
             val root = File(targetDir, path.replace("/", File.separator))

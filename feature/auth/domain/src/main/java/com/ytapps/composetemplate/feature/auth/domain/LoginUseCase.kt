@@ -1,6 +1,6 @@
 package com.ytapps.composetemplate.feature.auth.domain
 
-import com.ytapps.composetemplate.core.api.Result
+import com.ytapps.composetemplate.core.common.Result
 import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
 import javax.inject.Inject
 

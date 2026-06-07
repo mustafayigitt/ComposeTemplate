@@ -1,6 +1,6 @@
 package com.ytapps.composetemplate.di
 
-import com.ytapps.composetemplate.core.util.SecretManager
+import com.ytapps.composetemplate.core.secrets.SecretManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

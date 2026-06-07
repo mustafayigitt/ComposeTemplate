@@ -1,7 +1,7 @@
 package com.ytapps.composetemplate.feature.splash.data
 
 import com.google.common.truth.Truth
-import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.ytapps.composetemplate.core.data.IPreferencesManager
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking

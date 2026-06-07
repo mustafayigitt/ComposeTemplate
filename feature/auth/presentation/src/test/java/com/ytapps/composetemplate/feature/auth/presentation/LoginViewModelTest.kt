@@ -1,7 +1,7 @@
 package com.ytapps.composetemplate.feature.auth.presentation
 
 import com.google.common.truth.Truth
-import com.ytapps.composetemplate.core.api.Result
+import com.ytapps.composetemplate.core.common.Result
 import com.ytapps.composetemplate.feature.auth.domain.LoginUseCase
 import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
 import io.mockk.coEvery

@@ -1,9 +1,9 @@
 package com.ytapps.composetemplate.feature.auth.data
 
-import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.core.api.map
-import com.ytapps.composetemplate.core.base.BaseRepository
-import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.ytapps.composetemplate.core.common.Result
+import com.ytapps.composetemplate.core.common.map
+import com.ytapps.composetemplate.core.network.BaseRepository
+import com.ytapps.composetemplate.core.data.IPreferencesManager
 import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
 import com.ytapps.composetemplate.feature.auth.data.model.RefreshTokenRequestModel
 import com.ytapps.composetemplate.feature.auth.data.remote.AuthService

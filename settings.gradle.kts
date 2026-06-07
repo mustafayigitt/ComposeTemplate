@@ -19,7 +19,12 @@ dependencyResolutionManagement {
 
 rootProject.name = "ComposeTemplate"
 include(":app")
-include(":core")
+include(":core:common")
+include(":core:secrets")
+include(":core:data")
+include(":core:network")
+include(":core:ui")
+include(":core:navigation")
 include(":contract")
 include(":feature:auth:data")
 include(":feature:auth:domain")

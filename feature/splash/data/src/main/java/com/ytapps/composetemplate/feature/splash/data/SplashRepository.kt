@@ -1,6 +1,6 @@
 package com.ytapps.composetemplate.feature.splash.data
 
-import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.ytapps.composetemplate.core.data.IPreferencesManager
 import com.ytapps.composetemplate.feature.splash.domain.ISplashRepository
 import javax.inject.Inject
 

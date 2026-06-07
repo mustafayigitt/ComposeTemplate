@@ -1,7 +1,7 @@
 package com.ytapps.composetemplate
 
 import android.app.Application
-import com.ytapps.composetemplate.core.util.SecretManager
+import com.ytapps.composetemplate.core.secrets.SecretManager
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 

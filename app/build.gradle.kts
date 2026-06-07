@@ -69,7 +69,12 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":core:common"))
+    implementation(project(":core:secrets"))
+    implementation(project(":core:data"))
+    implementation(project(":core:network"))
+    implementation(project(":core:ui"))
+    implementation(project(":core:navigation"))
     implementation(project(":contract"))
     implementation(project(":feature:auth:data"))
     implementation(project(":feature:auth:navigation"))

@@ -14,7 +14,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.ytapps.composetemplate.MainActivity
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.core.navigation.ScreenRegistry
-import com.ytapps.composetemplate.core.theme.component.AppNavigationBar
+import com.ytapps.composetemplate.core.ui.theme.component.AppNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

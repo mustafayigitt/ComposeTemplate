@@ -1,6 +1,6 @@
 package com.ytapps.composetemplate.feature.auth.data.di
 
-import com.ytapps.composetemplate.core.api.ITokenRefresher
+import com.ytapps.composetemplate.core.network.ITokenRefresher
 import com.ytapps.composetemplate.feature.auth.data.AuthRepository
 import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
 import dagger.Binds

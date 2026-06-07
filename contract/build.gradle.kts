@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":core:navigation"))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core)
     implementation(libs.androidx.material3)

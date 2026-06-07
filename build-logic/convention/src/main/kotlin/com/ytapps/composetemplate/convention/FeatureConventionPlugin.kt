@@ -8,7 +8,9 @@ class FeatureConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             dependencies {
-                add("implementation", project(":core"))
+                add("implementation", project(":core:common"))
+                add("implementation", project(":core:ui"))
+                add("implementation", project(":core:navigation"))
                 add("implementation", project(":contract"))
             }
         }

@@ -2,8 +2,8 @@ package com.ytapps.composetemplate.feature.auth.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ytapps.composetemplate.core.api.onError
-import com.ytapps.composetemplate.core.api.onSuccess
+import com.ytapps.composetemplate.core.common.onError
+import com.ytapps.composetemplate.core.common.onSuccess
 import com.ytapps.composetemplate.feature.auth.domain.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

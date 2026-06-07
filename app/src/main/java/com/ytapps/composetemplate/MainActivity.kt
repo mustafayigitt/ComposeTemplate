@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.core.navigation.ScreenRegistry
-import com.ytapps.composetemplate.core.theme.ComposeTemplateTheme
+import com.ytapps.composetemplate.core.ui.theme.ComposeTemplateTheme
 import com.ytapps.composetemplate.ui.AppNavigation
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
