@@ -12,17 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 
-/**
- * Created by mustafayigitt on 02/12/2025
- * mustafa.yt65@gmail.com
- */
-
 @Composable
-fun SplashScreen(
-    navigationManager: INavigationManager,
-) {
+fun SplashScreen(navigationManager: INavigationManager) {
     SplashScreenInternal(
-        navigationManager = navigationManager
+        navigationManager = navigationManager,
     )
 }
 
@@ -30,7 +23,7 @@ fun SplashScreen(
 @Composable
 internal fun SplashScreenInternal(
     navigationManager: INavigationManager,
-    viewModel: SplashViewModel = hiltViewModel()
+    viewModel: SplashViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -42,7 +35,7 @@ internal fun SplashScreenInternal(
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(text = "Splash Screen")
     }

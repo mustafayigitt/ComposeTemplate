@@ -13,7 +13,5 @@ import dagger.multibindings.IntoSet
 internal abstract class SplashModule {
     @Binds
     @IntoSet
-    abstract fun bindSplashScreenProvider(
-        provider: SplashScreenProvider
-    ): IScreenProvider
+    abstract fun bindSplashScreenProvider(provider: SplashScreenProvider): IScreenProvider
 }
