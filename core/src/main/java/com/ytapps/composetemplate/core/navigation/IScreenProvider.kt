@@ -13,5 +13,8 @@ interface IScreenProvider {
      * Returns null if this provider doesn't handle the given route.
      */
     @Composable
-    fun provideScreen(route: INavigationItem, navigationManager: INavigationManager): Boolean
+    fun provideScreen(
+        route: INavigationItem,
+        navigationManager: INavigationManager,
+    ): Boolean
 }

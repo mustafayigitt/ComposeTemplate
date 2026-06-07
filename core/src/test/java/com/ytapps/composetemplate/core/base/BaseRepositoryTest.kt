@@ -18,12 +18,8 @@ import retrofit2.http.GET
 /**
  * Tests for BaseRepository's safeCall functionality.
  * Uses MockK to mock service and creates real repository with mocked dependencies.
- * 
- * Created by mustafayigitt on 05/09/2023
- * mustafa.yt65@gmail.com
  */
 class BaseRepositoryTest {
-
     private lateinit var mockService: TestService
     private lateinit var repository: TestableRepository
 
@@ -34,63 +30,67 @@ class BaseRepositoryTest {
     }
 
     @Test
-    fun `given successful response when repository makes call then returns Result-Success with data`() = runTest {
-        // Given
-        val expectedData = "success_data"
-        coEvery { mockService.getData() } returns Response.success(expectedData)
-        
-        // When
-        val result = repository.fetchData()
-        
-        // Then
-        assertThat(result.isSuccess).isTrue()
-        assertThat(result).isInstanceOf(Result.Success::class.java)
-        assertThat(result.getOrNull()).isEqualTo(expectedData)
-    }
+    fun `given successful response when repository makes call then returns Result-Success with data`() =
+        runTest {
+            // Given
+            val expectedData = "success_data"
+            coEvery { mockService.getData() } returns Response.success(expectedData)
+
+            // When
+            val result = repository.fetchData()
+
+            // Then
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result).isInstanceOf(Result.Success::class.java)
+            assertThat(result.getOrNull()).isEqualTo(expectedData)
+        }
 
     @Test
-    fun `given error response when repository makes call then returns Result-Error`() = runTest {
-        // Given
-        val errorBody = "Bad Request".toResponseBody("application/json".toMediaType())
-        coEvery { mockService.getData() } returns Response.error(400, errorBody)
-        
-        // When
-        val result = repository.fetchData()
-        
-        // Then
-        assertThat(result.isError).isTrue()
-        assertThat(result).isInstanceOf(Result.Error::class.java)
-    }
+    fun `given error response when repository makes call then returns Result-Error`() =
+        runTest {
+            // Given
+            val errorBody = "Bad Request".toResponseBody("application/json".toMediaType())
+            coEvery { mockService.getData() } returns Response.error(400, errorBody)
+
+            // When
+            val result = repository.fetchData()
+
+            // Then
+            assertThat(result.isError).isTrue()
+            assertThat(result).isInstanceOf(Result.Error::class.java)
+        }
 
     @Test
-    fun `given exception thrown when repository makes call then returns Result-Error with exception`() = runTest {
-        // Given
-        val exception = RuntimeException("Network error")
-        coEvery { mockService.getData() } throws exception
-        
-        // When
-        val result = repository.fetchData()
-        
-        // Then
-        assertThat(result.isError).isTrue()
-        assertThat(result).isInstanceOf(Result.Error::class.java)
-        val error = result as Result.Error
-        assertThat(error.message).isEqualTo("Network error")
-        assertThat(error.throwable).isEqualTo(exception)
-    }
+    fun `given exception thrown when repository makes call then returns Result-Error with exception`() =
+        runTest {
+            // Given
+            val exception = RuntimeException("Network error")
+            coEvery { mockService.getData() } throws exception
+
+            // When
+            val result = repository.fetchData()
+
+            // Then
+            assertThat(result.isError).isTrue()
+            assertThat(result).isInstanceOf(Result.Error::class.java)
+            val error = result as Result.Error
+            assertThat(error.message).isEqualTo("Network error")
+            assertThat(error.throwable).isEqualTo(exception)
+        }
 
     @Test
-    fun `given null body in success response when repository makes call then returns Result-Error`() = runTest {
-        // Given
-        coEvery { mockService.getData() } returns Response.success(null)
-        
-        // When
-        val result = repository.fetchData()
-        
-        // Then
-        assertThat(result.isError).isTrue()
-        assertThat(result).isInstanceOf(Result.Error::class.java)
-    }
+    fun `given null body in success response when repository makes call then returns Result-Error`() =
+        runTest {
+            // Given
+            coEvery { mockService.getData() } returns Response.success(null)
+
+            // When
+            val result = repository.fetchData()
+
+            // Then
+            assertThat(result.isError).isTrue()
+            assertThat(result).isInstanceOf(Result.Error::class.java)
+        }
 
     // Test Service Interface
     interface TestService {
@@ -100,11 +100,11 @@ class BaseRepositoryTest {
 
     // Concrete Repository for testing with mocked service
     class TestableRepository(
-        private val service: TestService
+        private val service: TestService,
     ) : BaseRepository() {
-        
-        suspend fun fetchData(): Result<String> = safeCall {
-            service.getData()
-        }
+        suspend fun fetchData(): Result<String> =
+            safeCall {
+                service.getData()
+            }
     }
 }

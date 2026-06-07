@@ -12,14 +12,9 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 internal abstract class BinderModule {
+    @Binds
+    abstract fun bindPreferencesManager(preferencesManager: PreferencesManager): IPreferencesManager
 
     @Binds
-    abstract fun bindPreferencesManager(
-        preferencesManager: PreferencesManager
-    ): IPreferencesManager
-
-    @Binds
-    abstract fun bindNavigationManager(
-        navigationManager: NavigationManager
-    ): INavigationManager
+    abstract fun bindNavigationManager(navigationManager: NavigationManager): INavigationManager
 }

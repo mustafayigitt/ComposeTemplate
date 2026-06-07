@@ -15,15 +15,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
-/**
- * Created by mustafayigitt on 26/08/2023
- * mustafa.yt65@gmail.com
- */
-
 @Module
 @InstallIn(SingletonComponent::class)
 internal object ProviderModule {
-
     @Provides
     @Singleton
     fun provideLoggingInterceptor(): HttpLoggingInterceptor {
@@ -37,15 +31,14 @@ internal object ProviderModule {
     fun provideOkHttpClient(
         loggingInterceptor: HttpLoggingInterceptor,
         authInterceptor: AuthInterceptor,
-        tokenAuthenticator: TokenAuthenticator
+        tokenAuthenticator: TokenAuthenticator,
     ): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)          // Adds auth headers
-            .addInterceptor(loggingInterceptor)       // Logs requests/responses
-            .authenticator(tokenAuthenticator)         // Handles 401 and refreshes token
+            .addInterceptor(authInterceptor) // Adds auth headers
+            .addInterceptor(loggingInterceptor) // Logs requests/responses
+            .authenticator(tokenAuthenticator) // Handles 401 and refreshes token
             .build()
     }
-
 
     @Provides
     @Singleton
@@ -58,9 +51,7 @@ internal object ProviderModule {
 
     @Provides
     @Singleton
-    fun provideGsonConverterFactory(
-        gson: Gson
-    ): GsonConverterFactory {
+    fun provideGsonConverterFactory(gson: Gson): GsonConverterFactory {
         return GsonConverterFactory.create(gson)
     }
 
@@ -69,7 +60,7 @@ internal object ProviderModule {
     fun provideRetrofit(
         baseUrl: String,
         okHttpClient: OkHttpClient,
-        gsonConverterFactory: GsonConverterFactory
+        gsonConverterFactory: GsonConverterFactory,
     ): Retrofit {
         return Retrofit.Builder()
             .baseUrl(baseUrl)
