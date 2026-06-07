@@ -11,35 +11,37 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * Created by mustafayigitt on 26/08/2023
- * mustafa.yt65@gmail.com
- */
 @HiltViewModel
-internal class LoginViewModel @Inject constructor(
-    private val login: LoginUseCase
-) : ViewModel() {
+internal class LoginViewModel
+    @Inject
+    constructor(
+        private val login: LoginUseCase,
+    ) : ViewModel() {
+        private val _uiState = MutableStateFlow(LoginUiState())
+        val uiState = _uiState.asStateFlow()
 
-    private val _uiState = MutableStateFlow(LoginUiState())
-    val uiState = _uiState.asStateFlow()
+        fun login(
+            email: String,
+            password: String,
+        ) {
+            viewModelScope.launch {
+                _uiState.value = LoginUiState(isLoading = true)
 
-    fun login(email: String, password: String) {
-        viewModelScope.launch {
-            _uiState.value = LoginUiState(isLoading = true)
-            
-            login.invoke(email, password)
-                .onSuccess {
-                    _uiState.value = LoginUiState(
-                        shouldNavigateToSplash = true,
-                        isLoading = false
-                    )
-                }
-                .onError { message, _ ->
-                    _uiState.value = LoginUiState(
-                        isLoading = false,
-                        error = message
-                    )
-                }
+                login.invoke(email, password)
+                    .onSuccess {
+                        _uiState.value =
+                            LoginUiState(
+                                shouldNavigateToSplash = true,
+                                isLoading = false,
+                            )
+                    }
+                    .onError { message, _ ->
+                        _uiState.value =
+                            LoginUiState(
+                                isLoading = false,
+                                error = message,
+                            )
+                    }
+            }
         }
     }
-}

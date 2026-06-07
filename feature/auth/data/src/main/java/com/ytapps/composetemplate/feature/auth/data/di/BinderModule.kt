@@ -11,14 +11,9 @@ import dagger.hilt.components.SingletonComponent
 @Module
 @InstallIn(SingletonComponent::class)
 internal abstract class BinderModule {
+    @Binds
+    abstract fun bindAuthRepository(authRepository: AuthRepository): IAuthRepository
 
     @Binds
-    abstract fun bindAuthRepository(
-        authRepository: AuthRepository
-    ): IAuthRepository
-
-    @Binds
-    abstract fun bindTokenRefresher(
-        authRepository: AuthRepository
-    ): ITokenRefresher
+    abstract fun bindTokenRefresher(authRepository: AuthRepository): ITokenRefresher
 }

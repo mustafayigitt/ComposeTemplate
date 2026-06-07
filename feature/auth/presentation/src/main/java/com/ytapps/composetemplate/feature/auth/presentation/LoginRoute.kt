@@ -11,28 +11,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
 import com.ytapps.composetemplate.feature.splash.navigation.SplashRoute
-import com.ytapps.composetemplate.core.navigation.INavigationManager
-
-/**
- * Created by mustafayigitt on 26/08/2023
- * mustafa.yt65@gmail.com
- */
 
 @Composable
-fun LoginScreen(
-    navigationManager: INavigationManager,
-) {
+fun LoginScreen(navigationManager: INavigationManager) {
     LoginScreenInternal(
-        navigationManager = navigationManager
+        navigationManager = navigationManager,
     )
 }
 
 @Composable
 internal fun LoginScreenInternal(
     navigationManager: INavigationManager,
-    viewModel: LoginViewModel = hiltViewModel()
+    viewModel: LoginViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -41,7 +34,7 @@ internal fun LoginScreenInternal(
             if (shouldNavigateToSplash) {
                 navigationManager.navigateOver(
                     route = SplashRoute,
-                    over = LoginRoute
+                    over = LoginRoute,
                 )
             }
         }
@@ -49,12 +42,12 @@ internal fun LoginScreenInternal(
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Button(
             onClick = {
                 viewModel.login(uiState.email, uiState.password)
-            }
+            },
         ) {
             Text(text = "Login")
         }

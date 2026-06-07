@@ -18,12 +18,7 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
 
-/**
- * Created by mustafayigitt on 05/09/2023
- * mustafa.yt65@gmail.com
- */
 internal class AuthRepositoryTest {
-
     private lateinit var authRepository: IAuthRepository
     private lateinit var authService: AuthService
     private lateinit var preferencesManager: IPreferencesManager
@@ -62,16 +57,18 @@ internal class AuthRepositoryTest {
     @Test
     fun `given valid authRequestModel when login() then verify setAccessToken called`() {
         // Given
-        val authRequestModel = AuthRequestModel(
-            email = "email",
-            password = "password"
-        )
-        val authResponseModel = AuthResponseModel(
-            accessToken = "token",
-            refreshToken = "refresh",
-            tokenType = "Bearer",
-            expiresIn = "3600"
-        )
+        val authRequestModel =
+            AuthRequestModel(
+                email = "email",
+                password = "password",
+            )
+        val authResponseModel =
+            AuthResponseModel(
+                accessToken = "token",
+                refreshToken = "refresh",
+                tokenType = "Bearer",
+                expiresIn = "3600",
+            )
 
         // When
         coEvery { authService.login(authRequestModel) } returns Response.success(authResponseModel)
@@ -87,21 +84,22 @@ internal class AuthRepositoryTest {
     @Test
     fun `given invalid authRequestModel when login() then verify setAccessToken not called`() {
         // Given
-        val authRequestModel = AuthRequestModel(
-            email = "email",
-            password = "password"
-        )
+        val authRequestModel =
+            AuthRequestModel(
+                email = "email",
+                password = "password",
+            )
 
         // When
-        coEvery { authService.login(authRequestModel) } returns Response.error(
-            400,
-            "Bad Request".toResponseBody()
-        )
+        coEvery { authService.login(authRequestModel) } returns
+            Response.error(
+                400,
+                "Bad Request".toResponseBody(),
+            )
         val result = runBlocking { authRepository.login("email", "password") }
 
         // Then
         Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
         coVerify(exactly = 0) { preferencesManager.setAccessToken(any()) }
     }
-
 }

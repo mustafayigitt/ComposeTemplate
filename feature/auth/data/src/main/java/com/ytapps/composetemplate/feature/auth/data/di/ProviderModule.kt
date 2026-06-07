@@ -11,7 +11,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 internal object ProviderModule {
-
     @Provides
     @Singleton
     fun provideAuthService(retrofit: Retrofit): AuthService {
