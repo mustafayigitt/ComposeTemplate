@@ -7,13 +7,13 @@ versionCode = "1"
 versionName = "1.0.0"
 
 # AndroidX
-androidx-core = "1.13.1"
-androidx-compose-bom = "2024.06.00"
-androidx-lifecycle = "2.8.4"
-androidx-activity-compose = "1.9.1"
+androidx-core = "1.15.0"
+androidx-compose-bom = "2025.01.01"
+androidx-lifecycle = "2.8.7"
+androidx-activity-compose = "1.10.0"
 androidx-navigation3 = "1.0.0"
 androidx-lifecycle-navigation3 = "2.10.0"
-androidx-datastore = "1.1.1"
+androidx-datastore = "1.1.3"
 
 # Network
 retrofit = "2.11.0"
@@ -27,9 +27,16 @@ hilt-navigation-compose = "1.2.0"
 
 # Kotlin
 kotlin = "2.2.10"
-kotlinx-coroutines-test = "1.7.3"
-kotlinx-serialization = "2.1.21"
+kotlinx-coroutines-test = "1.10.1"
+kotlinx-serialization = "2.2.10"
 kotlinx-serialization-core = "1.8.1"
+
+# Logging
+timber = "5.0.1"
+
+# Static Analysis
+detekt = "1.23.8"
+ktlint = "12.2.0"
 
 # Testing
 junit = "4.13.2"
@@ -84,6 +91,9 @@ androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-com
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-test" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization-core" }
 
+# Logging
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+
 # Testing
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junit-android" }
@@ -112,6 +122,10 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 # Dependency Injection
 dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt-android" }
+
+# Static Analysis
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 
 # Build Logic
 kotlin-dsl = { id = "org.gradle.kotlin.kotlin-dsl", version.ref = "kotlin" }
