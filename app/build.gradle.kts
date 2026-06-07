@@ -51,6 +51,16 @@ android {
                 "\"${localProperties.getProperty("BASE_URL")}\"",
             )
         }
+
+        create("benchmark") {
+            initWith(getByName("release"))
+            matchingFallbacks += listOf("release")
+            signingConfig = signingConfigs.getByName("debug")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "benchmark-rules.pro",
+            )
+        }
     }
 
     buildFeatures {
@@ -99,4 +109,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.material3.adaptive.navigation3)
     implementation(libs.kotlinx.serialization.core)
+
+    implementation(libs.androidx.profileinstaller)
 }

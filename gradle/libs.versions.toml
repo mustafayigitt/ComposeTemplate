@@ -51,6 +51,11 @@ mockk = "1.14.11"
 ksp = "2.3.9"
 android-gradle-plugin = "9.2.1"
 
+# Benchmarking
+androidx-benchmark-macro-junit4 = "1.4.1"
+androidx-uiautomator = "2.3.0"
+androidx-profileinstaller = "1.4.1"
+
 
 
 [libraries]
@@ -103,6 +108,11 @@ androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junit-andr
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso-core" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+
+# Benchmarking
+androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "androidx-benchmark-macro-junit4" }
+androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "androidx-uiautomator" }
+androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "androidx-profileinstaller" }
 
 # Build Logic Dependencies
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "android-gradle-plugin" }
