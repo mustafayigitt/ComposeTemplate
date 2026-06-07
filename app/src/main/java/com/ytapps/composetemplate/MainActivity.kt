@@ -5,17 +5,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.core.navigation.ScreenRegistry
-import com.ytapps.composetemplate.ui.AppNavigation
 import com.ytapps.composetemplate.core.theme.ComposeTemplateTheme
+import com.ytapps.composetemplate.ui.AppNavigation
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    
     @Inject
     lateinit var navigationManager: INavigationManager
-    
+
     @Inject
     lateinit var screenRegistry: ScreenRegistry
 
@@ -25,7 +24,7 @@ class MainActivity : ComponentActivity() {
             ComposeTemplateTheme {
                 AppNavigation(
                     navigationManager = navigationManager,
-                    screenRegistry = screenRegistry
+                    screenRegistry = screenRegistry,
                 )
             }
         }

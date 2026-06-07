@@ -20,7 +20,7 @@ import com.ytapps.composetemplate.core.theme.component.AppNavigationBar
 @Composable
 fun AppNavigation(
     navigationManager: INavigationManager,
-    screenRegistry: ScreenRegistry
+    screenRegistry: ScreenRegistry,
 ) {
     val backStack by navigationManager.backStack.collectAsStateWithLifecycle()
     val currentRoute = backStack.lastOrNull()
@@ -35,10 +35,10 @@ fun AppNavigation(
                         items = navigationManager.bottomBarItems,
                         onItemClick = { selected ->
                             navigationManager.selectTab(selected)
-                        }
+                        },
                     )
                 }
-            }
+            },
         ) { paddingValues ->
             NavDisplay(
                 modifier = Modifier.padding(paddingValues),
@@ -50,7 +50,7 @@ fun AppNavigation(
                     NavEntry(key) {
                         screenRegistry.ScreenProvider(key, navigationManager)
                     }
-                }
+                },
             )
         }
     } else {

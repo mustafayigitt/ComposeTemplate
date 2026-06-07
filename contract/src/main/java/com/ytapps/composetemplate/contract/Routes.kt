@@ -1,14 +1,14 @@
 package com.ytapps.composetemplate.contract
 
-import androidx.compose.material3.Icon
-import com.ytapps.composetemplate.core.navigation.IBottomBarItem
-import com.ytapps.composetemplate.core.navigation.INavigationItem
-import kotlinx.serialization.Serializable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import com.ytapps.composetemplate.core.navigation.IBottomBarItem
+import com.ytapps.composetemplate.core.navigation.INavigationItem
+import kotlinx.serialization.Serializable
 
 @Serializable
 data object SplashRoute : INavigationItem {
@@ -26,7 +26,7 @@ data object HomeRoute : IBottomBarItem {
     override val icon: @Composable () -> Unit = {
         Icon(
             imageVector = Icons.Default.Home,
-            contentDescription = "Home"
+            contentDescription = "Home",
         )
     }
 }
@@ -37,7 +37,7 @@ data object SearchRoute : IBottomBarItem {
     override val icon: @Composable () -> Unit = {
         Icon(
             imageVector = Icons.Default.Search,
-            contentDescription = "Search"
+            contentDescription = "Search",
         )
     }
 }
@@ -48,7 +48,7 @@ data object ProfileRoute : IBottomBarItem {
     override val icon: @Composable () -> Unit = {
         Icon(
             imageVector = Icons.Default.Person,
-            contentDescription = "Profile"
+            contentDescription = "Profile",
         )
     }
 }

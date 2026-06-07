@@ -2,11 +2,14 @@ package com.ytapps.composetemplate
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
-
-/**
- * Created by mustafayigitt on 02/12/2025
- * mustafa.yt65@gmail.com
- */
+import timber.log.Timber
 
 @HiltAndroidApp
-class App: Application()
+class App : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
+    }
+}
