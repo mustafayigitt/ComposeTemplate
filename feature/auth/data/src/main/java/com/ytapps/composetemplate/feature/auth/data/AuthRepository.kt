@@ -16,10 +16,9 @@ internal class AuthRepository
     constructor(
         private val authService: AuthService,
         private val prefs: IPreferencesManager,
-    ) : BaseRepository(), IAuthRepository {
-        override fun hasUser(): Boolean {
-            return prefs.hasUser()
-        }
+    ) : BaseRepository(),
+        IAuthRepository {
+        override fun hasUser(): Boolean = prefs.hasUser()
 
         override suspend fun login(
             email: String,

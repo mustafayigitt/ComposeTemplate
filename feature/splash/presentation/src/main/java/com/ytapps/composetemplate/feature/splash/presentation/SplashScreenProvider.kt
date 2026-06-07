@@ -18,13 +18,12 @@ class SplashScreenProvider
         override fun provideScreen(
             route: INavigationItem,
             navigationManager: INavigationManager,
-        ): Boolean {
-            return when (route) {
+        ): Boolean =
+            when (route) {
                 is SplashRoute -> {
                     SplashScreen(navigationManager)
                     true
                 }
                 else -> false
             }
-        }
     }

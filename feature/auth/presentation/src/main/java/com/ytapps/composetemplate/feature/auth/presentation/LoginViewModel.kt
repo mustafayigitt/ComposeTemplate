@@ -27,15 +27,15 @@ internal class LoginViewModel
             viewModelScope.launch {
                 _uiState.value = LoginUiState(isLoading = true)
 
-                login.invoke(email, password)
+                login
+                    .invoke(email, password)
                     .onSuccess {
                         _uiState.value =
                             LoginUiState(
                                 shouldNavigateToSplash = true,
                                 isLoading = false,
                             )
-                    }
-                    .onError { message, _ ->
+                    }.onError { message, _ ->
                         _uiState.value =
                             LoginUiState(
                                 isLoading = false,

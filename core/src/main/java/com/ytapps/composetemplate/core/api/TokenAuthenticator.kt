@@ -7,6 +7,7 @@ import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -64,8 +65,8 @@ internal class TokenAuthenticator
             }
         }
 
-        private fun refreshToken(): String? {
-            return try {
+        private fun refreshToken(): String? =
+            try {
                 // Note: runBlocking is acceptable here because:
                 // 1. Authenticator.authenticate() is called on OkHttp's dispatcher thread, not the main thread
                 // 2. The token refresh is a blocking operation by nature (we need the token before proceeding)
@@ -74,16 +75,17 @@ internal class TokenAuthenticator
                     tokenRefresher.get().refreshToken().getOrNull()
                 }
             } catch (e: Exception) {
+                Timber.e(e, "Token refresh failed")
                 null
             }
-        }
 
         private fun buildRequestWithToken(
             request: Request,
             token: String,
         ): Request {
             val tokenType = prefs.getTokenType() ?: "Bearer"
-            return request.newBuilder()
+            return request
+                .newBuilder()
                 .header(HEADER_AUTHORIZATION, "$tokenType $token")
                 .build()
         }

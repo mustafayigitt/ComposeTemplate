@@ -116,46 +116,46 @@ class PreferencesManagerContractTest {
  * Fake implementation for testing the interface contract
  */
 class FakePreferencesManager : IPreferencesManager {
-    private val _accessToken = MutableStateFlow<String?>(null)
-    private val _refreshToken = MutableStateFlow<String?>(null)
-    private val _tokenType = MutableStateFlow<String?>(null)
-    private val _uuid = MutableStateFlow<String?>(null)
+    private val backingAccessToken = MutableStateFlow<String?>(null)
+    private val backingRefreshToken = MutableStateFlow<String?>(null)
+    private val backingTokenType = MutableStateFlow<String?>(null)
+    private val backingUuid = MutableStateFlow<String?>(null)
 
-    override fun getAccessToken(): String? = _accessToken.value
+    override fun getAccessToken(): String? = backingAccessToken.value
 
-    override fun getRefreshToken(): String? = _refreshToken.value
+    override fun getRefreshToken(): String? = backingRefreshToken.value
 
-    override fun getTokenType(): String? = _tokenType.value
+    override fun getTokenType(): String? = backingTokenType.value
 
-    override fun getUUID(): String? = _uuid.value
+    override fun getUUID(): String? = backingUuid.value
 
-    override fun hasUser(): Boolean = _uuid.value != null
+    override fun hasUser(): Boolean = backingUuid.value != null
 
     override suspend fun setAccessToken(accessToken: String) {
-        _accessToken.value = accessToken
+        backingAccessToken.value = accessToken
     }
 
     override suspend fun setRefreshToken(refreshToken: String) {
-        _refreshToken.value = refreshToken
+        backingRefreshToken.value = refreshToken
     }
 
     override suspend fun setTokenType(tokenType: String) {
-        _tokenType.value = tokenType
+        backingTokenType.value = tokenType
     }
 
     override suspend fun setUUID(uuid: String) {
-        _uuid.value = uuid
+        backingUuid.value = uuid
     }
 
     override suspend fun clear() {
-        _accessToken.value = null
-        _refreshToken.value = null
-        _tokenType.value = null
-        _uuid.value = null
+        backingAccessToken.value = null
+        backingRefreshToken.value = null
+        backingTokenType.value = null
+        backingUuid.value = null
     }
 
-    override val accessTokenFlow: Flow<String?> = _accessToken
-    override val refreshTokenFlow: Flow<String?> = _refreshToken
-    override val tokenTypeFlow: Flow<String?> = _tokenType
-    override val uuidFlow: Flow<String?> = _uuid
+    override val accessTokenFlow: Flow<String?> = backingAccessToken
+    override val refreshTokenFlow: Flow<String?> = backingRefreshToken
+    override val tokenTypeFlow: Flow<String?> = backingTokenType
+    override val uuidFlow: Flow<String?> = backingUuid
 }

@@ -18,13 +18,12 @@ class SearchScreenProvider
         override fun provideScreen(
             route: INavigationItem,
             navigationManager: INavigationManager,
-        ): Boolean {
-            return when (route) {
+        ): Boolean =
+            when (route) {
                 is SearchRoute -> {
                     SearchScreen(navigationManager)
                     true
                 }
                 else -> false
             }
-        }
     }

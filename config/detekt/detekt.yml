@@ -1,60 +1,66 @@
 build:
-  maxIssues: 40
-
-style:
-  active: true
-  MagicNumber:
-    active: false
-  MaxLineLength:
-    active: false
-  UnusedPrivateMember:
-    active: true
+  maxIssues: 0
+  excludeCorrectable: false
 
 complexity:
   active: true
   LongParameterList:
     active: true
-    functionThreshold: 8
+    functionThreshold: 10
     constructorThreshold: 10
+    ignoreDefaultParameters: true
   LongMethod:
     active: true
-    threshold: 60
+    threshold: 100
   LargeClass:
     active: true
     threshold: 600
 
-exceptions:
+style:
   active: true
-  TooGenericExceptionCaught:
-    active: false
-
-comments:
-  active: true
-  CommentOverPrivateFunction:
-    active: false
-  CommentOverPrivateProperty:
-    active: false
-  UndocumentedPublicClass:
-    active: false
-  UndocumentedPublicFunction:
-    active: false
-  OutdatedDocumentation:
-    active: false
+  UnusedParameter:
+    active: true
+    allowedNames: 'navigationManager|viewModel'
+  MagicNumber:
+    active: true
+    ignoreNumbers:
+      - '-1'
+      - '0'
+      - '1'
+      - '2'
+    ignorePropertyDeclaration: true
+    ignoreAnnotation: true
+    ignoreEnums: true
+  MaxLineLength:
+    active: true
+    maxLineLength: 140
+  UnusedPrivateMember:
+    active: true
+  WildcardImport:
+    active: true
+  ReturnCount:
+    active: true
+    max: 4
+  NewLineAtEndOfFile:
+    active: true
 
 naming:
   active: true
-  MemberNameEqualsClassName:
-    active: false
-  PackageNaming:
-    active: true
-    packagePattern: "[a-z_]+(\\.[a-z_][a-zA-Z0-9_]*)*"
   FunctionNaming:
-    active: false
-
-performance:
-  active: true
+    active: true
+    functionPattern: "^([a-z][a-zA-Z0-9]*|[A-Z][a-zA-Z0-9]*)$"
 
 potential-bugs:
   active: true
-  IgnoredReturnValue:
-    active: false
+  LateinitUsage:
+    active: false # Disable globally as it's common with Hilt/Dagger
+  UnsafeCallOnNullableType:
+    active: true
+
+exceptions:
+  active: true
+  TooGenericExceptionCaught:
+    active: false # Disable globally as we often wrap exceptions
+
+comments:
+  active: true

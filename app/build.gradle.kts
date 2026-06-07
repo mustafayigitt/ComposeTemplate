@@ -1,5 +1,4 @@
 import java.util.Properties
-import kotlin.apply
 
 plugins {
     id("composetemplate.create.new.app")
@@ -15,7 +14,10 @@ android {
 
     defaultConfig {
         applicationId = "com.ytapps.composetemplate"
-        versionCode = libs.versions.versionCode.get().toInt()
+        versionCode =
+            libs.versions.versionCode
+                .get()
+                .toInt()
         versionName = libs.versions.versionName.get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -28,8 +30,6 @@ android {
         }
     buildTypes {
         debug {
-            isMinifyEnabled = false
-            isShrinkResources = false
             "\"${localProperties.getProperty("BASE_URL_DEBUG")}\""
             buildConfigField(
                 "String",

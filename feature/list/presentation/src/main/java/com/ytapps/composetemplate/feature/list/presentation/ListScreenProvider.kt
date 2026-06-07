@@ -18,13 +18,13 @@ class ListScreenProvider
         override fun provideScreen(
             route: INavigationItem,
             navigationManager: INavigationManager,
-        ): Boolean {
-            return when (route) {
+        ): Boolean =
+            when (route) {
                 is ListRoute -> {
                     ListScreen(navigationManager)
                     true
                 }
+
                 else -> false
             }
-        }
     }

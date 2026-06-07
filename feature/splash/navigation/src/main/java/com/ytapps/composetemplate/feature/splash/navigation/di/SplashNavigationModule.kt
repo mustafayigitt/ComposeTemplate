@@ -18,7 +18,5 @@ internal object SplashNavigationModule {
 
     @Provides
     @Singleton
-    fun provideStartDestination(): INavigationItem {
-        return SplashRoute
-    }
+    fun provideStartDestination(): INavigationItem = SplashRoute
 }

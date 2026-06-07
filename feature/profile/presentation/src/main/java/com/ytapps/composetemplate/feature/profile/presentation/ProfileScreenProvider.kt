@@ -18,13 +18,12 @@ class ProfileScreenProvider
         override fun provideScreen(
             route: INavigationItem,
             navigationManager: INavigationManager,
-        ): Boolean {
-            return when (route) {
+        ): Boolean =
+            when (route) {
                 is ProfileRoute -> {
                     ProfileScreen(navigationManager)
                     true
                 }
                 else -> false
             }
-        }
     }

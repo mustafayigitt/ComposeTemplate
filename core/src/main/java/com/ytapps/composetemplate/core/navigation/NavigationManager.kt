@@ -19,9 +19,7 @@ internal class NavigationManager
         override val bottomBarItems: List<IBottomBarItem> =
             bottomBarItemsRaw.entries.sortedBy { it.key }.map { it.value }
 
-        override fun showBottomBar(route: INavigationItem): Boolean {
-            return route in bottomBarItems
-        }
+        override fun showBottomBar(route: INavigationItem): Boolean = route in bottomBarItems
 
         override fun selectTab(selected: IBottomBarItem) {
             _backStack.update { currentStack ->

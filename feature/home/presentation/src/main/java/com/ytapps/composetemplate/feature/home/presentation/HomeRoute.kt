@@ -7,7 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.feature.list.navigation.ListRoute
 
@@ -19,10 +18,7 @@ fun HomeScreen(navigationManager: INavigationManager) {
 }
 
 @Composable
-internal fun HomeScreenInternal(
-    navigationManager: INavigationManager,
-    viewModel: HomeViewModel = hiltViewModel(),
-) {
+internal fun HomeScreenInternal(navigationManager: INavigationManager) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,

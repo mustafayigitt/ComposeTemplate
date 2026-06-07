@@ -13,7 +13,9 @@ sealed interface Result<out T> {
     /**
      * Represents a successful result containing [data].
      */
-    data class Success<T>(val data: T) : Result<T>
+    data class Success<T>(
+        val data: T,
+    ) : Result<T>
 
     /**
      * Represents a failed result containing an error [message] and optional [throwable].
@@ -57,8 +59,11 @@ fun <T> Result<T>.getOrDefault(default: T): T =
 fun <T> Result<T>.getOrThrow(): T =
     when (this) {
         is Result.Success -> data
-        is Result.Error -> throw throwable ?: IllegalStateException(message)
-        is Result.Loading -> throw IllegalStateException("Result is in Loading state")
+        is Result.Error -> {
+            throwable?.let { throw it }
+            error(message)
+        }
+        is Result.Loading -> error("Result is in Loading state")
     }
 
 /**

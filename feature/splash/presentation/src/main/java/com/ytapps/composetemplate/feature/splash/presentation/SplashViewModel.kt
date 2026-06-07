@@ -25,7 +25,7 @@ internal class SplashViewModel
         init {
             viewModelScope.launch {
                 val destination = getStartDestinationUseCase()
-                delay(1000L)
+                delay(SPLASH_DELAY)
                 _uiState.value =
                     SplashUiState(
                         destinationRoute =
@@ -36,5 +36,9 @@ internal class SplashViewModel
                         isLoading = false,
                     )
             }
+        }
+
+        private companion object {
+            private const val SPLASH_DELAY = 1000L
         }
     }

@@ -13,8 +13,8 @@ build-logic/
 │       ├── AndroidHiltConventionPlugin.kt
 │       ├── AndroidLibraryConventionPlugin.kt
 │       ├── FeatureConventionPlugin.kt
+│       ├── StaticAnalysisConventionPlugin.kt
 │       ├── TestConventionPlugin.kt
-│       ├── KotlinAndroid.kt
 │       └── ProjectExtensions.kt
 └── settings.gradle.kts
 ```
@@ -31,6 +31,7 @@ Convention Plugins help you:
 
 - **New Test Plugin**: Eliminates 60+ lines of repeated test dependencies across 15+ modules
 - **New Feature Plugin**: Provides consistent base dependencies for all feature modules
+- **Static Analysis Plugin**: Centralized Detekt and Ktlint setup to maintain high code quality standards
 - **Organized Version Catalog**: Better categorized dependencies and versions for improved maintainability
 - **Cleaner Module Builds**: Simplified build.gradle.kts files with less duplication
 
@@ -117,6 +118,18 @@ plugins {
 plugins {
     id("composetemplate.feature")
 }
+```
+
+### `composetemplate.static.analysis`
+**What it does:**
+- Applies Detekt with project-wide best practice rules
+- Applies Ktlint for standardized formatting
+- Enables `autoCorrect` to automatically fix formatting issues
+- Configures comprehensive HTML/XML/SARIF reports
+
+**Usage:**
+```kotlin
+// Automatically included in application and library plugins
 ```
 
 ## 💡 Practical Usage Examples

@@ -18,13 +18,12 @@ class AuthScreenProvider
         override fun provideScreen(
             route: INavigationItem,
             navigationManager: INavigationManager,
-        ): Boolean {
-            return when (route) {
+        ): Boolean =
+            when (route) {
                 is LoginRoute -> {
                     LoginScreen(navigationManager)
                     true
                 }
                 else -> false
             }
-        }
     }

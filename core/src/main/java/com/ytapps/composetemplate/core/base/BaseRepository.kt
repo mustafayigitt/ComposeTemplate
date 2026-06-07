@@ -5,8 +5,8 @@ import com.ytapps.composetemplate.core.util.Constants
 import retrofit2.Response
 
 abstract class BaseRepository {
-    protected suspend fun <T : Any> safeCall(call: suspend () -> Response<T>): Result<T> {
-        return try {
+    protected suspend fun <T : Any> safeCall(call: suspend () -> Response<T>): Result<T> =
+        try {
             val response = call.invoke()
             if (response.isSuccessful) {
                 val body = response.body()
@@ -20,11 +20,12 @@ abstract class BaseRepository {
                     message = response.errorBody()?.string() ?: Constants.DEFAULT_ERROR,
                 )
             }
-        } catch (e: Exception) {
+        } catch (
+            @Suppress("TooGenericExceptionCaught") e: Exception,
+        ) {
             Result.Error(
                 message = e.message ?: Constants.DEFAULT_ERROR,
                 throwable = e,
             )
         }
-    }
 }

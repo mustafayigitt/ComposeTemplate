@@ -18,13 +18,13 @@ class HomeScreenProvider
         override fun provideScreen(
             route: INavigationItem,
             navigationManager: INavigationManager,
-        ): Boolean {
-            return when (route) {
+        ): Boolean =
+            when (route) {
                 is HomeRoute -> {
                     HomeScreen(navigationManager)
                     true
                 }
+
                 else -> false
             }
-        }
     }

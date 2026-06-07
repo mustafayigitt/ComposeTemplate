@@ -21,11 +21,15 @@ internal class ListViewModel
                 _uiState.update { state ->
                     state.copy(
                         items =
-                            List(100) {
+                            List(ITEM_COUNT) {
                                 "Item $it"
                             },
                     )
                 }
             }
+        }
+
+        private companion object {
+            const val ITEM_COUNT = 100
         }
     }

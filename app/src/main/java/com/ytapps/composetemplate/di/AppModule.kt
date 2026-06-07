@@ -12,7 +12,5 @@ import javax.inject.Singleton
 object AppModule {
     @Provides
     @Singleton
-    fun provideBaseUrl(): String {
-        return BuildConfig.BASE_URL
-    }
+    fun provideBaseUrl(): String = BuildConfig.BASE_URL
 }

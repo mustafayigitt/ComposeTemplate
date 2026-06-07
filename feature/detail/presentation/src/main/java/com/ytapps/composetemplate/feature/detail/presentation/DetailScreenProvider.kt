@@ -18,13 +18,12 @@ class DetailScreenProvider
         override fun provideScreen(
             route: INavigationItem,
             navigationManager: INavigationManager,
-        ): Boolean {
-            return when (route) {
+        ): Boolean =
+            when (route) {
                 is DetailRoute -> {
                     DetailScreen(navigationManager, route.id)
                     true
                 }
                 else -> false
             }
-        }
     }

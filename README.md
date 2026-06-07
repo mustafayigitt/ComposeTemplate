@@ -23,19 +23,17 @@ ComposeTemplate is a Jetpack Compose template application that follows Clean Arc
 
 ## Built With
 
-* [Kotlin](https://github.com/JetBrains/kotlin) - Modern programming language for Android
-* [Modern Architecture](https://developer.android.com/topic/architecture) - UDF Architecture pattern
-* [Jetpack Compose](https://developer.android.com/jetpack/compose) - Modern UI toolkit
-* [Material 3](https://m3.material.io/) - Material Design 3 components
-* [Navigation3](https://developer.android.com/jetpack/androidx/releases/navigation) - Type-safe navigation library
-* [Retrofit](https://github.com/square/retrofit) - HTTP client for Android
-* [Gson](https://github.com/google/gson) - JSON serialization/deserialization
-* [Hilt](https://developer.android.com/training/dependency-injection/hilt-android) - Dependency injection framework
-* [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) - Asynchronous programming
-* [Kotlin Serialization](https://kotlinlang.org/docs/serialization.html) - Type-safe serialization
-* [jUnit](https://developer.android.com/training/testing/local-tests) - Unit testing framework
-* [MockK](https://github.com/mockk/mockk) - Mocking library for Kotlin
-* [Truth](https://github.com/google/truth) - Fluent assertions for Java and Android
+| [Kotlin](https://github.com/JetBrains/kotlin) | Modern programming language for Android |
+| [Modern Architecture](https://developer.android.com/topic/architecture) | UDF Architecture pattern (Clean Architecture) |
+| [Jetpack Compose](https://developer.android.com/jetpack/compose) | Modern UI toolkit |
+| [Material 3](https://m3.material.io/) | Material Design 3 components |
+| [Navigation3](https://developer.android.com/jetpack/androidx/releases/navigation) | Type-safe navigation library |
+| [Detekt](https://detekt.dev/) | Static code analysis for Kotlin |
+| [Ktlint](https://pinterest.github.io/ktlint/) | Kotlin linter with built-in formatter |
+| [Retrofit](https://github.com/square/retrofit) | HTTP client for Android |
+| [Hilt](https://developer.android.com/training/dependency-injection/hilt-android) | Dependency injection framework |
+| [MockK](https://github.com/mockk/mockk) | Mocking library for Kotlin |
+| [Truth](https://github.com/google/truth) | Fluent assertions for Java and Android |
 
 ## Project Structure
 
@@ -64,8 +62,8 @@ ComposeTemplate/
 │   │       ├── AndroidHiltConventionPlugin.kt
 │   │       ├── AndroidLibraryConventionPlugin.kt
 │   │       ├── FeatureConventionPlugin.kt
+│   │       ├── StaticAnalysisConventionPlugin.kt # Detekt & Ktlint config
 │   │       ├── TestConventionPlugin.kt
-│   │       ├── KotlinAndroid.kt
 │   │       └── ProjectExtensions.kt
 │   └── README.md                       # Build logic documentation
 └── gradle/
@@ -93,6 +91,7 @@ Located in `build-logic/convention/`, these plugins encapsulate common build con
 - **`composetemplate.android.library`**: Android library module configuration
 - **`composetemplate.test`**: Common testing dependencies (JUnit, Truth, MockK, Espresso)
 - **`composetemplate.feature`**: Base dependencies for feature modules (:core, :contract)
+- **`composetemplate.static.analysis`**: Centralized Detekt and Ktlint configuration for all modules
 
 Benefits:
 - ✅ Centralized build configuration
@@ -128,12 +127,18 @@ For detailed build configuration documentation, see [build-logic/README.md](buil
 
 ## Key Features
 
+### Static Analysis
+- **Detekt Integration**: Custom rule sets optimized for Android, Compose, and Hilt
+- **Ktlint Integration**: Automated Kotlin linting and formatting
+- **Centralized Rules**: Manage static analysis globally via convention plugins
+- **CI Enforcement**: Automatic checks on pull requests via GitHub Actions
+
 ### Navigation System
 - **Navigation3 Integration**: Uses the latest Navigation3 library with type-safe navigation
 - **Custom NavigationManager**: Flexible navigation management with back stack handling
 - **Bottom Navigation Bar**: Material 3 adaptive bottom navigation bar
 - **Route-based Navigation**: Serializable route objects for type-safe navigation
-- **Navigation Methods**: 
+- **Navigation Methods**:
   - `navigate()` - Navigate to a new screen
   - `navigateBack()` - Navigate back in the stack
   - `navigateOver()` - Navigate over a specific route
@@ -177,7 +182,7 @@ For detailed build configuration documentation, see [build-logic/README.md](buil
 - **Unit Tests**: Comprehensive test coverage with JUnit
 - **MockK**: Mocking framework for Kotlin
 - **Truth**: Fluent assertions library
-- **Test Examples**: 
+- **Test Examples**:
   - Repository tests
   - ViewModel tests
   - Mapper tests
@@ -293,21 +298,22 @@ The project uses build variants for different environments:
 
 - **minSdk**: 23 (Android 6.0)
 - **targetSdk**: 36
-- **compileSdk**: 36
+- **compileSdk**: 37
 - **Java Version**: 17
-- **Kotlin Version**: 2.2.10
+- **Kotlin Version**: 2.3.21
 
 #### Dependencies
 
 All dependencies are managed through `gradle/libs.versions.toml` using Version Catalogs. Key dependencies include:
 
-- Compose BOM: 2024.06.00
-- Hilt: 2.57.1
-- Retrofit: 2.11.0
-- Navigation3: 1.0.0
-- Kotlin: 2.2.10
-- Kotlin Serialization: 2.1.21
-- Kotlin Coroutines: 1.7.3
+- Compose BOM: 2026.05.01
+- Hilt: 2.59.2
+- Retrofit: 2.12.0
+- Navigation3: 1.1.2
+- Kotlin: 2.3.21
+- Kotlin Serialization: 2.3.21
+- Detekt: 1.23.8
+- Ktlint: 14.2.0
 
 ## Usage Examples
 
@@ -427,10 +433,10 @@ navigationManager.navigateToTop(Home)
 ) {
     // Save data
     prefs.saveString("key", "value")
-    
+
     // Get data
     val value = prefs.getString("key", "default")
-    
+
     // Save credentials (for auth)
     prefs.saveCredentials(authResponse)
 }

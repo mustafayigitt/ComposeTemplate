@@ -59,6 +59,8 @@ data object ListRoute : INavigationItem {
 }
 
 @Serializable
-data class DetailRoute(val id: String) : INavigationItem {
+data class DetailRoute(
+    val id: String,
+) : INavigationItem {
     override val route: String = "route_detail/$id"
 }

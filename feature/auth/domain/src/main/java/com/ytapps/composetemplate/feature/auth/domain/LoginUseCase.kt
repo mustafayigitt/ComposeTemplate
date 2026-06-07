@@ -12,7 +12,5 @@ class LoginUseCase
         suspend operator fun invoke(
             email: String,
             password: String,
-        ): Result<AuthModel> {
-            return authRepository.login(email, password)
-        }
+        ): Result<AuthModel> = authRepository.login(email, password)
     }

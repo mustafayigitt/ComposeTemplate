@@ -13,4 +13,6 @@ dependencies {
     implementation(project(":feature:auth:domain"))
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+
+    testImplementation(libs.okhttp)
 }

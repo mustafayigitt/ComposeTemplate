@@ -6,21 +6,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 
 @Composable
 fun ProfileScreen(navigationManager: INavigationManager) {
-    ProfileScreenInternal(
-        navigationManager = navigationManager,
-    )
+    ProfileScreenInternal(navigationManager = navigationManager)
 }
 
 @Composable
-internal fun ProfileScreenInternal(
-    navigationManager: INavigationManager,
-    viewModel: ProfileViewModel = hiltViewModel(),
-) {
+internal fun ProfileScreenInternal(navigationManager: INavigationManager) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,

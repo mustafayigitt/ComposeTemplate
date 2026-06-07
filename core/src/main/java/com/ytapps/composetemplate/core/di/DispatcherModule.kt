@@ -20,7 +20,5 @@ internal object DispatcherModule {
     @IoDispatcher
     @Provides
     @Singleton
-    fun provideIoDispatcherScope(): CoroutineScope {
-        return CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    }
+    fun provideIoDispatcherScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 }

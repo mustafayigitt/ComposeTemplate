@@ -59,9 +59,14 @@ internal class LoginViewModelTest {
         viewModel.login("email", "password")
 
         // Then
-        Truth.assertThat(viewModel.uiState.value.error)
+        Truth
+            .assertThat(viewModel.uiState.value.error)
             .isEqualTo((response as Result.Error).message)
-        Truth.assertThat(viewModel.uiState.value.isLoading).isFalse()
-        Truth.assertThat(viewModel.uiState.value.shouldNavigateToSplash).isFalse()
+        Truth
+            .assertThat(viewModel.uiState.value.isLoading)
+            .isFalse()
+        Truth
+            .assertThat(viewModel.uiState.value.shouldNavigateToSplash)
+            .isFalse()
     }
 }

@@ -6,21 +6,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 
 @Composable
 fun SearchScreen(navigationManager: INavigationManager) {
-    SearchScreenInternal(
-        navigationManager = navigationManager,
-    )
+    SearchScreenInternal(navigationManager = navigationManager)
 }
 
 @Composable
-internal fun SearchScreenInternal(
-    navigationManager: INavigationManager,
-    viewModel: SearchViewModel = hiltViewModel(),
-) {
+internal fun SearchScreenInternal(navigationManager: INavigationManager) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,

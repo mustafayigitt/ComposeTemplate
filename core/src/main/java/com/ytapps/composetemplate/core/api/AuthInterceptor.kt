@@ -26,7 +26,8 @@ internal class AuthInterceptor
             }
 
             val authenticatedRequest =
-                originalRequest.newBuilder()
+                originalRequest
+                    .newBuilder()
                     .header(HEADER_AUTHORIZATION, "$tokenType $accessToken")
                     .build()
 

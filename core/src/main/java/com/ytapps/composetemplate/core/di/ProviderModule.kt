@@ -20,11 +20,11 @@ import javax.inject.Singleton
 internal object ProviderModule {
     @Provides
     @Singleton
-    fun provideLoggingInterceptor(): HttpLoggingInterceptor {
-        return HttpLoggingInterceptor().apply {
-            setLevel(HttpLoggingInterceptor.Level.BODY)
-        }
-    }
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor()
+            .apply {
+                setLevel(HttpLoggingInterceptor.Level.BODY)
+            }
 
     @Provides
     @Singleton
@@ -32,28 +32,25 @@ internal object ProviderModule {
         loggingInterceptor: HttpLoggingInterceptor,
         authInterceptor: AuthInterceptor,
         tokenAuthenticator: TokenAuthenticator,
-    ): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor(authInterceptor) // Adds auth headers
-            .addInterceptor(loggingInterceptor) // Logs requests/responses
-            .authenticator(tokenAuthenticator) // Handles 401 and refreshes token
+    ): OkHttpClient =
+        OkHttpClient
+            .Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptor)
+            .authenticator(tokenAuthenticator)
             .build()
-    }
 
     @Provides
     @Singleton
-    fun provideGson(): Gson {
-        return GsonBuilder()
+    fun provideGson(): Gson =
+        GsonBuilder()
             .setPrettyPrinting()
             .setDateFormat(Constants.DATE_PATTERN)
             .create()
-    }
 
     @Provides
     @Singleton
-    fun provideGsonConverterFactory(gson: Gson): GsonConverterFactory {
-        return GsonConverterFactory.create(gson)
-    }
+    fun provideGsonConverterFactory(gson: Gson): GsonConverterFactory = GsonConverterFactory.create(gson)
 
     @Provides
     @Singleton
@@ -61,11 +58,11 @@ internal object ProviderModule {
         baseUrl: String,
         okHttpClient: OkHttpClient,
         gsonConverterFactory: GsonConverterFactory,
-    ): Retrofit {
-        return Retrofit.Builder()
+    ): Retrofit =
+        Retrofit
+            .Builder()
             .baseUrl(baseUrl)
             .addConverterFactory(gsonConverterFactory)
             .client(okHttpClient)
             .build()
-    }
 }
