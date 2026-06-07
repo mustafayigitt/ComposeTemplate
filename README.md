@@ -165,7 +165,7 @@ KEY_ALIAS="your_key_alias"
 KEY_PASSWORD="your_key_password"
 STORE_PASSWORD="your_store_password"
 XOR_MASK="your_custom_mask"
-EXPECTED_SIGNATURE_HASH="your_release_sha256_hex"
+EXPECTED_SIGNATURE_HASH="your_release_sha256_hex_without_colons"
 ```
 
 3. **Run the Initializer Plugin**

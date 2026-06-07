@@ -26,6 +26,9 @@ target_compile_definitions(native-lib PRIVATE
         XOR_MASK="${XOR_MASK_STR}"
         EXPECTED_SIGNATURE_HASH="${EXPECTED_SIGNATURE_HASH_STR}")
 
+# 16KB Page Support
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384")
+
 find_library(
         log-lib
         log)

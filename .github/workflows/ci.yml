@@ -37,7 +37,7 @@ jobs:
           echo "KEY_PASSWORD=\"android\"" >> secrets.properties
           echo "STORE_PASSWORD=\"android\"" >> secrets.properties
           echo "XOR_MASK=\"mask\"" >> secrets.properties
-          echo "EXPECTED_SIGNATURE_HASH=\"hash\"" >> secrets.properties
+          echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
 
       - name: Run ktlint
         run: ./gradlew ktlintCheck
@@ -71,7 +71,7 @@ jobs:
           echo "KEY_PASSWORD=\"android\"" >> secrets.properties
           echo "STORE_PASSWORD=\"android\"" >> secrets.properties
           echo "XOR_MASK=\"mask\"" >> secrets.properties
-          echo "EXPECTED_SIGNATURE_HASH=\"hash\"" >> secrets.properties
+          echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
 
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest
@@ -102,7 +102,7 @@ jobs:
           echo "KEY_PASSWORD=\"android\"" >> secrets.properties
           echo "STORE_PASSWORD=\"android\"" >> secrets.properties
           echo "XOR_MASK=\"mask\"" >> secrets.properties
-          echo "EXPECTED_SIGNATURE_HASH=\"hash\"" >> secrets.properties
+          echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
 
       - name: Assemble debug
         run: ./gradlew assembleDebug

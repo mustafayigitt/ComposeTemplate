@@ -16,8 +16,9 @@ This module uses Android NDK to securely store and retrieve sensitive informatio
    BASE_URL_DEBUG="https://api-debug.test.com"
    BASE_URL_RELEASE="https://api.test.com"
    XOR_MASK="your_mask"
-   EXPECTED_SIGNATURE_HASH="SHA256_HASH"
+   EXPECTED_SIGNATURE_HASH="SHA256_HASH_WITHOUT_COLONS"
    ```
+   *Note: To get your SHA-256 hash, run `./gradlew signingReport` and copy the SHA-256 value **without colons** (e.g., `5301...` instead of `53:01...`).*
 
 ### Initialization
 

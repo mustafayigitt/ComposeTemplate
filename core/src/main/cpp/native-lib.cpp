@@ -2,6 +2,11 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <android/log.h>
+
+#define LOG_TAG "SecretManager-Native"
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 /**
  * Converts a hex string back to a regular string.
@@ -77,7 +82,17 @@ bool isSignatureValid(JNIEnv* env, jobject context) {
     }
     env->ReleaseByteArrayElements(hashBytes, buffer, JNI_ABORT);
 
-    return (std::string(hex) == hexToString(EXPECTED_SIGNATURE_HASH));
+    std::string actualHash(hex);
+    std::string expectedHash = hexToString(EXPECTED_SIGNATURE_HASH);
+
+    if (actualHash != expectedHash) {
+        LOGE("Signature validation failed!");
+        LOGE("Expected: %s", expectedHash.c_str());
+        LOGE("Actual  : %s", actualHash.c_str());
+        return false;
+    }
+
+    return true;
 }
 
 extern "C" JNIEXPORT jstring JNICALL
