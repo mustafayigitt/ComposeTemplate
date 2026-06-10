@@ -1,15 +1,13 @@
 package com.ytapps.composetemplate.feature.splash.presentation
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.ytapps.composetemplate.core.ui.BaseViewModel
 import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
 import com.ytapps.composetemplate.feature.home.navigation.HomeRoute
 import com.ytapps.composetemplate.feature.splash.domain.GetStartDestinationUseCase
 import com.ytapps.composetemplate.feature.splash.domain.SplashDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,15 +16,13 @@ internal class SplashViewModel
     @Inject
     constructor(
         private val getStartDestinationUseCase: GetStartDestinationUseCase,
-    ) : ViewModel() {
-        private val _uiState = MutableStateFlow(SplashUiState())
-        val uiState = _uiState.asStateFlow()
+    ) : BaseViewModel<SplashUiState, Unit>(SplashUiState()) {
 
         init {
             viewModelScope.launch {
                 val destination = getStartDestinationUseCase()
                 delay(SPLASH_DELAY)
-                _uiState.value =
+                updateState {
                     SplashUiState(
                         destinationRoute =
                             when (destination) {
@@ -35,6 +31,7 @@ internal class SplashViewModel
                             },
                         isLoading = false,
                     )
+                }
             }
         }
 

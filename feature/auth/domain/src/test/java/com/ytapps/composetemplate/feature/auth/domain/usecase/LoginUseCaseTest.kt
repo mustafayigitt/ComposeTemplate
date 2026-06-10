@@ -7,47 +7,41 @@ import com.ytapps.composetemplate.feature.auth.domain.LoginUseCase
 import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 
 internal class LoginUseCaseTest {
-    private lateinit var autRepository: IAuthRepository
+    private lateinit var authRepository: IAuthRepository
     private lateinit var loginUseCase: LoginUseCase
 
     @Before
     fun setUp() {
-        autRepository = mockk()
-        loginUseCase = LoginUseCase(autRepository)
+        authRepository = mockk()
+        loginUseCase = LoginUseCase(authRepository)
     }
 
     @Test
-    fun `given Result-Success AuthRequestModel when LoginUseCase() return Result-Success`() {
-        // Given
+    fun `given Result-Success AuthRequestModel when LoginUseCase() return Result-Success`() = runTest {
         val email = "email"
         val password = "password"
         val response = Result.Success(mockk<AuthModel>())
 
-        coEvery { autRepository.login(email, password) } returns response
+        coEvery { authRepository.login(email, password) } returns response
 
-        // When
-        val result = runBlocking { loginUseCase(email, password) }
+        val result = loginUseCase(email, password)
 
-        // Then
         Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
     }
 
     @Test
-    fun `given Result-Error AuthRequestModel when LoginUseCase() return Result-Error`() {
-        // Given
+    fun `given Result-Error AuthRequestModel when LoginUseCase() return Result-Error`() = runTest {
         val response: Result<AuthModel> = Result.Error("Login Failed")
 
-        coEvery { autRepository.login(any(), any()) } returns response
+        coEvery { authRepository.login(any(), any()) } returns response
 
-        // When
-        val result = runBlocking { loginUseCase("email", "password") }
+        val result = loginUseCase("email", "password")
 
-        // Then
         Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
     }
 }

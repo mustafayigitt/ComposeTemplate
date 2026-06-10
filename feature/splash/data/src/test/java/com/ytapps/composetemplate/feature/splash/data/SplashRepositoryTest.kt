@@ -4,7 +4,7 @@ import com.google.common.truth.Truth
 import com.ytapps.composetemplate.core.data.IPreferencesManager
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 
@@ -19,19 +19,19 @@ internal class SplashRepositoryTest {
     }
 
     @Test
-    fun `given signed user when hasUser then return true`() {
+    fun `given signed user when hasUser then return true`() = runTest {
         every { preferencesManager.hasUser() } returns true
 
-        val result = runBlocking { splashRepository.hasUser() }
+        val result = splashRepository.hasUser()
 
         Truth.assertThat(result).isTrue()
     }
 
     @Test
-    fun `given unsigned user when hasUser then return false`() {
+    fun `given unsigned user when hasUser then return false`() = runTest {
         every { preferencesManager.hasUser() } returns false
 
-        val result = runBlocking { splashRepository.hasUser() }
+        val result = splashRepository.hasUser()
 
         Truth.assertThat(result).isFalse()
     }

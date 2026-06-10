@@ -1,6 +1,6 @@
 package com.ytapps.composetemplate.core.data
 
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Interface for managing user preferences with DataStore.
@@ -30,8 +30,8 @@ interface IPreferencesManager {
     suspend fun clear()
 
     // Flow-based reactive access
-    val accessTokenFlow: Flow<String?>
-    val refreshTokenFlow: Flow<String?>
-    val tokenTypeFlow: Flow<String?>
-    val uuidFlow: Flow<String?>
+    val accessTokenFlow: StateFlow<String?>
+    val refreshTokenFlow: StateFlow<String?>
+    val tokenTypeFlow: StateFlow<String?>
+    val uuidFlow: StateFlow<String?>
 }

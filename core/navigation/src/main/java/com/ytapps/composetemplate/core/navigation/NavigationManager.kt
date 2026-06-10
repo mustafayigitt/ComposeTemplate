@@ -38,7 +38,7 @@ internal class NavigationManager
                 if (currentStack.size > 1) {
                     currentStack.dropLast(1)
                 } else {
-                    emptyList()
+                    currentStack
                 }
             }
         }
@@ -56,7 +56,7 @@ internal class NavigationManager
             _backStack.update { stack ->
                 val existingIndex = stack.indexOfFirst { it.route == over.route }
                 if (existingIndex != -1) {
-                    stack.dropLast(stack.size - existingIndex) + route
+                    stack.take(existingIndex) + route
                 } else {
                     stack + route
                 }
@@ -64,6 +64,9 @@ internal class NavigationManager
         }
 
         override fun navigateToTop(route: INavigationItem) {
-            navigateOver(route = route, over = startDestination)
+            _backStack.update { stack ->
+                val startIndex = stack.indexOfFirst { it.route == startDestination.route }
+                stack.take(startIndex + 1) + route
+            }
         }
     }

@@ -25,13 +25,13 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
 
-    val localProperties = Properties().apply {
-        load(projectDir.resolve("../local.properties").inputStream())
+    val localProperties = rootProject.file("local.properties").inputStream().use { stream ->
+        Properties().apply { load(stream) }
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file(localProperties.getProperty("STORE_FILE"))
+            storeFile = file(localProperties.getProperty("STORE_FILE") ?: error("STORE_FILE not found in local.properties"))
             keyAlias = secrets.getProperty("KEY_ALIAS")?.replace("\"", "")
             keyPassword = secrets.getProperty("KEY_PASSWORD")?.replace("\"", "")
             storePassword = secrets.getProperty("STORE_PASSWORD")?.replace("\"", "")
@@ -75,8 +75,8 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
-    implementation(project(":contract"))
     implementation(project(":feature:auth:data"))
+    implementation(project(":feature:auth:domain"))
     implementation(project(":feature:auth:navigation"))
     implementation(project(":feature:auth:presentation"))
     implementation(project(":feature:detail:data"))
@@ -106,6 +106,7 @@ dependencies {
 
     implementation(libs.androidx.core)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(libs.timber)
 

@@ -2,11 +2,13 @@ package com.ytapps.composetemplate.core.network
 
 import com.ytapps.composetemplate.core.common.Result
 import com.ytapps.composetemplate.core.common.Constants
+import retrofit2.HttpException
 import retrofit2.Response
 import timber.log.Timber
+import java.io.IOException
 
 abstract class BaseRepository {
-    protected suspend fun <T : Any> safeCall(call: suspend () -> Response<T>): Result<T> =
+    suspend fun <T> safeCall(call: suspend () -> Response<T>): Result<T> =
         try {
             val response = call.invoke()
             if (response.isSuccessful) {
@@ -19,14 +21,20 @@ abstract class BaseRepository {
             } else {
                 val errorMsg = response.errorBody()?.string() ?: Constants.DEFAULT_ERROR
                 when (response.code()) {
-                    401 -> Result.Error("Unauthorized access", null)
-                    403 -> Result.Error("Forbidden access", null)
-                    404 -> Result.Error("Resource not found", null)
-                    in 500..599 -> Result.Error("Server error occurred", null)
+                    401 -> Result.Error("Unauthorized access")
+                    403 -> Result.Error("Forbidden access")
+                    404 -> Result.Error("Resource not found")
+                    in 500..599 -> Result.Error("Server error occurred")
                     else -> Result.Error(errorMsg)
                 }
             }
-        } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+        } catch (e: HttpException) {
+            Timber.e(e, "SafeCall failed")
+            Result.Error(
+                message = e.message ?: Constants.DEFAULT_ERROR,
+                throwable = e,
+            )
+        } catch (e: IOException) {
             Timber.e(e, "SafeCall failed")
             Result.Error(
                 message = e.message ?: Constants.DEFAULT_ERROR,

@@ -1,7 +1,8 @@
 package com.ytapps.composetemplate.core.network.di
 
-import com.ytapps.composetemplate.core.secrets.SecretManager
 import com.ytapps.composetemplate.core.network.AuthInterceptor
+import com.ytapps.composetemplate.core.network.BuildConfig
+import com.ytapps.composetemplate.core.secrets.SecretManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,7 +22,11 @@ internal object NetworkModule {
         return OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
             .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
+                level = if (BuildConfig.DEBUG) {
+                    HttpLoggingInterceptor.Level.BODY
+                } else {
+                    HttpLoggingInterceptor.Level.NONE
+                }
             })
             .build()
     }

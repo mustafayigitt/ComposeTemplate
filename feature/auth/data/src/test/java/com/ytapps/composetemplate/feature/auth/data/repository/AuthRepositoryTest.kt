@@ -12,7 +12,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Before
 import org.junit.Test
@@ -55,8 +55,7 @@ internal class AuthRepositoryTest {
     }
 
     @Test
-    fun `given valid authRequestModel when login() then verify setAccessToken called`() {
-        // Given
+    fun `given valid authRequestModel when login() then verify setAccessToken called`() = runTest {
         val authRequestModel =
             AuthRequestModel(
                 email = "email",
@@ -70,11 +69,9 @@ internal class AuthRepositoryTest {
                 expiresIn = "3600",
             )
 
-        // When
         coEvery { authService.login(authRequestModel) } returns Response.success(authResponseModel)
-        val result = runBlocking { authRepository.login("email", "password") }
+        val result = authRepository.login("email", "password")
 
-        // Then
         Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
         coVerify { preferencesManager.setAccessToken("token") }
         coVerify { preferencesManager.setRefreshToken("refresh") }
@@ -82,23 +79,20 @@ internal class AuthRepositoryTest {
     }
 
     @Test
-    fun `given invalid authRequestModel when login() then verify setAccessToken not called`() {
-        // Given
+    fun `given invalid authRequestModel when login() then verify setAccessToken not called`() = runTest {
         val authRequestModel =
             AuthRequestModel(
                 email = "email",
                 password = "password",
             )
 
-        // When
         coEvery { authService.login(authRequestModel) } returns
             Response.error(
                 400,
                 "Bad Request".toResponseBody(),
             )
-        val result = runBlocking { authRepository.login("email", "password") }
+        val result = authRepository.login("email", "password")
 
-        // Then
         Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
         coVerify(exactly = 0) { preferencesManager.setAccessToken(any()) }
     }

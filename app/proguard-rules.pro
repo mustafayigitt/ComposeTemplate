@@ -1,21 +1,35 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ============================================================
+# ComposeTemplate ProGuard / R8 Rules
+# ============================================================
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# -----------------------------------------------------------
+# Debuggability: Keep line numbers for readable crash traces
+# -----------------------------------------------------------
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# -----------------------------------------------------------
+# Gson: Keep all network model / DTO classes
+# R8 full-mode with proguard-android-optimize.txt can strip
+# synthetic constructors that Gson relies on via Unsafe
+# -----------------------------------------------------------
+-keep class com.ytapps.composetemplate.feature.auth.data.model.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# -----------------------------------------------------------
+# Kotlinx Serialization: Keep generated serializer classes
+# Navigation3 deserializes routes at runtime across module
+# boundaries. The compiler plugin adds @Keep to serializers
+# but multi-module builds need explicit rules as a safety net.
+# -----------------------------------------------------------
+-keep,includedescriptorclasses class com.ytapps.composetemplate.**$$serializer { *; }
+-keepclassmembers class com.ytapps.composetemplate.** {
+    *** Companion;
+}
+-keep,includedescriptorclasses class * extends kotlinx.serialization.KSerializer { *; }
+
+# -----------------------------------------------------------
+# Retrofit: Keep service interface method signatures
+# Consumer rules already cover @retrofit2.http.* annotations;
+# explicit rule prevents shrinking when interfaces are internal
+# -----------------------------------------------------------
+-keep,allowobfuscation,allowshrinking interface com.ytapps.composetemplate.feature.auth.data.remote.AuthService { *; }

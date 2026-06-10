@@ -1,8 +1,5 @@
 plugins {
-    id("composetemplate.android.library")
-    id("composetemplate.android.library.compose")
-    id("composetemplate.android.hilt")
-    id("composetemplate.feature")
+    id("composetemplate.feature.presentation")
 }
 
 android {

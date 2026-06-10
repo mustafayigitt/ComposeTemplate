@@ -1,31 +1,22 @@
 package com.ytapps.composetemplate.feature.list.presentation
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.ytapps.composetemplate.core.ui.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 internal class ListViewModel
     @Inject
-    constructor() : ViewModel() {
-        private val _uiState = MutableStateFlow(ListUiState())
-        val uiState = _uiState.asStateFlow()
+    constructor() : BaseViewModel<ListUiState, Unit>(ListUiState()) {
 
         fun getItems() {
-            viewModelScope.launch {
-                _uiState.update { state ->
-                    state.copy(
-                        items =
-                            List(ITEM_COUNT) {
-                                "Item $it"
-                            },
-                    )
-                }
+            updateState { state ->
+                state.copy(
+                    items =
+                        List(ITEM_COUNT) {
+                            "Item $it"
+                        },
+                )
             }
         }
 

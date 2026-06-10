@@ -8,8 +8,9 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.ytapps.composetemplate.core.common.IoDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -27,8 +28,9 @@ class PreferencesManager
     @Inject
     constructor(
         @ApplicationContext private val appContext: Context,
-        @IoDispatcher private val scope: CoroutineScope,
+        @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : IPreferencesManager {
+        private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
         private val dataStore = appContext.dataStore
 
         // Cached StateFlows for synchronous access
@@ -94,18 +96,14 @@ class PreferencesManager
             }
         }
 
-        // Flow-based reactive access
-        override val accessTokenFlow: Flow<String?>
-            get() = dataStore.data.map { it[Keys.ACCESS_TOKEN] }
+        // Flow-based reactive access (delegates to cached StateFlows)
+        override val accessTokenFlow: StateFlow<String?> get() = cachedAccessToken
 
-        override val refreshTokenFlow: Flow<String?>
-            get() = dataStore.data.map { it[Keys.REFRESH_TOKEN] }
+        override val refreshTokenFlow: StateFlow<String?> get() = cachedRefreshToken
 
-        override val tokenTypeFlow: Flow<String?>
-            get() = dataStore.data.map { it[Keys.TOKEN_TYPE] }
+        override val tokenTypeFlow: StateFlow<String?> get() = cachedTokenType
 
-        override val uuidFlow: Flow<String?>
-            get() = dataStore.data.map { it[Keys.UUID] }
+        override val uuidFlow: StateFlow<String?> get() = cachedUUID
 
         private object Keys {
             val ACCESS_TOKEN = stringPreferencesKey("key_access_token")

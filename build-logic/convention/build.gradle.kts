@@ -43,9 +43,21 @@ gradlePlugin {
             id = "composetemplate.test"
             implementationClass = "com.ytapps.composetemplate.convention.TestConventionPlugin"
         }
-        register("feature") {
-            id = "composetemplate.feature"
-            implementationClass = "com.ytapps.composetemplate.convention.FeatureConventionPlugin"
+        register("featureDomain") {
+            id = "composetemplate.feature.domain"
+            implementationClass = "com.ytapps.composetemplate.convention.FeatureDomainConventionPlugin"
+        }
+        register("featureData") {
+            id = "composetemplate.feature.data"
+            implementationClass = "com.ytapps.composetemplate.convention.FeatureDataConventionPlugin"
+        }
+        register("featureNavigation") {
+            id = "composetemplate.feature.navigation"
+            implementationClass = "com.ytapps.composetemplate.convention.FeatureNavigationConventionPlugin"
+        }
+        register("featurePresentation") {
+            id = "composetemplate.feature.presentation"
+            implementationClass = "com.ytapps.composetemplate.convention.FeaturePresentationConventionPlugin"
         }
         register("staticAnalysis") {
             id = "composetemplate.static.analysis"
@@ -54,6 +66,14 @@ gradlePlugin {
         register("androidLibraryNative") {
             id = "composetemplate.android.library.native"
             implementationClass = "com.ytapps.composetemplate.convention.AndroidLibraryNativeConventionPlugin"
+        }
+        register("validateSecrets") {
+            id = "composetemplate.validate.secrets"
+            implementationClass = "com.ytapps.composetemplate.convention.ValidateSecretsPlugin"
+        }
+        register("scaffoldFeature") {
+            id = "composetemplate.scaffold.feature"
+            implementationClass = "com.ytapps.composetemplate.convention.ScaffoldFeaturePlugin"
         }
     }
 }

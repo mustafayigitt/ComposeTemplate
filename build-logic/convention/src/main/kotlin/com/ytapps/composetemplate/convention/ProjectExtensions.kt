@@ -14,7 +14,7 @@ val Project.secrets: Properties
         val properties = Properties()
         val secretsFile = rootProject.file("secrets.properties")
         if (secretsFile.exists()) {
-            properties.load(secretsFile.inputStream())
+            secretsFile.inputStream().use { properties.load(it) }
         }
         return properties
     }
