@@ -51,7 +51,8 @@ ksp = "2.3.9"
 android-gradle-plugin = "9.2.1"
 
 # Benchmarking
-androidx-benchmark-macro-junit4 = "1.4.1"
+androidx-benchmark-macro-junit4 = "1.5.0-alpha06"
+androidx-benchmark-baseline-profile-gradle-plugin = "1.5.0-alpha06"
 androidx-material3-adaptive = "1.3.0-beta02"
 androidx-uiautomator = "2.3.0"
 androidx-profileinstaller = "1.4.1"
@@ -112,6 +113,7 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 # Benchmarking
 androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "androidx-benchmark-macro-junit4" }
+androidx-benchmark-baseline-profile-gradle-plugin = { group = "androidx.benchmark", name = "benchmark-baseline-profile-gradle-plugin", version.ref = "androidx-benchmark-baseline-profile-gradle-plugin" }
 androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "androidx-uiautomator" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "androidx-profileinstaller" }
 
@@ -145,3 +147,6 @@ ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 
 # Build Logic
 kotlin-dsl = { id = "org.gradle.kotlin.kotlin-dsl", version.ref = "kotlin" }
+
+# Baseline Profile
+baselineprofile = { id = "androidx.baselineprofile", version.ref = "androidx-benchmark-baseline-profile-gradle-plugin" }

@@ -75,5 +75,9 @@ gradlePlugin {
             id = "composetemplate.scaffold.feature"
             implementationClass = "com.ytapps.composetemplate.convention.ScaffoldFeaturePlugin"
         }
+        register("baselineProfileGenerator") {
+            id = "composetemplate.baseline.profile.generator"
+            implementationClass = "com.ytapps.composetemplate.convention.BaselineProfileGeneratorConventionPlugin"
+        }
     }
 }

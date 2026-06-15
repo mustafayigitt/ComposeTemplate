@@ -4,6 +4,7 @@ import com.ytapps.composetemplate.convention.secrets
 plugins {
     id("composetemplate.create.new.app")
     id("composetemplate.android.application")
+    alias(libs.plugins.baselineprofile)
     id("composetemplate.android.application.compose")
     id("composetemplate.android.hilt")
     id("composetemplate.test")
@@ -117,4 +118,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
 
     implementation(libs.androidx.profileinstaller)
+
+    baselineProfile(project(":baselineprofile"))
 }

@@ -31,6 +31,7 @@ ComposeTemplate is a Jetpack Compose template application that follows Clean Arc
 | [Detekt](https://detekt.dev/) | Static code analysis for Kotlin |
 | [Ktlint](https://pinterest.github.io/ktlint/) | Kotlin linter with built-in formatter |
 | [Macrobenchmark](https://developer.android.com/topic/performance/benchmarking/macrobenchmark-overview) | Performance measurement library |
+| [Baseline Profiles](https://developer.android.com/topic/performance/baselineprofiles/overview) | App startup and runtime performance optimization |
 | [Retrofit](https://github.com/square/retrofit) | HTTP client for Android |
 | [Hilt](https://developer.android.com/training/dependency-injection/hilt-android) | Dependency injection framework |
 | [MockK](https://github.com/mockk/mockk) | Mocking library for Kotlin |
@@ -43,11 +44,13 @@ The project follows Clean Architecture principles with clear separation of conce
 ```
 ComposeTemplate/
 ├── app/                    # Main application module
+├── baselineprofile/        # Baseline Profile generator module
 ├── benchmark/              # Macrobenchmark module
 ├── build-logic/            # Convention plugins
 │   └── convention/
 │       └── src/main/kotlin/.../convention/
 │           ├── AndroidApplicationConventionPlugin.kt
+│           ├── BaselineProfileGeneratorConventionPlugin.kt
 │           ├── AndroidComposeConventionPlugin.kt
 │           ├── AndroidHiltConventionPlugin.kt
 │           ├── AndroidLibraryConventionPlugin.kt
@@ -133,8 +136,15 @@ For detailed build configuration documentation, see [build-logic/README.md](buil
 
 ### Benchmarking
 - Dedicated `:benchmark` module using Jetpack Macrobenchmark.
-- Includes `StartupBenchmark` to measure app launch performance.
-- Run benchmarks: `./gradlew :benchmark:connectedBenchmarkAndroidTest`.
+- Includes `StartupBenchmark` to measure app launch performance with baseline profiles applied.
+- Run benchmarks after generating profiles: `./gradlew :benchmark:connectedBenchmarkAndroidTest`.
+- ⚠ Baseline profiles must be generated before running benchmarks (`BaselineProfileMode.Require`).
+
+### Baseline Profiles
+- Dedicated `:baselineprofile` module using `BaselineProfileRule`.
+- Generates startup and critical user journey profiles for AOT compilation.
+- Profiles are automatically packaged into release builds via the `androidx.baselineprofile` Gradle plugin.
+- Run profile generation: `./gradlew :baselineprofile:connectedBenchmarkAndroidTest`.
 
 ### Secure Secret Management
 - **NDK-based Protection**: API keys and Base URLs are stored encrypted and retrieved via JNI.
@@ -206,7 +216,14 @@ This project follows **Clean Architecture** principles:
 ## Testing
 
 ```sh
+# Unit tests
 ./gradlew test
+
+# Macrobenchmark
+./gradlew :benchmark:connectedBenchmarkAndroidTest
+
+# Baseline Profile generation
+./gradlew :baselineprofile:connectedCheck
 ```
 
 ## License

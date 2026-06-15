@@ -1,5 +1,6 @@
 package com.ytapps.composetemplate.benchmark
 
+import androidx.benchmark.macro.BaselineProfileMode
 import androidx.benchmark.macro.CompilationMode
 import androidx.benchmark.macro.StartupMode
 import androidx.benchmark.macro.StartupTimingMetric
@@ -18,7 +19,9 @@ class StartupBenchmark {
     fun startup() = benchmarkRule.measureRepeated(
         packageName = "com.ytapps.composetemplate",
         metrics = listOf(StartupTimingMetric()),
-        compilationMode = CompilationMode.None(),
+        compilationMode = CompilationMode.Partial(
+            baselineProfileMode = BaselineProfileMode.Require,
+        ),
         iterations = 5,
         startupMode = StartupMode.COLD
     ) {
