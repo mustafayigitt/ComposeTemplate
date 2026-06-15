@@ -42,35 +42,48 @@ The project follows Clean Architecture principles with clear separation of conce
 
 ```
 ComposeTemplate/
-├── app/                # Main application module
-├── core/               # Core module with shared utilities
-│   ├── data/           # Data storage implementations
-│   ├── network/        # Network layer utilities
-│   ├── preferences/    # Shared preferences utilities
-│   └── src/main/cpp/   # Native (C++) layer for secure secrets
-├── contract/           # Shared navigation routes and contracts
+├── app/                    # Main application module
+├── benchmark/              # Macrobenchmark module
+├── build-logic/            # Convention plugins
+│   └── convention/
+│       └── src/main/kotlin/.../convention/
+│           ├── AndroidApplicationConventionPlugin.kt
+│           ├── AndroidComposeConventionPlugin.kt
+│           ├── AndroidHiltConventionPlugin.kt
+│           ├── AndroidLibraryConventionPlugin.kt
+│           ├── AndroidLibraryNativeConventionPlugin.kt
+│           ├── FeatureDataConventionPlugin.kt
+│           ├── FeatureDomainConventionPlugin.kt
+│           ├── FeatureNavigationConventionPlugin.kt
+│           ├── FeaturePresentationConventionPlugin.kt
+│           ├── StaticAnalysisConventionPlugin.kt
+│           ├── TestConventionPlugin.kt
+│           ├── ValidateSecretsPlugin.kt
+│           ├── ScaffoldFeaturePlugin.kt
+│           ├── CreateNewAppPlugin.kt
+│           └── ProjectExtensions.kt
+├── core/
+│   ├── common/             # Shared utilities (Result, Dispatchers)
+│   ├── data/               # DataStore-based PreferencesManager
+│   ├── navigation/         # NavigationManager, ScreenRegistry
+│   ├── network/            # Retrofit, OkHttp, BaseRepository
+│   ├── secrets/            # NDK-based secret management
+│   └── ui/                 # Theme, BaseViewModel, shared components
 ├── feature/
-│   ├── example/           # Example feature module
-│   │   ├── data/       # Data layer (repositories, API services)
-│   │   ├── domain/     # Domain layer (use cases, business logic)
-│   │   ├── navigation/ # Navigation layer (routes, navigation logic)
-│   │   └── presentation/ # Presentation layer (UI, ViewModels)
-│   ├──...
-├── benchmark/          # Macrobenchmark module for performance testing
-├── build-logic/                        # Build configuration
-│   ├── convention/                     # Convention plugins
-│   │   └── src/main/kotlin/com/ytapps/composetemplate/convention/
-│   │       ├── AndroidApplicationConventionPlugin.kt
-│   │       ├── AndroidComposeConventionPlugin.kt
-│   │       ├── AndroidHiltConventionPlugin.kt
-│   │       ├── AndroidLibraryConventionPlugin.kt
-│   │       ├── FeatureConventionPlugin.kt
-│   │       ├── StaticAnalysisConventionPlugin.kt # Detekt & Ktlint config
-│   │       ├── TestConventionPlugin.kt
-│   │       └── ProjectExtensions.kt
-│   └── README.md                       # Build logic documentation
+│   ├── auth/               # Login flow (fully implemented)
+│   ├── detail/             # Detail screen (placeholder)
+│   ├── home/               # Home tab (bottom bar)
+│   ├── list/               # List tab (bottom bar)
+│   ├── profile/            # Profile tab (bottom bar)
+│   ├── search/             # Search tab (bottom bar)
+│   └── splash/             # Splash + start destination
+│   └── {feature}/
+│       ├── data/           # Repository, DTOs, API services
+│       ├── domain/         # Use cases, domain models
+│       ├── navigation/     # Routes, DI modules
+│       └── presentation/   # ViewModels, Composables
 └── gradle/
-    └── libs.versions.toml # Version catalog
+    └── libs.versions.toml  # Version catalog
 ```
 
 ## Configuration Files
@@ -92,7 +105,14 @@ Located in `build-logic/convention/`, these plugins encapsulate common build con
 - **`composetemplate.android.hilt`**: Hilt dependency injection configuration
 - **`composetemplate.android.library`**: Android library module configuration
 - **`composetemplate.test`**: Common testing dependencies (JUnit, Truth, MockK, Espresso)
-- **`composetemplate.feature`**: Base dependencies for feature modules (:core, :contract)
+- **`composetemplate.feature.domain`**: Domain module dependencies (`:core:common`, `:core:network`)
+- **`composetemplate.feature.data`**: Data module dependencies (`:core:common`, `:core:data`, `:core:network`, `:core:secrets`)
+- **`composetemplate.feature.navigation`**: Navigation module dependencies (`:core:common`, `:core:navigation`)
+- **`composetemplate.feature.presentation`**: Presentation module dependencies (`:core:common`, `:core:ui`, `:core:navigation`)
+- **`composetemplate.android.library.native`**: CMake/NDK native library support for secure secrets
+- **`composetemplate.validate.secrets`**: Validates `secrets.properties` presence and content
+- **`composetemplate.scaffold.feature`**: Auto-generates a new feature module with all 4 sub-modules
+- **`composetemplate.create.new.app`**: Creates a new app from this template with custom package name
 - **`composetemplate.static.analysis`**: Centralized Detekt and Ktlint configuration for all modules
 
 ### Version Catalog
@@ -141,7 +161,7 @@ For detailed build configuration documentation, see [build-logic/README.md](buil
 - Android Studio Ladybug (2024.2.1) or later
 - JDK 17 or later
 - Android SDK with API level 23 (Android 6.0) or higher
-- Gradle 8.13.0 or later
+- Gradle 9.5.1 or later
 
 ### Installation
 
@@ -181,7 +201,6 @@ This project follows **Clean Architecture** principles:
 - **Data Layer**: API services, Repositories, Data Models.
 - **Domain Layer**: Use Cases, Domain Models, Repository Interfaces.
 - **Presentation Layer**: ViewModels, UI States, Composable Screens.
-- **Contract Layer**: Navigation routes and contracts.
 - **Core Layer**: Shared utilities, Native layer, Base classes.
 
 ## Testing

@@ -2,7 +2,6 @@ package com.ytapps.composetemplate.feature.auth.presentation
 
 import com.google.common.truth.Truth.assertThat
 import com.ytapps.composetemplate.core.common.Result
-import com.ytapps.composetemplate.core.ui.CommonUiEvent
 import com.ytapps.composetemplate.feature.auth.domain.LoginUseCase
 import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
 import io.mockk.coEvery
@@ -54,7 +53,7 @@ internal class LoginViewModelTest {
     }
 
     @Test
-    fun `given valid user credentials when login should set shouldNavigationSplash true`() = runTest(testDispatcher) {
+    fun `given valid user credentials when login should send NavigateTo event`() = runTest(testDispatcher) {
         val (email, password) = "email" to "password"
         val authModel = mockk<AuthModel>()
         val response = Result.Success(authModel)
@@ -63,7 +62,8 @@ internal class LoginViewModelTest {
         viewModel.login("email", "password")
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.shouldNavigateToSplash).isTrue()
+        val event = viewModel.events.first()
+        assertThat(event).isEqualTo(LoginEvent.NavigateToSplash)
         assertThat(viewModel.uiState.value.isLoading).isFalse()
     }
 
@@ -76,6 +76,6 @@ internal class LoginViewModelTest {
         advanceUntilIdle()
 
         val event = viewModel.events.first()
-        assertThat(event).isEqualTo(CommonUiEvent.ShowSnackbar("error"))
+        assertThat(event).isEqualTo(LoginEvent.ShowSnackbar("error"))
     }
 }

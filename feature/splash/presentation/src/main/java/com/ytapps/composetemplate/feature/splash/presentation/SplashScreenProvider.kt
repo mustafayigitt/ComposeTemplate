@@ -11,19 +11,19 @@ import javax.inject.Inject
  * Screen provider for Splash feature.
  * Provides screens for SplashRoute.
  */
-class SplashScreenProvider
-    @Inject
-    constructor() : IScreenProvider {
-        @Composable
-        override fun provideScreen(
-            route: INavigationItem,
-            navigationManager: INavigationManager,
-        ): Boolean =
-            when (route) {
-                is SplashRoute -> {
-                    SplashScreen(navigationManager)
-                    true
-                }
-                else -> false
+class SplashScreenProvider @Inject constructor() : IScreenProvider {
+
+    @Composable
+    override fun provideScreen(
+        route: INavigationItem,
+        navigationManager: INavigationManager,
+    ): Boolean =
+        when (route) {
+            is SplashRoute -> {
+                SplashScreen(navigationManager)
+                true
             }
-    }
+
+            else -> false
+        }
+}

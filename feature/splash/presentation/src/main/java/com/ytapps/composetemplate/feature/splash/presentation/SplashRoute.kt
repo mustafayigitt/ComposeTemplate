@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ytapps.composetemplate.core.navigation.INavigationManager
+import com.ytapps.composetemplate.feature.splash.navigation.SplashRoute
 
 @Composable
 fun SplashScreen(navigationManager: INavigationManager) {
@@ -19,7 +20,6 @@ fun SplashScreen(navigationManager: INavigationManager) {
     )
 }
 
-/*** Screen */
 @Composable
 internal fun SplashScreenInternal(
     navigationManager: INavigationManager,
@@ -27,9 +27,13 @@ internal fun SplashScreenInternal(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(uiState) {
-        uiState.destinationRoute?.let { destinationRoute ->
-            navigationManager.navigateToTop(destinationRoute)
+    LaunchedEffect(Unit) {
+        viewModel.checkDestination()
+
+        viewModel.events.collect { event ->
+            when (event) {
+                is SplashEvent.NavigateTo -> navigationManager.navigateOver(event.route, over = SplashRoute)
+            }
         }
     }
 

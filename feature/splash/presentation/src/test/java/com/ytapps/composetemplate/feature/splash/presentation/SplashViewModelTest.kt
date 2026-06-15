@@ -9,6 +9,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -39,9 +40,11 @@ internal class SplashViewModelTest {
         coEvery { getStartDestinationUseCase() } returns SplashDestination.Home
 
         val viewModel = SplashViewModel(getStartDestinationUseCase)
+        viewModel.checkDestination()
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.destinationRoute).isEqualTo(HomeRoute)
+        val event = viewModel.events.first()
+        assertThat(event).isEqualTo(SplashEvent.NavigateTo(HomeRoute))
         assertThat(viewModel.uiState.value.isLoading).isFalse()
     }
 
@@ -50,9 +53,11 @@ internal class SplashViewModelTest {
         coEvery { getStartDestinationUseCase() } returns SplashDestination.Login
 
         val viewModel = SplashViewModel(getStartDestinationUseCase)
+        viewModel.checkDestination()
         advanceUntilIdle()
 
-        assertThat(viewModel.uiState.value.destinationRoute).isEqualTo(LoginRoute)
+        val event = viewModel.events.first()
+        assertThat(event).isEqualTo(SplashEvent.NavigateTo(LoginRoute))
         assertThat(viewModel.uiState.value.isLoading).isFalse()
     }
 }

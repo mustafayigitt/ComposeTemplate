@@ -79,6 +79,17 @@ internal class AuthRepositoryTest {
     }
 
     @Test
+    fun `given admin admin credentials when login then verify setUUID called`() = runTest {
+        val result = authRepository.login("admin", "admin")
+
+        Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
+        coVerify { preferencesManager.setUUID("admin-uuid") }
+        coVerify { preferencesManager.setAccessToken("admin-token") }
+        coVerify { preferencesManager.setRefreshToken("admin-refresh") }
+        coVerify { preferencesManager.setTokenType("Bearer") }
+    }
+
+    @Test
     fun `given invalid authRequestModel when login() then verify setAccessToken not called`() = runTest {
         val authRequestModel =
             AuthRequestModel(

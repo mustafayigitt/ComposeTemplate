@@ -46,7 +46,7 @@ internal fun ListScreenInternal(
                 },
             ) {
                 Text(
-                    text = "Item $it",
+                    text = it,
                 )
             }
         }

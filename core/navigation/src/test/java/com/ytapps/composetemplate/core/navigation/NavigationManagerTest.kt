@@ -39,16 +39,18 @@ internal class NavigationManagerTest {
         navigationManager.navigate(TestRoute.Detail)
         navigationManager.navigate(TestRoute.Profile)
 
-        navigationManager.navigateBack()
+        val navigated = navigationManager.navigateBack()
 
+        assertThat(navigated).isTrue()
         val stack = navigationManager.backStack.value
         assertThat(stack).containsExactly(TestRoute.Home, TestRoute.Detail)
     }
 
     @Test
-    fun `given single item when navigateBack then stack stays with same item`() {
-        navigationManager.navigateBack()
+    fun `given single item when navigateBack then returns false and stack stays same`() {
+        val navigated = navigationManager.navigateBack()
 
+        assertThat(navigated).isFalse()
         val stack = navigationManager.backStack.value
         assertThat(stack).containsExactly(TestRoute.Home)
     }
@@ -121,6 +123,27 @@ internal class NavigationManagerTest {
         assertThat(items).hasSize(2)
         assertThat(items[0]).isEqualTo(TestRoute.Home)
         assertThat(items[1]).isEqualTo(TestRoute.Search)
+    }
+
+    @Test
+    fun `given multiple items when navigateBackToRoot then resets to single item`() {
+        navigationManager.navigate(TestRoute.Detail)
+        navigationManager.navigate(TestRoute.Profile)
+
+        val navigated = navigationManager.navigateBackToRoot()
+
+        assertThat(navigated).isTrue()
+        val stack = navigationManager.backStack.value
+        assertThat(stack).containsExactly(TestRoute.Home)
+    }
+
+    @Test
+    fun `given single item when navigateBackToRoot then returns false and stack stays same`() {
+        val navigated = navigationManager.navigateBackToRoot()
+
+        assertThat(navigated).isFalse()
+        val stack = navigationManager.backStack.value
+        assertThat(stack).containsExactly(TestRoute.Home)
     }
 
     @Test

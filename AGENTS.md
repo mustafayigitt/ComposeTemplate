@@ -58,7 +58,7 @@ feature/
 ### Architecture
 - Clean Architecture: data → domain → presentation (dependency inward).
 - Hilt for DI.
-- ViewModels should extend `BaseViewModel<UiState, CommonUiEvent>` and expose `StateFlow<UiState>`.
+- ViewModels must extend `BaseViewModel<UiState, Event>` and declare `override val _uiState = MutableStateFlow(UiState(...))`.
 - Use `updateState { it.copy(...) }` for state mutations (not direct `_uiState.value = ...`).
 - Use `sendEvent(event)` for one-shot UI events (snackbar, navigation).
 - Use `collectAsStateWithLifecycle()` in composables (not `collectAsState()`).

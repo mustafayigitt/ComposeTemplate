@@ -1,6 +1,6 @@
 package com.ytapps.composetemplate.ui
 
-import androidx.activity.compose.LocalActivity
+import android.app.Activity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -8,10 +8,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
-import com.ytapps.composetemplate.MainActivity
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.core.navigation.ScreenRegistry
 import com.ytapps.composetemplate.core.ui.theme.component.AppNavigationBar
@@ -24,6 +24,7 @@ fun AppNavigation(
 ) {
     val backStack by navigationManager.backStack.collectAsStateWithLifecycle()
     val currentRoute = backStack.lastOrNull()
+    val context = LocalContext.current
 
     if (currentRoute != null) {
         Scaffold(
@@ -44,7 +45,10 @@ fun AppNavigation(
                 modifier = Modifier.padding(paddingValues),
                 backStack = backStack,
                 onBack = {
-                    navigationManager.navigateBack()
+                    val handled = navigationManager.navigateBack()
+                    if (!handled) {
+                        (context as? Activity)?.finish()
+                    }
                 },
                 entryProvider = { key ->
                     NavEntry(key) {
@@ -53,7 +57,5 @@ fun AppNavigation(
                 },
             )
         }
-    } else {
-        (LocalActivity.current as? MainActivity)?.finish()
     }
 }

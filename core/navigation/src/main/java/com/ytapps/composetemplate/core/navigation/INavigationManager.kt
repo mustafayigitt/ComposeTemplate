@@ -11,7 +11,7 @@ interface INavigationManager {
 
     fun selectTab(selected: IBottomBarItem)
 
-    fun navigateBack()
+    fun navigateBack(): Boolean
 
     fun navigate(route: INavigationItem)
 
@@ -21,4 +21,6 @@ interface INavigationManager {
     )
 
     fun navigateToTop(route: INavigationItem)
+
+    fun navigateBackToRoot(): Boolean
 }
