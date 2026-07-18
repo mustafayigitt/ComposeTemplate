@@ -11,31 +11,37 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-internal class LoginViewModel @Inject constructor(
-    private val login: LoginUseCase,
-) : BaseViewModel<LoginUiState, LoginEvent>() {
-    override val _uiState = MutableStateFlow(LoginUiState())
+internal class LoginViewModel
+    @Inject
+    constructor(
+        private val login: LoginUseCase,
+    ) : BaseViewModel<LoginUiState, LoginEvent>() {
+        override val uiStateInternal = MutableStateFlow(LoginUiState())
 
-    fun onEmailChanged(email: String) {
-        updateState { it.copy(email = email) }
-    }
+        fun onEmailChanged(email: String) {
+            updateState { it.copy(email = email) }
+        }
 
-    fun onPasswordChanged(password: String) {
-        updateState { it.copy(password = password) }
-    }
+        fun onPasswordChanged(password: String) {
+            updateState { it.copy(password = password) }
+        }
 
-    fun login(email: String, password: String) {
-        viewModelScope.launch {
-            updateState { it.copy(isLoading = true) }
+        fun login(
+            email: String,
+            password: String,
+        ) {
+            viewModelScope.launch {
+                updateState { it.copy(isLoading = true) }
 
-            login.invoke(email, password)
-                .onSuccess {
-                    updateState { it.copy(isLoading = false) }
-                    sendEvent(LoginEvent.NavigateToSplash)
-                }.onError { message, _ ->
-                    updateState { it.copy(isLoading = false) }
-                    sendEvent(LoginEvent.ShowSnackbar(message))
-                }
+                login
+                    .invoke(email, password)
+                    .onSuccess {
+                        updateState { it.copy(isLoading = false) }
+                        sendEvent(LoginEvent.NavigateToSplash)
+                    }.onError { message, _ ->
+                        updateState { it.copy(isLoading = false) }
+                        sendEvent(LoginEvent.ShowSnackbar(message))
+                    }
+            }
         }
     }
-}

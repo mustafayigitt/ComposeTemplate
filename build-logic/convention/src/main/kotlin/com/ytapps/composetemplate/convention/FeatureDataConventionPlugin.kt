@@ -16,6 +16,7 @@ class FeatureDataConventionPlugin : Plugin<Project> {
                 add("implementation", project(":core:data"))
                 add("implementation", project(":core:network"))
                 add("implementation", project(":core:secrets"))
+                add("implementation", project(":core:database"))
             }
         }
     }

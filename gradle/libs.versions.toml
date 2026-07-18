@@ -9,11 +9,13 @@ versionName = "1.0.0"
 
 # AndroidX
 androidx-core = "1.18.0"
+androidx-appcompat = "1.7.0"
 androidx-compose-bom = "2026.05.01"
 androidx-lifecycle = "2.10.0"
 androidx-activity-compose = "1.13.0"
 androidx-navigation3 = "1.1.2"
 androidx-datastore = "1.2.1"
+androidx-room = "2.8.4"
 androidx-material-icons-core = "1.7.8"
 
 # Network
@@ -28,7 +30,7 @@ hilt-android-compiler = "2.59.2"
 hilt-navigation-compose = "1.2.0"
 
 # Kotlin
-kotlin = "2.3.21"
+kotlin = "2.0.21"
 kotlinx-coroutines-test = "1.11.0"
 kotlinx-serialization-core = "1.8.1"
 
@@ -47,7 +49,7 @@ truth = "1.4.5"
 mockk = "1.14.11"
 
 # Build Tools
-ksp = "2.3.9"
+ksp = "2.0.21-1.0.28"
 android-gradle-plugin = "9.2.1"
 
 # Benchmarking
@@ -57,11 +59,16 @@ androidx-material3-adaptive = "1.3.0-beta02"
 androidx-uiautomator = "2.3.0"
 androidx-profileinstaller = "1.4.1"
 
+# Google Play
+google-play-review = "2.0.2"
+google-play-app-update = "2.1.0"
+
 
 
 [libraries]
 # AndroidX Core
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
@@ -85,6 +92,9 @@ androidx-material3-adaptive-navigation3 = { group = "androidx.compose.material3.
 
 # Data Storage
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "androidx-datastore" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidx-room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidx-room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidx-room" }
 
 # Network
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
@@ -116,6 +126,10 @@ androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchm
 androidx-benchmark-baseline-profile-gradle-plugin = { group = "androidx.benchmark", name = "benchmark-baseline-profile-gradle-plugin", version.ref = "androidx-benchmark-baseline-profile-gradle-plugin" }
 androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "androidx-uiautomator" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "androidx-profileinstaller" }
+
+# Google Play
+google-play-review = { module = "com.google.android.play:review-ktx", version.ref = "google-play-review" }
+google-play-app-update = { module = "com.google.android.play:app-update-ktx", version.ref = "google-play-app-update" }
 
 # Build Logic Dependencies
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "android-gradle-plugin" }

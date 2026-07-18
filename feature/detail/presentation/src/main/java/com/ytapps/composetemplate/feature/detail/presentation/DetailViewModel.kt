@@ -6,13 +6,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-internal class DetailViewModel @Inject constructor(
-) : BaseViewModel<DetailUiState, Unit>() {
-    override val _uiState = MutableStateFlow(DetailUiState())
+internal class DetailViewModel
+    @Inject
+    constructor() : BaseViewModel<DetailUiState, Unit>() {
+        override val uiStateInternal = MutableStateFlow(DetailUiState())
 
-    fun setDetailId(id: String) {
-        updateState {
-            it.copy(id = id)
+        fun setDetailId(id: String) {
+            updateState {
+                it.copy(id = id)
+            }
         }
     }
-}

@@ -11,19 +11,20 @@ import javax.inject.Inject
  * Screen provider for List feature.
  * Provides screens for ListRoute.
  */
-class ListScreenProvider @Inject constructor() : IScreenProvider {
+class ListScreenProvider
+    @Inject
+    constructor() : IScreenProvider {
+        @Composable
+        override fun provideScreen(
+            route: INavigationItem,
+            navigationManager: INavigationManager,
+        ): Boolean =
+            when (route) {
+                is ListRoute -> {
+                    ListScreen(navigationManager)
+                    true
+                }
 
-    @Composable
-    override fun provideScreen(
-        route: INavigationItem,
-        navigationManager: INavigationManager,
-    ): Boolean =
-        when (route) {
-            is ListRoute -> {
-                ListScreen(navigationManager)
-                true
+                else -> false
             }
-
-            else -> false
-        }
-}
+    }

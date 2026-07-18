@@ -55,56 +55,59 @@ internal class AuthRepositoryTest {
     }
 
     @Test
-    fun `given valid authRequestModel when login() then verify setAccessToken called`() = runTest {
-        val authRequestModel =
-            AuthRequestModel(
-                email = "email",
-                password = "password",
-            )
-        val authResponseModel =
-            AuthResponseModel(
-                accessToken = "token",
-                refreshToken = "refresh",
-                tokenType = "Bearer",
-                expiresIn = "3600",
-            )
+    fun `given valid authRequestModel when login() then verify setAccessToken called`() =
+        runTest {
+            val authRequestModel =
+                AuthRequestModel(
+                    email = "email",
+                    password = "password",
+                )
+            val authResponseModel =
+                AuthResponseModel(
+                    accessToken = "token",
+                    refreshToken = "refresh",
+                    tokenType = "Bearer",
+                    expiresIn = "3600",
+                )
 
-        coEvery { authService.login(authRequestModel) } returns Response.success(authResponseModel)
-        val result = authRepository.login("email", "password")
+            coEvery { authService.login(authRequestModel) } returns Response.success(authResponseModel)
+            val result = authRepository.login("email", "password")
 
-        Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
-        coVerify { preferencesManager.setAccessToken("token") }
-        coVerify { preferencesManager.setRefreshToken("refresh") }
-        coVerify { preferencesManager.setTokenType("Bearer") }
-    }
-
-    @Test
-    fun `given admin admin credentials when login then verify setUUID called`() = runTest {
-        val result = authRepository.login("admin", "admin")
-
-        Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
-        coVerify { preferencesManager.setUUID("admin-uuid") }
-        coVerify { preferencesManager.setAccessToken("admin-token") }
-        coVerify { preferencesManager.setRefreshToken("admin-refresh") }
-        coVerify { preferencesManager.setTokenType("Bearer") }
-    }
+            Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
+            coVerify { preferencesManager.setAccessToken("token") }
+            coVerify { preferencesManager.setRefreshToken("refresh") }
+            coVerify { preferencesManager.setTokenType("Bearer") }
+        }
 
     @Test
-    fun `given invalid authRequestModel when login() then verify setAccessToken not called`() = runTest {
-        val authRequestModel =
-            AuthRequestModel(
-                email = "email",
-                password = "password",
-            )
+    fun `given admin admin credentials when login then verify setUUID called`() =
+        runTest {
+            val result = authRepository.login("admin", "admin")
 
-        coEvery { authService.login(authRequestModel) } returns
-            Response.error(
-                400,
-                "Bad Request".toResponseBody(),
-            )
-        val result = authRepository.login("email", "password")
+            Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
+            coVerify { preferencesManager.setUUID("admin-uuid") }
+            coVerify { preferencesManager.setAccessToken("admin-token") }
+            coVerify { preferencesManager.setRefreshToken("admin-refresh") }
+            coVerify { preferencesManager.setTokenType("Bearer") }
+        }
 
-        Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
-        coVerify(exactly = 0) { preferencesManager.setAccessToken(any()) }
-    }
+    @Test
+    fun `given invalid authRequestModel when login() then verify setAccessToken not called`() =
+        runTest {
+            val authRequestModel =
+                AuthRequestModel(
+                    email = "email",
+                    password = "password",
+                )
+
+            coEvery { authService.login(authRequestModel) } returns
+                Response.error(
+                    400,
+                    "Bad Request".toResponseBody(),
+                )
+            val result = authRepository.login("email", "password")
+
+            Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
+            coVerify(exactly = 0) { preferencesManager.setAccessToken(any()) }
+        }
 }

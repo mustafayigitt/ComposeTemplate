@@ -11,19 +11,20 @@ import javax.inject.Inject
  * Screen provider for Auth feature module.
  * Provides screens for all Auth routes (LoginRoute, etc.).
  */
-class AuthScreenProvider @Inject constructor() : IScreenProvider {
+class AuthScreenProvider
+    @Inject
+    constructor() : IScreenProvider {
+        @Composable
+        override fun provideScreen(
+            route: INavigationItem,
+            navigationManager: INavigationManager,
+        ): Boolean =
+            when (route) {
+                is LoginRoute -> {
+                    LoginScreen(navigationManager)
+                    true
+                }
 
-    @Composable
-    override fun provideScreen(
-        route: INavigationItem,
-        navigationManager: INavigationManager,
-    ): Boolean =
-        when (route) {
-            is LoginRoute -> {
-                LoginScreen(navigationManager)
-                true
+                else -> false
             }
-
-            else -> false
-        }
-}
+    }

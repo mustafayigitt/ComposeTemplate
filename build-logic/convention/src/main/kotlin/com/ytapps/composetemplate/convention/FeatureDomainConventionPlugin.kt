@@ -13,7 +13,9 @@ class FeatureDomainConventionPlugin : Plugin<Project> {
 
             dependencies {
                 add("implementation", project(":core:common"))
+                add("implementation", project(":core:data"))
                 add("implementation", project(":core:network"))
+                add("implementation", libs.findLibrary("androidx-appcompat").get())
             }
         }
     }

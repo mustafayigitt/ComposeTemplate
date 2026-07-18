@@ -16,22 +16,20 @@ import kotlinx.coroutines.launch
  * [E] represents one-shot UI Events (e.g., Snackbars, Navigation).
  */
 abstract class BaseViewModel<S, E> : ViewModel() {
+    protected abstract val uiStateInternal: MutableStateFlow<S>
 
-    protected abstract val _uiState: MutableStateFlow<S>
-    val uiState: StateFlow<S> by lazy { _uiState.asStateFlow() }
+    val uiState: StateFlow<S> by lazy { uiStateInternal.asStateFlow() }
 
-    private val _eventChannel by lazy { Channel<E>() }
-    val events = _eventChannel.receiveAsFlow()
+    private val _events by lazy { Channel<E>() }
+    val events = _events.receiveAsFlow()
 
     protected fun updateState(update: (S) -> S) {
-        _uiState.update(update)
+        uiStateInternal.update(update)
     }
 
     protected fun sendEvent(event: E) {
         viewModelScope.launch {
-            _eventChannel.send(event)
+            _events.send(event)
         }
     }
 }
-
-

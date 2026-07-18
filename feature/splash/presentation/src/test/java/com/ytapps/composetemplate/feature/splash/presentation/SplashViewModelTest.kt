@@ -36,28 +36,30 @@ internal class SplashViewModelTest {
     }
 
     @Test
-    fun `given user has account then navigate to HomeRoute`() = runTest(testDispatcher) {
-        coEvery { getStartDestinationUseCase() } returns SplashDestination.Home
+    fun `given user has account then navigate to HomeRoute`() =
+        runTest(testDispatcher) {
+            coEvery { getStartDestinationUseCase() } returns SplashDestination.Home
 
-        val viewModel = SplashViewModel(getStartDestinationUseCase)
-        viewModel.checkDestination()
-        advanceUntilIdle()
+            val viewModel = SplashViewModel(getStartDestinationUseCase)
+            viewModel.checkDestination()
+            advanceUntilIdle()
 
-        val event = viewModel.events.first()
-        assertThat(event).isEqualTo(SplashEvent.NavigateTo(HomeRoute))
-        assertThat(viewModel.uiState.value.isLoading).isFalse()
-    }
+            val event = viewModel.events.first()
+            assertThat(event).isEqualTo(SplashEvent.NavigateTo(HomeRoute))
+            assertThat(viewModel.uiState.value.isLoading).isFalse()
+        }
 
     @Test
-    fun `given user has no account then navigate to LoginRoute`() = runTest(testDispatcher) {
-        coEvery { getStartDestinationUseCase() } returns SplashDestination.Login
+    fun `given user has no account then navigate to LoginRoute`() =
+        runTest(testDispatcher) {
+            coEvery { getStartDestinationUseCase() } returns SplashDestination.Login
 
-        val viewModel = SplashViewModel(getStartDestinationUseCase)
-        viewModel.checkDestination()
-        advanceUntilIdle()
+            val viewModel = SplashViewModel(getStartDestinationUseCase)
+            viewModel.checkDestination()
+            advanceUntilIdle()
 
-        val event = viewModel.events.first()
-        assertThat(event).isEqualTo(SplashEvent.NavigateTo(LoginRoute))
-        assertThat(viewModel.uiState.value.isLoading).isFalse()
-    }
+            val event = viewModel.events.first()
+            assertThat(event).isEqualTo(SplashEvent.NavigateTo(LoginRoute))
+            assertThat(viewModel.uiState.value.isLoading).isFalse()
+        }
 }

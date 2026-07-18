@@ -22,26 +22,28 @@ internal class LoginUseCaseTest {
     }
 
     @Test
-    fun `given Result-Success AuthRequestModel when LoginUseCase() return Result-Success`() = runTest {
-        val email = "email"
-        val password = "password"
-        val response = Result.Success(mockk<AuthModel>())
+    fun `given Result-Success AuthRequestModel when LoginUseCase() return Result-Success`() =
+        runTest {
+            val email = "email"
+            val password = "password"
+            val response = Result.Success(mockk<AuthModel>())
 
-        coEvery { authRepository.login(email, password) } returns response
+            coEvery { authRepository.login(email, password) } returns response
 
-        val result = loginUseCase(email, password)
+            val result = loginUseCase(email, password)
 
-        Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
-    }
+            Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
+        }
 
     @Test
-    fun `given Result-Error AuthRequestModel when LoginUseCase() return Result-Error`() = runTest {
-        val response: Result<AuthModel> = Result.Error("Login Failed")
+    fun `given Result-Error AuthRequestModel when LoginUseCase() return Result-Error`() =
+        runTest {
+            val response: Result<AuthModel> = Result.Error("Login Failed")
 
-        coEvery { authRepository.login(any(), any()) } returns response
+            coEvery { authRepository.login(any(), any()) } returns response
 
-        val result = loginUseCase("email", "password")
+            val result = loginUseCase("email", "password")
 
-        Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
-    }
+            Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
+        }
 }

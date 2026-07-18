@@ -6,7 +6,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-internal class HomeViewModel @Inject constructor(
-) : BaseViewModel<HomeUiState, Unit>() {
-    override val _uiState = MutableStateFlow(HomeUiState)
-}
+internal class HomeViewModel
+    @Inject
+    constructor() : BaseViewModel<HomeUiState, Unit>() {
+        override val uiStateInternal = MutableStateFlow(HomeUiState)
+    }

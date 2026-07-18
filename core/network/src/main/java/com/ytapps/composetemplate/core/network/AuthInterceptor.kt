@@ -9,30 +9,32 @@ import javax.inject.Inject
  * Interceptor that adds authentication headers to requests.
  * This interceptor only handles adding headers - token refresh is handled by TokenAuthenticator.
  */
-internal class AuthInterceptor @Inject constructor(
-    private val prefs: IPreferencesManager,
-) : Interceptor {
-    override fun intercept(chain: Interceptor.Chain): Response {
-        val originalRequest = chain.request()
+internal class AuthInterceptor
+    @Inject
+    constructor(
+        private val prefs: IPreferencesManager,
+    ) : Interceptor {
+        override fun intercept(chain: Interceptor.Chain): Response {
+            val originalRequest = chain.request()
 
-        val tokenType = prefs.getTokenType()
-        val accessToken = prefs.getAccessToken()
+            val tokenType = prefs.getTokenType()
+            val accessToken = prefs.getAccessToken()
 
-        // If no token available, proceed without auth header
-        if (accessToken.isNullOrEmpty()) {
-            return chain.proceed(originalRequest)
+            // If no token available, proceed without auth header
+            if (accessToken.isNullOrEmpty()) {
+                return chain.proceed(originalRequest)
+            }
+
+            val authenticatedRequest =
+                originalRequest
+                    .newBuilder()
+                    .header(HEADER_AUTHORIZATION, "$tokenType $accessToken")
+                    .build()
+
+            return chain.proceed(authenticatedRequest)
         }
 
-        val authenticatedRequest =
-            originalRequest
-                .newBuilder()
-                .header(HEADER_AUTHORIZATION, "$tokenType $accessToken")
-                .build()
-
-        return chain.proceed(authenticatedRequest)
+        companion object {
+            const val HEADER_AUTHORIZATION = "Authorization"
+        }
     }
-
-    companion object {
-        const val HEADER_AUTHORIZATION = "Authorization"
-    }
-}

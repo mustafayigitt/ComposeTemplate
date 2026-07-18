@@ -1,0 +1,10 @@
+<resources>
+    <string name="onboarding_step_1_title">Hoş Geldiniz</string>
+    <string name="onboarding_step_1_desc">Bu şablonun gücünü keşfedin.</string>
+    <string name="onboarding_step_2_title">Modüler</string>
+    <string name="onboarding_step_2_desc">Ölçeklenebilirlik için her şey ayrıştırıldı.</string>
+    <string name="onboarding_step_3_title">Hazır</string>
+    <string name="onboarding_step_3_desc">Üretim aşamasındaki uygulamanızı hemen oluşturun.</string>
+    <string name="onboarding_button_finish">Başla</string>
+    <string name="onboarding_button_next">İleri</string>
+</resources>

@@ -21,9 +21,10 @@ object SecretManager {
         appContext = context.applicationContext
     }
 
-    private fun getSafeContext(): Context {
-        return appContext ?: throw IllegalStateException("SecretManager must be initialized before use")
-    }
+    private fun getSafeContext(): Context =
+        checkNotNull(appContext) {
+            "SecretManager must be initialized before use"
+        }
 
     /**
      * Returns the API key based on the build type.

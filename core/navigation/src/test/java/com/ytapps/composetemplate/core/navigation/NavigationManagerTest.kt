@@ -1,23 +1,33 @@
 package com.ytapps.composetemplate.core.navigation
 
+import com.ytapps.composetemplate.core.data.IPreferencesManager
 import com.google.common.truth.Truth.assertThat
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import org.junit.Before
 import org.junit.Test
 
 internal class NavigationManagerTest {
-
+    private lateinit var preferencesManager: IPreferencesManager
     private lateinit var navigationManager: NavigationManager
 
     @Before
     fun setUp() {
-        navigationManager = NavigationManager(
-            startDestination = TestRoute.Home,
-            bottomBarItemsRaw = mapOf(
-                "1" to TestRoute.Home,
-                "2" to TestRoute.Search,
-            ),
-        )
+        preferencesManager = mockk {
+            every { isDarkModeFlow } returns MutableStateFlow(false)
+        }
+        navigationManager =
+            NavigationManager(
+                startDestination = TestRoute.Home,
+                bottomBarItemsRaw =
+                    mapOf(
+                        "1" to TestRoute.Home,
+                        "2" to TestRoute.Search,
+                    ),
+                preferencesManager = preferencesManager,
+            )
     }
 
     @Test
@@ -147,12 +157,13 @@ internal class NavigationManagerTest {
     }
 
     @Test
-    fun `given backStack is StateFlow then emits updates`() = kotlinx.coroutines.test.runTest {
-        navigationManager.navigate(TestRoute.Detail)
+    fun `given backStack is StateFlow then emits updates`() =
+        kotlinx.coroutines.test.runTest {
+            navigationManager.navigate(TestRoute.Detail)
 
-        val stack = navigationManager.backStack.first()
-        assertThat(stack).containsExactly(TestRoute.Home, TestRoute.Detail)
-    }
+            val stack = navigationManager.backStack.first()
+            assertThat(stack).containsExactly(TestRoute.Home, TestRoute.Detail)
+        }
 
     private sealed interface TestRoute : INavigationItem {
         data object Home : TestRoute, IBottomBarItem {

@@ -1,11 +1,12 @@
 package com.ytapps.composetemplate.core.network
 
-import com.ytapps.composetemplate.core.common.Result
 import com.ytapps.composetemplate.core.common.Constants
+import com.ytapps.composetemplate.core.common.Result
 import retrofit2.HttpException
 import retrofit2.Response
 import timber.log.Timber
 import java.io.IOException
+import java.net.HttpURLConnection
 
 abstract class BaseRepository {
     suspend fun <T> safeCall(call: suspend () -> Response<T>): Result<T> =
@@ -21,10 +22,10 @@ abstract class BaseRepository {
             } else {
                 val errorMsg = response.errorBody()?.string() ?: Constants.DEFAULT_ERROR
                 when (response.code()) {
-                    401 -> Result.Error("Unauthorized access")
-                    403 -> Result.Error("Forbidden access")
-                    404 -> Result.Error("Resource not found")
-                    in 500..599 -> Result.Error("Server error occurred")
+                    HttpURLConnection.HTTP_UNAUTHORIZED -> Result.Error("Unauthorized access")
+                    HttpURLConnection.HTTP_FORBIDDEN -> Result.Error("Forbidden access")
+                    HttpURLConnection.HTTP_NOT_FOUND -> Result.Error("Resource not found")
+                    in SERVER_ERROR_START..SERVER_ERROR_END -> Result.Error("Server error occurred")
                     else -> Result.Error(errorMsg)
                 }
             }
@@ -41,4 +42,9 @@ abstract class BaseRepository {
                 throwable = e,
             )
         }
+
+    companion object {
+        private const val SERVER_ERROR_START = 500
+        private const val SERVER_ERROR_END = 599
+    }
 }

@@ -7,6 +7,8 @@ interface INavigationManager {
     val startDestination: INavigationItem
     val bottomBarItems: List<IBottomBarItem>
 
+    val isDarkModeFlow: StateFlow<Boolean>
+
     fun showBottomBar(route: INavigationItem): Boolean
 
     fun selectTab(selected: IBottomBarItem)

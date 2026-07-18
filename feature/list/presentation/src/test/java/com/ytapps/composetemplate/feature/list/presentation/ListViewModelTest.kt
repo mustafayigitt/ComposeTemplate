@@ -16,7 +16,13 @@ internal class ListViewModelTest {
         viewModel.getItems()
 
         assertThat(viewModel.uiState.value.items).hasSize(100)
-        assertThat(viewModel.uiState.value.items.first()).isEqualTo("Item 0")
-        assertThat(viewModel.uiState.value.items.last()).isEqualTo("Item 99")
+        assertThat(
+            viewModel.uiState.value.items
+                .first(),
+        ).isEqualTo("Item 0")
+        assertThat(
+            viewModel.uiState.value.items
+                .last(),
+        ).isEqualTo("Item 99")
     }
 }

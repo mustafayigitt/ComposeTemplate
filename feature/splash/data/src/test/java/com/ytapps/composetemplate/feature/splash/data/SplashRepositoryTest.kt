@@ -19,20 +19,22 @@ internal class SplashRepositoryTest {
     }
 
     @Test
-    fun `given signed user when hasUser then return true`() = runTest {
-        every { preferencesManager.hasUser() } returns true
+    fun `given signed user when hasUser then return true`() =
+        runTest {
+            every { preferencesManager.hasUser() } returns true
 
-        val result = splashRepository.hasUser()
+            val result = splashRepository.hasUser()
 
-        Truth.assertThat(result).isTrue()
-    }
+            Truth.assertThat(result).isTrue()
+        }
 
     @Test
-    fun `given unsigned user when hasUser then return false`() = runTest {
-        every { preferencesManager.hasUser() } returns false
+    fun `given unsigned user when hasUser then return false`() =
+        runTest {
+            every { preferencesManager.hasUser() } returns false
 
-        val result = splashRepository.hasUser()
+            val result = splashRepository.hasUser()
 
-        Truth.assertThat(result).isFalse()
-    }
+            Truth.assertThat(result).isFalse()
+        }
 }

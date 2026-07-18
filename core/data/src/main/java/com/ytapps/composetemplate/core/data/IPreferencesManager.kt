@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
  * Interface for managing user preferences with DataStore.
  * Provides both synchronous (cached) and asynchronous access patterns.
  */
+@Suppress("TooManyFunctions")
 interface IPreferencesManager {
     // Synchronous getters (for interceptor compatibility - uses cached values)
     fun getAccessToken(): String?
@@ -34,4 +35,13 @@ interface IPreferencesManager {
     val refreshTokenFlow: StateFlow<String?>
     val tokenTypeFlow: StateFlow<String?>
     val uuidFlow: StateFlow<String?>
+    val isDarkModeFlow: StateFlow<Boolean>
+    val languageCodeFlow: StateFlow<String?>
+    val isOnboardingCompletedFlow: StateFlow<Boolean>
+
+    suspend fun setDarkMode(isEnabled: Boolean)
+
+    suspend fun setLanguageCode(languageCode: String)
+
+    suspend fun setOnboardingCompleted(isCompleted: Boolean)
 }

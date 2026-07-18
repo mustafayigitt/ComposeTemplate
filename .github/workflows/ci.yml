@@ -28,7 +28,7 @@ jobs:
 
       - name: Create local.properties and secrets.properties
         run: |
-          touch local.properties
+          echo "STORE_FILE=debug.keystore" > local.properties
           echo "API_KEY_DEBUG=\"debug\"" > secrets.properties
           echo "API_KEY_RELEASE=\"release\"" >> secrets.properties
           echo "BASE_URL_DEBUG=\"https://example.com\"" >> secrets.properties
@@ -38,6 +38,7 @@ jobs:
           echo "STORE_PASSWORD=\"android\"" >> secrets.properties
           echo "XOR_MASK=\"mask\"" >> secrets.properties
           echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
+          echo "MIN_VERSION=1" >> secrets.properties
 
       - name: Run ktlint
         run: ./gradlew ktlintCheck
@@ -62,7 +63,7 @@ jobs:
 
       - name: Create local.properties and secrets.properties
         run: |
-          touch local.properties
+          echo "STORE_FILE=debug.keystore" > local.properties
           echo "API_KEY_DEBUG=\"debug\"" > secrets.properties
           echo "API_KEY_RELEASE=\"release\"" >> secrets.properties
           echo "BASE_URL_DEBUG=\"https://example.com\"" >> secrets.properties
@@ -72,6 +73,7 @@ jobs:
           echo "STORE_PASSWORD=\"android\"" >> secrets.properties
           echo "XOR_MASK=\"mask\"" >> secrets.properties
           echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
+          echo "MIN_VERSION=1" >> secrets.properties
 
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest
@@ -93,7 +95,7 @@ jobs:
 
       - name: Create local.properties and secrets.properties
         run: |
-          touch local.properties
+          echo "STORE_FILE=debug.keystore" > local.properties
           echo "API_KEY_DEBUG=\"debug\"" > secrets.properties
           echo "API_KEY_RELEASE=\"release\"" >> secrets.properties
           echo "BASE_URL_DEBUG=\"https://example.com\"" >> secrets.properties
@@ -103,6 +105,7 @@ jobs:
           echo "STORE_PASSWORD=\"android\"" >> secrets.properties
           echo "XOR_MASK=\"mask\"" >> secrets.properties
           echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
+          echo "MIN_VERSION=1" >> secrets.properties
 
       - name: Assemble debug
         run: ./gradlew assembleDebug

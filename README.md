@@ -204,6 +204,17 @@ EXPECTED_SIGNATURE_HASH="your_release_sha256_hex_without_colons"
 ./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -q --console=plain
 ```
 
+### Feature Scaffolding
+
+To add a new feature with all 4 layers (data, domain, navigation, presentation) automatically:
+
+```bash
+./gradlew scaffoldFeature -PfeatureName=settings
+```
+This will create the modules, add them to `settings.gradle.kts`, and inject them as dependencies in `:app`.
+
+For more details, see [GUIDE.md](GUIDE.md).
+
 ### Architecture
 
 This project follows **Clean Architecture** principles:

@@ -1,5 +1,5 @@
-import java.util.Properties
 import com.ytapps.composetemplate.convention.secrets
+import java.util.Properties
 
 plugins {
     id("composetemplate.create.new.app")
@@ -26,9 +26,10 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
 
-    val localProperties = rootProject.file("local.properties").inputStream().use { stream ->
-        Properties().apply { load(stream) }
-    }
+    val localProperties =
+        rootProject.file("local.properties").inputStream().use { stream ->
+            Properties().apply { load(stream) }
+        }
 
     signingConfigs {
         create("release") {
@@ -76,6 +77,11 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:analytics"))
+    implementation(project(":core:config"))
+    implementation(project(":core:permission"))
+    implementation(project(":core:google-play"))
+    implementation(project(":core:database"))
     implementation(project(":feature:auth:data"))
     implementation(project(":feature:auth:domain"))
     implementation(project(":feature:auth:navigation"))
@@ -92,6 +98,10 @@ dependencies {
     implementation(project(":feature:list:domain"))
     implementation(project(":feature:list:navigation"))
     implementation(project(":feature:list:presentation"))
+    implementation(project(":feature:onboarding:data"))
+    implementation(project(":feature:onboarding:domain"))
+    implementation(project(":feature:onboarding:navigation"))
+    implementation(project(":feature:onboarding:presentation"))
     implementation(project(":feature:profile:data"))
     implementation(project(":feature:profile:domain"))
     implementation(project(":feature:profile:navigation"))

@@ -48,6 +48,45 @@ class ScaffoldFeaturePlugin : Plugin<Project> {
                         domainDir.mkdirs()
                         File(domainDir, "PlaceholderUseCase.kt").writeText(getDomainContent(featurePkg))
                     }
+
+                    if (module == "presentation") {
+                        val resDir = File(moduleDir, "src/main/res")
+                        val valuesDir = File(resDir, "values")
+                        val valuesTrDir = File(resDir, "values-tr")
+                        valuesDir.mkdirs()
+                        valuesTrDir.mkdirs()
+
+                        File(valuesDir, "strings.xml").writeText("<resources>\n    <string name=\"feature_${featureName}_title\">${featureName.replaceFirstChar { it.uppercase() }}</string>\n</resources>")
+                        File(valuesTrDir, "strings.xml").writeText("<resources>\n    <string name=\"feature_${featureName}_title\">${featureName.replaceFirstChar { it.uppercase() }}</string>\n</resources>")
+                    }
+
+                    if (module == "data" && target.findProperty("withDatabase")?.toString()?.toBoolean() == true) {
+                        val daoDir = File(srcDir, srcPath + File.separator + "data" + File.separator + "dao")
+                        daoDir.mkdirs()
+                        // Placeholder for DAO
+                    }
+                }
+
+                // Register in settings.gradle.kts
+                val settingsFile = File(target.rootProject.rootDir, "settings.gradle.kts")
+                if (settingsFile.exists()) {
+                    val settingsContent = settingsFile.readText()
+                    val newIncludes = subModules.joinToString("\n") { "include(\":feature:$featureName:$it\")" }
+                    if (!settingsContent.contains(":feature:$featureName:")) {
+                        settingsFile.appendText("\n$newIncludes")
+                    }
+                }
+
+                // Register in app/build.gradle.kts
+                val appBuildFile = File(target.rootProject.rootDir, "app/build.gradle.kts")
+                if (appBuildFile.exists()) {
+                    val appBuildContent = appBuildFile.readLines().toMutableList()
+                    val dependenciesIndex = appBuildContent.indexOfLast { it.trim().startsWith("implementation(project(\":feature:") }
+                    if (dependenciesIndex != -1) {
+                        val newDeps = subModules.map { "    implementation(project(\":feature:$featureName:$it\"))" }
+                        appBuildContent.addAll(dependenciesIndex + 1, newDeps)
+                        appBuildFile.writeText(appBuildContent.joinToString("\n"))
+                    }
                 }
 
                 logger.lifecycle(

@@ -6,7 +6,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-internal class SearchViewModel @Inject constructor(
-) : BaseViewModel<SearchUiState, Unit>() {
-    override val _uiState = MutableStateFlow(SearchUiState)
-}
+internal class SearchViewModel
+    @Inject
+    constructor() : BaseViewModel<SearchUiState, Unit>() {
+        override val uiStateInternal = MutableStateFlow(SearchUiState)
+    }

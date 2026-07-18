@@ -6,22 +6,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-internal class ListViewModel @Inject constructor(
-) : BaseViewModel<ListUiState, Unit>() {
-    override val _uiState = MutableStateFlow(ListUiState())
+internal class ListViewModel
+    @Inject
+    constructor() : BaseViewModel<ListUiState, Unit>() {
+        override val uiStateInternal = MutableStateFlow(ListUiState())
 
-    fun getItems() {
-        updateState { state ->
-            state.copy(
-                items =
-                    List(ITEM_COUNT) {
-                        "Item $it"
-                    },
-            )
+        fun getItems() {
+            updateState { state ->
+                state.copy(
+                    items =
+                        List(ITEM_COUNT) {
+                            "Item $it"
+                        },
+                )
+            }
+        }
+
+        private companion object {
+            const val ITEM_COUNT = 100
         }
     }
-
-    private companion object {
-        const val ITEM_COUNT = 100
-    }
-}

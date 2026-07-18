@@ -39,6 +39,10 @@ gradlePlugin {
             id = "composetemplate.android.hilt"
             implementationClass = "com.ytapps.composetemplate.convention.AndroidHiltConventionPlugin"
         }
+        register("androidRoom") {
+            id = "composetemplate.android.room"
+            implementationClass = "com.ytapps.composetemplate.convention.AndroidRoomConventionPlugin"
+        }
         register("test") {
             id = "composetemplate.test"
             implementationClass = "com.ytapps.composetemplate.convention.TestConventionPlugin"

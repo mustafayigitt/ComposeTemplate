@@ -90,27 +90,35 @@ class CreateNewAppPlugin : Plugin<Project> {
     private fun refactorDirectories(targetDir: File, oldPkg: String, newPkg: String) {
         val oldPath = oldPkg.replace(".", File.separator)
         val newPath = newPkg.replace(".", File.separator)
-        val sourceRoots = listOf(
-            "app/src/main/java",
-            "app/src/androidTest/java",
-            "app/src/test/java",
-            "build-logic/convention/src/main/kotlin",
-            "core/common/src/main/java",
-            "core/secrets/src/main/java",
-            "core/data/src/main/java",
-            "core/network/src/main/java",
-            "core/ui/src/main/java",
-            "core/navigation/src/main/java"
-        )
+
+        val sourceRoots = mutableListOf<String>()
+        targetDir.walkTopDown().filter { it.isDirectory && (it.name == "java" || it.name == "kotlin") }.forEach { dir ->
+            if (dir.absolutePath.contains("src${File.separator}main") ||
+                dir.absolutePath.contains("src${File.separator}test") ||
+                dir.absolutePath.contains("src${File.separator}androidTest")
+            ) {
+                sourceRoots.add(dir.absolutePath.removePrefix(targetDir.absolutePath).removePrefix(File.separator))
+            }
+        }
 
         sourceRoots.forEach { path ->
-            val root = File(targetDir, path.replace("/", File.separator))
+            val root = File(targetDir, path)
             val oldFolder = File(root, oldPath)
             if (oldFolder.exists()) {
                 val newFolder = File(root, newPath).apply { mkdirs() }
                 oldFolder.copyRecursively(newFolder, overwrite = true)
                 oldFolder.deleteRecursively()
-                File(root, "com/ytapps".replace("/", File.separator)).deleteRecursively()
+
+                // Clean up parent folders if they are empty or contain only the path to our project
+                var parent = oldFolder.parentFile
+                while (parent != null && parent != root) {
+                    if (parent.listFiles()?.isEmpty() == true) {
+                        parent.delete()
+                        parent = parent.parentFile
+                    } else {
+                        break
+                    }
+                }
             }
         }
     }
