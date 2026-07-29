@@ -10,7 +10,9 @@ object SecretManager {
     private var appContext: Context? = null
 
     init {
-        System.loadLibrary("native-lib")
+        if (BuildConfig.NATIVE_SECRETS_ENABLED) {
+            System.loadLibrary("native-lib")
+        }
     }
 
     /**
@@ -29,20 +31,34 @@ object SecretManager {
     /**
      * Returns the API key based on the build type.
      */
-    fun getApiKey(): String = getApiKeyNative(getSafeContext(), BuildConfig.DEBUG)
+    fun getApiKey(): String {
+        return if (BuildConfig.NATIVE_SECRETS_ENABLED) {
+            getApiKeyNative(getSafeContext(), BuildConfig.DEBUG, BuildConfig.K_PART)
+        } else {
+            if (BuildConfig.DEBUG) BuildConfig.API_KEY_DEBUG else BuildConfig.API_KEY_RELEASE
+        }
+    }
 
     /**
      * Returns the Base URL based on the build type.
      */
-    fun getBaseUrl(): String = getBaseUrlNative(getSafeContext(), BuildConfig.DEBUG)
+    fun getBaseUrl(): String {
+        return if (BuildConfig.NATIVE_SECRETS_ENABLED) {
+            getBaseUrlNative(getSafeContext(), BuildConfig.DEBUG, BuildConfig.K_PART)
+        } else {
+            if (BuildConfig.DEBUG) BuildConfig.BASE_URL_DEBUG else BuildConfig.BASE_URL_RELEASE
+        }
+    }
 
     private external fun getApiKeyNative(
         context: Context,
         isDebug: Boolean,
+        runtimeMask: String,
     ): String
 
     private external fun getBaseUrlNative(
         context: Context,
         isDebug: Boolean,
+        runtimeMask: String,
     ): String
 }

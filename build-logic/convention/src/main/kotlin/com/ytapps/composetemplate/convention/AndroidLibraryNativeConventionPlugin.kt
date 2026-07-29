@@ -8,52 +8,110 @@ import org.gradle.kotlin.dsl.configure
 class AndroidLibraryNativeConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            val mask = secrets.getProperty("XOR_MASK")?.replace("\"", "") ?: "DEFAULT_MASK"
+            val useNativeSecrets = findProperty("composetemplate.useNativeSecrets")?.toString()?.toBoolean() ?: true
+
+            val fullMask = secrets.getProperty("XOR_MASK")?.replace("\"", "") ?: "DEFAULT_MASK"
             val expectedSignature = secrets.getProperty("EXPECTED_SIGNATURE_HASH")?.replace("\"", "") ?: ""
 
-            fun toHex(data: String): String {
-                return data.toByteArray().joinToString("") { byte -> "%02x".format(byte) }
-            }
-
-            fun encryptToHex(data: String): String {
-                val input = data.replace("\"", "")
-                val bytes = input.toByteArray()
-                val maskBytes = mask.toByteArray()
-                val encrypted = bytes.mapIndexed { i, byte ->
-                    (byte.toInt() xor maskBytes[i % maskBytes.size].toInt()).toByte()
-                }
-                return encrypted.joinToString("") { byte -> "%02x".format(byte) }
-            }
-
-            val apiKeyDebugHex = encryptToHex(secrets.getProperty("API_KEY_DEBUG") ?: "")
-            val apiKeyReleaseHex = encryptToHex(secrets.getProperty("API_KEY_RELEASE") ?: "")
-            val baseUrlDebugHex = encryptToHex(secrets.getProperty("BASE_URL_DEBUG") ?: "")
-            val baseUrlReleaseHex = encryptToHex(secrets.getProperty("BASE_URL_RELEASE") ?: "")
-            val maskHex = toHex(mask)
-            val expectedSignatureHex = toHex(expectedSignature)
-
             extensions.configure<LibraryExtension> {
-                ndkVersion = libs.findVersion("ndk").get().toString()
+                buildFeatures {
+                    buildConfig = true
+                }
 
-                externalNativeBuild {
-                    cmake {
-                        path = file("src/main/cpp/CMakeLists.txt")
+                if (useNativeSecrets) {
+                    ndkVersion = libs.findVersion("ndk").get().toString()
+                    externalNativeBuild {
+                        cmake {
+                            path = file("src/main/cpp/CMakeLists.txt")
+                        }
                     }
                 }
 
                 defaultConfig {
-                    externalNativeBuild {
-                        cmake {
-                            cppFlags("")
-                            arguments(
-                                "-DAPI_KEY_DEBUG=\"$apiKeyDebugHex\"",
-                                "-DAPI_KEY_RELEASE=\"$apiKeyReleaseHex\"",
-                                "-DBASE_URL_DEBUG=\"$baseUrlDebugHex\"",
-                                "-DBASE_URL_RELEASE=\"$baseUrlReleaseHex\"",
-                                "-DXOR_MASK=\"$maskHex\"",
-                                "-DEXPECTED_SIGNATURE_HASH=\"$expectedSignatureHex\""
-                            )
+                    buildConfigField("boolean", "NATIVE_SECRETS_ENABLED", "$useNativeSecrets")
+
+                    if (useNativeSecrets) {
+                        // 3-Way Split Mask: Static (Header), Dynamic (CMake), Runtime (Kotlin)
+                        val partLen = fullMask.length / 3
+                        val staticMask = fullMask.substring(0, partLen)
+                        val cmakeMask = fullMask.substring(partLen, 2 * partLen)
+                        val kotlinMask = fullMask.substring(2 * partLen)
+
+                        fun toByteArrayString(data: String): String {
+                            return data.toByteArray().joinToString(", ") { "0x%02x".format(it) }
                         }
+
+                        fun encryptToByteArrayString(data: String): String {
+                            val input = data.replace("\"", "")
+                            val bytes = input.toByteArray()
+                            val maskBytes = fullMask.toByteArray()
+                            val encrypted = bytes.mapIndexed { i, byte ->
+                                (byte.toInt() xor maskBytes[i % maskBytes.size].toInt()).toByte()
+                            }
+                            return encrypted.joinToString(", ") { "0x%02x".format(it) }
+                        }
+
+                        val apiKeyDebug = encryptToByteArrayString(secrets.getProperty("API_KEY_DEBUG") ?: "")
+                        val apiKeyRelease = encryptToByteArrayString(secrets.getProperty("API_KEY_RELEASE") ?: "")
+                        val baseUrlDebug = encryptToByteArrayString(secrets.getProperty("BASE_URL_DEBUG") ?: "")
+                        val baseUrlRelease = encryptToByteArrayString(secrets.getProperty("BASE_URL_RELEASE") ?: "")
+                        val staticMaskArr = toByteArrayString(staticMask)
+                        val expectedSignatureArr = toByteArrayString(expectedSignature)
+
+                        // Generate Header File
+                        val generatedDir = layout.buildDirectory.dir("generated/secrets/cpp").get().asFile
+                        generatedDir.mkdirs()
+                        val headerFile = file("${generatedDir.absolutePath}/secrets_generated.h")
+
+                        headerFile.writeText("""
+                            // Generated by AndroidLibraryNativeConventionPlugin. DO NOT MODIFY.
+                            #ifndef SECRETS_GENERATED_H
+                            #define SECRETS_GENERATED_H
+
+                            static const unsigned char API_KEY_DEBUG[] = { $apiKeyDebug };
+                            static const int API_KEY_DEBUG_LEN = ${apiKeyDebug.split(",").size};
+
+                            static const unsigned char API_KEY_RELEASE[] = { $apiKeyRelease };
+                            static const int API_KEY_RELEASE_LEN = ${apiKeyRelease.split(",").size};
+
+                            static const unsigned char BASE_URL_DEBUG[] = { $baseUrlDebug };
+                            static const int BASE_URL_DEBUG_LEN = ${baseUrlDebug.split(",").size};
+
+                            static const unsigned char BASE_URL_RELEASE[] = { $baseUrlRelease };
+                            static const int BASE_URL_RELEASE_LEN = ${baseUrlRelease.split(",").size};
+
+                            static const unsigned char STATIC_MASK[] = { $staticMaskArr };
+                            static const int STATIC_MASK_LEN = ${staticMaskArr.split(",").size};
+
+                            static const unsigned char EXPECTED_SIGNATURE_HASH[] = { $expectedSignatureArr };
+                            static const int EXPECTED_SIGNATURE_HASH_LEN = ${expectedSignatureArr.split(",").size};
+
+                            #endif // SECRETS_GENERATED_H
+                        """.trimIndent())
+
+                        externalNativeBuild {
+                            cmake {
+                                cppFlags("")
+                                arguments(
+                                    "-DGENERATED_SECRETS_PATH=${generatedDir.absolutePath}",
+                                    "-DCM_PART=$cmakeMask",
+                                    "-DK_PART=$kotlinMask"
+                                )
+                            }
+                        }
+
+                        buildConfigField("String", "K_PART", "\"$kotlinMask\"")
+                        buildConfigField("String", "API_KEY_DEBUG", "\"\"")
+                        buildConfigField("String", "API_KEY_RELEASE", "\"\"")
+                        buildConfigField("String", "BASE_URL_DEBUG", "\"\"")
+                        buildConfigField("String", "BASE_URL_RELEASE", "\"\"")
+                    } else {
+                        // Standard Mode: Inject plain secrets into BuildConfig
+                        buildConfigField("String", "K_PART", "\"\"")
+                        buildConfigField("String", "API_KEY_DEBUG", secrets.getProperty("API_KEY_DEBUG") ?: "\"\"")
+                        buildConfigField("String", "API_KEY_RELEASE", secrets.getProperty("API_KEY_RELEASE") ?: "\"\"")
+                        buildConfigField("String", "BASE_URL_DEBUG", secrets.getProperty("BASE_URL_DEBUG") ?: "\"\"")
+                        buildConfigField("String", "BASE_URL_RELEASE", secrets.getProperty("BASE_URL_RELEASE") ?: "\"\"")
                     }
                 }
             }
