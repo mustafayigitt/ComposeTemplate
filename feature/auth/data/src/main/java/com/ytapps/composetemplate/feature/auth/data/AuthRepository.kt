@@ -53,11 +53,18 @@ internal class AuthRepository @Inject constructor(
         return result
     }
 
-    override suspend fun refreshToken(): Result<String> {
+    override suspend fun refreshTokens(): Result<AuthTokens> {
         return safeCall {
-            //TODO: Not Implemented
-            // authService.refreshToken()
-            Response.success("")
+            // TODO: Replace this placeholder with the app's real refresh-token endpoint.
+            // The endpoint should return a complete token set so TokenAuthenticator can
+            // persist it atomically before retrying the failed request.
+            Response.success(
+                AuthTokens(
+                    accessToken = "",
+                    refreshToken = "",
+                    tokenType = AuthTokens.DEFAULT_TOKEN_TYPE
+                )
+            )
         }
     }
 }

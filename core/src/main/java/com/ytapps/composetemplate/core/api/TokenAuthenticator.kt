@@ -1,5 +1,6 @@
 package com.ytapps.composetemplate.core.api
 
+import com.ytapps.composetemplate.core.security.AuthTokens
 import com.ytapps.composetemplate.core.security.TokenStore
 import dagger.Lazy
 import kotlinx.coroutines.runBlocking
@@ -48,11 +49,11 @@ internal class TokenAuthenticator @Inject constructor(
                 return buildRequestWithToken(response.request, latestToken)
             }
             
-            // Refresh the token
-            val newToken = refreshToken()
+            // Refresh and persist the complete token set
+            val refreshedTokens = refreshTokens()
             
-            return if (!newToken.isNullOrEmpty()) {
-                buildRequestWithToken(response.request, newToken)
+            return if (refreshedTokens != null) {
+                buildRequestWithToken(response.request, refreshedTokens.accessToken)
             } else {
                 // Token refresh failed, don't retry
                 null
@@ -60,14 +61,18 @@ internal class TokenAuthenticator @Inject constructor(
         }
     }
     
-    private fun refreshToken(): String? {
+    private fun refreshTokens(): AuthTokens? {
         return try {
             // Note: runBlocking is acceptable here because:
             // 1. Authenticator.authenticate() is called on OkHttp's dispatcher thread, not the main thread
             // 2. The token refresh is a blocking operation by nature (we need the token before proceeding)
             // 3. This is the standard pattern for OkHttp Authenticator with suspend functions
             runBlocking {
-                tokenRefresher.get().refreshToken().getOrNull()
+                val tokens = tokenRefresher.get().refreshTokens().getOrNull()
+                if (tokens != null) {
+                    tokenStore.saveTokens(tokens)
+                }
+                tokens
             }
         } catch (e: Exception) {
             null

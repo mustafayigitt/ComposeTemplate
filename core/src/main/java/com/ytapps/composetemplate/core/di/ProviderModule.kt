@@ -2,7 +2,6 @@ package com.ytapps.composetemplate.core.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.ytapps.composetemplate.core.BuildConfig
 import com.ytapps.composetemplate.core.api.AuthInterceptor
 import com.ytapps.composetemplate.core.api.TokenAuthenticator
 import com.ytapps.composetemplate.core.util.Constants
@@ -34,10 +33,9 @@ internal object ProviderModule {
             redactHeader(HEADER_SET_COOKIE)
             redactHeader(HEADER_API_KEY)
             redactHeader(HEADER_AUTH_TOKEN)
-            setLevel(
-                if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.HEADERS
-                else HttpLoggingInterceptor.Level.NONE
-            )
+            // Keep network logging disabled by default in the shared core module.
+            // Apps can replace this binding if they want opt-in debug logging.
+            setLevel(HttpLoggingInterceptor.Level.NONE)
         }
     }
 

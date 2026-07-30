@@ -98,7 +98,7 @@ internal class KeystoreTokenStore @Inject constructor(
             val encrypted = cipher.doFinal(value.toByteArray(Charsets.UTF_8))
             val iv = cipher.iv
 
-            "${iv.base64()}: ${encrypted.base64()}".replace(": ", ":")
+            "${iv.base64()}$ENCRYPTED_VALUE_SEPARATOR${encrypted.base64()}"
         }
     }
 
