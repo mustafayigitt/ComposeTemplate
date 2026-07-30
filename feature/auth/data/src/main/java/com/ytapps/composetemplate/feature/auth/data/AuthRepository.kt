@@ -3,10 +3,10 @@ package com.ytapps.composetemplate.feature.auth.data
 import com.ytapps.composetemplate.core.common.Result
 import com.ytapps.composetemplate.core.common.map
 import com.ytapps.composetemplate.core.data.IPreferencesManager
+import com.ytapps.composetemplate.core.data.security.AuthTokens
+import com.ytapps.composetemplate.core.data.security.TokenStore
 import com.ytapps.composetemplate.core.network.BaseRepository
 import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
-import com.ytapps.composetemplate.feature.auth.data.model.RefreshTokenRequestModel
-import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
 import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
 import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
 import javax.inject.Inject
@@ -16,6 +16,7 @@ internal class AuthRepository
     constructor(
         private val authService: AuthService,
         private val prefs: IPreferencesManager,
+        private val tokenStore: TokenStore,
     ) : BaseRepository(),
         IAuthRepository {
         override fun hasUser(): Boolean = prefs.hasUser()
@@ -32,9 +33,13 @@ internal class AuthRepository
                         expiresIn = "99999",
                         tokenType = "Bearer",
                     )
-                prefs.setAccessToken(authModel.accessToken)
-                prefs.setRefreshToken(authModel.refreshToken)
-                prefs.setTokenType(authModel.tokenType)
+                tokenStore.saveTokens(
+                    AuthTokens(
+                        accessToken = authModel.accessToken,
+                        refreshToken = authModel.refreshToken,
+                        tokenType = authModel.tokenType,
+                    ),
+                )
                 prefs.setUUID("admin-uuid")
                 return Result.Success(authModel)
             }
@@ -59,24 +64,19 @@ internal class AuthRepository
                 }
             if (result is Result.Success) {
                 val data = result.data
-                prefs.setAccessToken(data.accessToken)
-                prefs.setRefreshToken(data.refreshToken)
-                prefs.setTokenType(data.tokenType)
+                tokenStore.saveTokens(
+                    AuthTokens(
+                        accessToken = data.accessToken,
+                        refreshToken = data.refreshToken,
+                        tokenType = data.tokenType,
+                    ),
+                )
             }
             return result
         }
 
-        override suspend fun refreshToken(): Result<String> {
-            val currentRefreshToken =
-                prefs.getRefreshToken()
-                    ?: return Result.Error("No refresh token available")
-
-            return safeCall {
-                authService.refreshToken(RefreshTokenRequestModel(currentRefreshToken))
-            }.map { response ->
-                prefs.setAccessToken(response.accessToken)
-                prefs.setRefreshToken(response.refreshToken)
-                response.accessToken
-            }
-        }
+        override suspend fun refreshTokens(): Result<AuthTokens> =
+            Result.Error(
+                message = "Refresh token endpoint is not implemented. Replace this template implementation with your API call.",
+            )
     }

@@ -1,6 +1,6 @@
 package com.ytapps.composetemplate.core.network
 
-import com.ytapps.composetemplate.core.data.IPreferencesManager
+import com.ytapps.composetemplate.core.data.security.TokenStore
 import okhttp3.Interceptor
 import okhttp3.Response
 import javax.inject.Inject
@@ -12,15 +12,13 @@ import javax.inject.Inject
 internal class AuthInterceptor
     @Inject
     constructor(
-        private val prefs: IPreferencesManager,
+        private val tokenStore: TokenStore,
     ) : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             val originalRequest = chain.request()
 
-            val tokenType = prefs.getTokenType()
-            val accessToken = prefs.getAccessToken()
+            val accessToken = tokenStore.getAccessToken()
 
-            // If no token available, proceed without auth header
             if (accessToken.isNullOrEmpty()) {
                 return chain.proceed(originalRequest)
             }
@@ -28,7 +26,7 @@ internal class AuthInterceptor
             val authenticatedRequest =
                 originalRequest
                     .newBuilder()
-                    .header(HEADER_AUTHORIZATION, "$tokenType $accessToken")
+                    .header(HEADER_AUTHORIZATION, "${tokenStore.getTokenType()} $accessToken")
                     .build()
 
             return chain.proceed(authenticatedRequest)
