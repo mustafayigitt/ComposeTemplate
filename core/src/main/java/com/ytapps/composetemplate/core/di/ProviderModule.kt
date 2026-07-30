@@ -31,8 +31,11 @@ internal object ProviderModule {
         return HttpLoggingInterceptor().apply {
             redactHeader(HEADER_AUTHORIZATION)
             redactHeader(HEADER_COOKIE)
+            redactHeader(HEADER_SET_COOKIE)
+            redactHeader(HEADER_API_KEY)
+            redactHeader(HEADER_AUTH_TOKEN)
             setLevel(
-                if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.HEADERS
                 else HttpLoggingInterceptor.Level.NONE
             )
         }
@@ -86,4 +89,7 @@ internal object ProviderModule {
 
     private const val HEADER_AUTHORIZATION = "Authorization"
     private const val HEADER_COOKIE = "Cookie"
+    private const val HEADER_SET_COOKIE = "Set-Cookie"
+    private const val HEADER_API_KEY = "X-Api-Key"
+    private const val HEADER_AUTH_TOKEN = "X-Auth-Token"
 }

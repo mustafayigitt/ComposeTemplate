@@ -75,9 +75,8 @@ internal class TokenAuthenticator @Inject constructor(
     }
     
     private fun buildRequestWithToken(request: Request, token: String): Request {
-        val tokenType = tokenStore.getTokenType() ?: DEFAULT_TOKEN_TYPE
         return request.newBuilder()
-            .header(HEADER_AUTHORIZATION, "$tokenType $token")
+            .header(HEADER_AUTHORIZATION, "${tokenStore.getTokenType()} $token")
             .build()
     }
     
@@ -94,6 +93,5 @@ internal class TokenAuthenticator @Inject constructor(
     companion object {
         private const val MAX_RETRY_COUNT = 3
         private const val HEADER_AUTHORIZATION = "Authorization"
-        private const val DEFAULT_TOKEN_TYPE = "Bearer"
     }
 }

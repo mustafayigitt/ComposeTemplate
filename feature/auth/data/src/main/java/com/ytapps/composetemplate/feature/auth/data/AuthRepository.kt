@@ -4,6 +4,7 @@ import com.ytapps.composetemplate.core.api.Result
 import com.ytapps.composetemplate.core.api.map
 import com.ytapps.composetemplate.core.base.BaseRepository
 import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.ytapps.composetemplate.core.security.AuthTokens
 import com.ytapps.composetemplate.core.security.TokenStore
 import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
 import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
@@ -41,9 +42,13 @@ internal class AuthRepository @Inject constructor(
         }
         if (result is Result.Success) {
             val data = result.data
-            tokenStore.setAccessToken(data.accessToken)
-            tokenStore.setRefreshToken(data.refreshToken)
-            tokenStore.setTokenType(data.tokenType)
+            tokenStore.saveTokens(
+                AuthTokens(
+                    accessToken = data.accessToken,
+                    refreshToken = data.refreshToken,
+                    tokenType = data.tokenType
+                )
+            )
         }
         return result
     }

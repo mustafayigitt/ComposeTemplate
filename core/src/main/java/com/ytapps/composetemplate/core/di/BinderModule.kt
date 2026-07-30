@@ -4,7 +4,7 @@ import com.ytapps.composetemplate.core.local.IPreferencesManager
 import com.ytapps.composetemplate.core.local.PreferencesManager
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.core.navigation.NavigationManager
-import com.ytapps.composetemplate.core.security.EncryptedTokenStore
+import com.ytapps.composetemplate.core.security.KeystoreTokenStore
 import com.ytapps.composetemplate.core.security.TokenStore
 import dagger.Binds
 import dagger.Module
@@ -22,7 +22,7 @@ internal abstract class BinderModule {
 
     @Binds
     abstract fun bindTokenStore(
-        tokenStore: EncryptedTokenStore
+        tokenStore: KeystoreTokenStore
     ): TokenStore
 
     @Binds

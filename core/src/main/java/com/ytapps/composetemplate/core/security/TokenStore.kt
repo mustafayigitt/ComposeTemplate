@@ -5,20 +5,17 @@ import kotlinx.coroutines.flow.Flow
 /**
  * Stores authentication tokens separately from regular user preferences.
  *
- * Implementations should use Android Keystore-backed encryption because access and
- * refresh tokens are credentials, not ordinary preferences.
+ * Implementations must avoid deprecated security APIs and should persist tokens
+ * encrypted at rest with Android Keystore-backed keys.
  */
 interface TokenStore {
-    fun getAccessToken(): String?
-    fun getRefreshToken(): String?
-    fun getTokenType(): String?
+    fun getTokens(): AuthTokens?
+    fun getAccessToken(): String? = getTokens()?.accessToken
+    fun getRefreshToken(): String? = getTokens()?.refreshToken
+    fun getTokenType(): String = getTokens()?.tokenType ?: AuthTokens.DEFAULT_TOKEN_TYPE
 
-    suspend fun setAccessToken(accessToken: String)
-    suspend fun setRefreshToken(refreshToken: String)
-    suspend fun setTokenType(tokenType: String)
+    suspend fun saveTokens(tokens: AuthTokens)
     suspend fun clear()
 
-    val accessTokenFlow: Flow<String?>
-    val refreshTokenFlow: Flow<String?>
-    val tokenTypeFlow: Flow<String?>
+    val tokensFlow: Flow<AuthTokens?>
 }

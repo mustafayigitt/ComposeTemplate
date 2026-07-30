@@ -3,6 +3,7 @@ package com.ytapps.composetemplate.feature.auth.data.repository
 import com.google.common.truth.Truth
 import com.ytapps.composetemplate.core.api.Result
 import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.ytapps.composetemplate.core.security.AuthTokens
 import com.ytapps.composetemplate.core.security.TokenStore
 import com.ytapps.composetemplate.feature.auth.data.AuthRepository
 import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
@@ -63,7 +64,7 @@ internal class AuthRepositoryTest {
     }
 
     @Test
-    fun `given valid authRequestModel when login() then verify tokens are stored securely`() {
+    fun `given valid authRequestModel when login() then verify tokens are stored atomically`() {
         // Given
         val authRequestModel = AuthRequestModel(
             email = "email",
@@ -82,9 +83,15 @@ internal class AuthRepositoryTest {
 
         // Then
         Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
-        coVerify { tokenStore.setAccessToken("token") }
-        coVerify { tokenStore.setRefreshToken("refresh") }
-        coVerify { tokenStore.setTokenType("Bearer") }
+        coVerify {
+            tokenStore.saveTokens(
+                AuthTokens(
+                    accessToken = "token",
+                    refreshToken = "refresh",
+                    tokenType = "Bearer"
+                )
+            )
+        }
     }
 
     @Test
@@ -104,7 +111,7 @@ internal class AuthRepositoryTest {
 
         // Then
         Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
-        coVerify(exactly = 0) { tokenStore.setAccessToken(any()) }
+        coVerify(exactly = 0) { tokenStore.saveTokens(any()) }
     }
 
 }

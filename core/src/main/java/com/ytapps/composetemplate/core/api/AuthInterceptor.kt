@@ -16,7 +16,6 @@ internal class AuthInterceptor @Inject constructor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
         
-        val tokenType = tokenStore.getTokenType() ?: DEFAULT_TOKEN_TYPE
         val accessToken = tokenStore.getAccessToken()
         
         // If no token available, proceed without auth header
@@ -25,7 +24,7 @@ internal class AuthInterceptor @Inject constructor(
         }
         
         val authenticatedRequest = originalRequest.newBuilder()
-            .header(HEADER_AUTHORIZATION, "$tokenType $accessToken")
+            .header(HEADER_AUTHORIZATION, "${tokenStore.getTokenType()} $accessToken")
             .build()
         
         return chain.proceed(authenticatedRequest)
@@ -33,6 +32,5 @@ internal class AuthInterceptor @Inject constructor(
 
     companion object {
         const val HEADER_AUTHORIZATION = "Authorization"
-        private const val DEFAULT_TOKEN_TYPE = "Bearer"
     }
 }
