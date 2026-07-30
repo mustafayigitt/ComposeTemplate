@@ -3,6 +3,7 @@ package com.ytapps.composetemplate.feature.auth.data.repository
 import com.google.common.truth.Truth
 import com.ytapps.composetemplate.core.api.Result
 import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.ytapps.composetemplate.core.security.TokenStore
 import com.ytapps.composetemplate.feature.auth.data.AuthRepository
 import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
 import com.ytapps.composetemplate.feature.auth.data.model.AuthResponseModel
@@ -27,12 +28,14 @@ internal class AuthRepositoryTest {
     private lateinit var authRepository: IAuthRepository
     private lateinit var authService: AuthService
     private lateinit var preferencesManager: IPreferencesManager
+    private lateinit var tokenStore: TokenStore
 
     @Before
     fun setUp() {
         authService = mockk<AuthService>()
         preferencesManager = mockk<IPreferencesManager>(relaxed = true)
-        authRepository = AuthRepository(authService, preferencesManager)
+        tokenStore = mockk<TokenStore>(relaxed = true)
+        authRepository = AuthRepository(authService, preferencesManager, tokenStore)
     }
 
     @Test
@@ -60,7 +63,7 @@ internal class AuthRepositoryTest {
     }
 
     @Test
-    fun `given valid authRequestModel when login() then verify setAccessToken called`() {
+    fun `given valid authRequestModel when login() then verify tokens are stored securely`() {
         // Given
         val authRequestModel = AuthRequestModel(
             email = "email",
@@ -79,13 +82,13 @@ internal class AuthRepositoryTest {
 
         // Then
         Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
-        coVerify { preferencesManager.setAccessToken("token") }
-        coVerify { preferencesManager.setRefreshToken("refresh") }
-        coVerify { preferencesManager.setTokenType("Bearer") }
+        coVerify { tokenStore.setAccessToken("token") }
+        coVerify { tokenStore.setRefreshToken("refresh") }
+        coVerify { tokenStore.setTokenType("Bearer") }
     }
 
     @Test
-    fun `given invalid authRequestModel when login() then verify setAccessToken not called`() {
+    fun `given invalid authRequestModel when login() then verify tokens are not stored`() {
         // Given
         val authRequestModel = AuthRequestModel(
             email = "email",
@@ -101,7 +104,7 @@ internal class AuthRepositoryTest {
 
         // Then
         Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
-        coVerify(exactly = 0) { preferencesManager.setAccessToken(any()) }
+        coVerify(exactly = 0) { tokenStore.setAccessToken(any()) }
     }
 
 }

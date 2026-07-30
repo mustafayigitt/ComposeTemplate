@@ -1,6 +1,6 @@
 package com.ytapps.composetemplate.core.api
 
-import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.ytapps.composetemplate.core.security.TokenStore
 import dagger.Lazy
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
@@ -25,7 +25,7 @@ import javax.inject.Singleton
  */
 @Singleton
 internal class TokenAuthenticator @Inject constructor(
-    private val prefs: IPreferencesManager,
+    private val tokenStore: TokenStore,
     private val tokenRefresher: Lazy<ITokenRefresher>
 ) : Authenticator {
 
@@ -37,11 +37,11 @@ internal class TokenAuthenticator @Inject constructor(
             return null
         }
         
-        val currentToken = prefs.getAccessToken()
+        val currentToken = tokenStore.getAccessToken()
         
         synchronized(lock) {
             // Check if token was already refreshed by another thread
-            val latestToken = prefs.getAccessToken()
+            val latestToken = tokenStore.getAccessToken()
             
             if (latestToken != currentToken && !latestToken.isNullOrEmpty()) {
                 // Token was refreshed by another thread, retry with new token
@@ -75,7 +75,7 @@ internal class TokenAuthenticator @Inject constructor(
     }
     
     private fun buildRequestWithToken(request: Request, token: String): Request {
-        val tokenType = prefs.getTokenType() ?: "Bearer"
+        val tokenType = tokenStore.getTokenType() ?: DEFAULT_TOKEN_TYPE
         return request.newBuilder()
             .header(HEADER_AUTHORIZATION, "$tokenType $token")
             .build()
@@ -94,5 +94,6 @@ internal class TokenAuthenticator @Inject constructor(
     companion object {
         private const val MAX_RETRY_COUNT = 3
         private const val HEADER_AUTHORIZATION = "Authorization"
+        private const val DEFAULT_TOKEN_TYPE = "Bearer"
     }
 }

@@ -4,6 +4,8 @@ import com.ytapps.composetemplate.core.local.IPreferencesManager
 import com.ytapps.composetemplate.core.local.PreferencesManager
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.core.navigation.NavigationManager
+import com.ytapps.composetemplate.core.security.EncryptedTokenStore
+import com.ytapps.composetemplate.core.security.TokenStore
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -17,6 +19,11 @@ internal abstract class BinderModule {
     abstract fun bindPreferencesManager(
         preferencesManager: PreferencesManager
     ): IPreferencesManager
+
+    @Binds
+    abstract fun bindTokenStore(
+        tokenStore: EncryptedTokenStore
+    ): TokenStore
 
     @Binds
     abstract fun bindNavigationManager(

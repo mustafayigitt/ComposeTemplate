@@ -4,6 +4,7 @@ import com.ytapps.composetemplate.core.api.Result
 import com.ytapps.composetemplate.core.api.map
 import com.ytapps.composetemplate.core.base.BaseRepository
 import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.ytapps.composetemplate.core.security.TokenStore
 import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
 import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
 import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
@@ -13,7 +14,8 @@ import javax.inject.Inject
 
 internal class AuthRepository @Inject constructor(
     private val authService: AuthService,
-    private val prefs: IPreferencesManager
+    private val prefs: IPreferencesManager,
+    private val tokenStore: TokenStore
 ) : BaseRepository(), IAuthRepository {
 
     override fun hasUser(): Boolean {
@@ -39,9 +41,9 @@ internal class AuthRepository @Inject constructor(
         }
         if (result is Result.Success) {
             val data = result.data
-            prefs.setAccessToken(data.accessToken)
-            prefs.setRefreshToken(data.refreshToken)
-            prefs.setTokenType(data.tokenType)
+            tokenStore.setAccessToken(data.accessToken)
+            tokenStore.setRefreshToken(data.refreshToken)
+            tokenStore.setTokenType(data.tokenType)
         }
         return result
     }

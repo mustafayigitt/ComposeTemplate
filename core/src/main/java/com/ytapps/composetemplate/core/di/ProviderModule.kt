@@ -2,6 +2,7 @@ package com.ytapps.composetemplate.core.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.ytapps.composetemplate.core.BuildConfig
 import com.ytapps.composetemplate.core.api.AuthInterceptor
 import com.ytapps.composetemplate.core.api.TokenAuthenticator
 import com.ytapps.composetemplate.core.util.Constants
@@ -28,7 +29,12 @@ internal object ProviderModule {
     @Singleton
     fun provideLoggingInterceptor(): HttpLoggingInterceptor {
         return HttpLoggingInterceptor().apply {
-            setLevel(HttpLoggingInterceptor.Level.BODY)
+            redactHeader(HEADER_AUTHORIZATION)
+            redactHeader(HEADER_COOKIE)
+            setLevel(
+                if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                else HttpLoggingInterceptor.Level.NONE
+            )
         }
     }
 
@@ -41,7 +47,7 @@ internal object ProviderModule {
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(authInterceptor)          // Adds auth headers
-            .addInterceptor(loggingInterceptor)       // Logs requests/responses
+            .addInterceptor(loggingInterceptor)       // Logs requests/responses with sensitive headers redacted
             .authenticator(tokenAuthenticator)         // Handles 401 and refreshes token
             .build()
     }
@@ -77,4 +83,7 @@ internal object ProviderModule {
             .client(okHttpClient)
             .build()
     }
+
+    private const val HEADER_AUTHORIZATION = "Authorization"
+    private const val HEADER_COOKIE = "Cookie"
 }
