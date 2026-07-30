@@ -10,7 +10,6 @@ import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
 import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
 import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
 import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
-import retrofit2.Response
 import javax.inject.Inject
 
 internal class AuthRepository @Inject constructor(
@@ -54,17 +53,8 @@ internal class AuthRepository @Inject constructor(
     }
 
     override suspend fun refreshTokens(): Result<AuthTokens> {
-        return safeCall {
-            // TODO: Replace this placeholder with the app's real refresh-token endpoint.
-            // The endpoint should return a complete token set so TokenAuthenticator can
-            // persist it atomically before retrying the failed request.
-            Response.success(
-                AuthTokens(
-                    accessToken = "",
-                    refreshToken = "",
-                    tokenType = AuthTokens.DEFAULT_TOKEN_TYPE
-                )
-            )
-        }
+        return Result.Error(
+            message = "Refresh token endpoint is not implemented. Replace this template implementation with your API call."
+        )
     }
 }
