@@ -7,6 +7,7 @@ import com.ytapps.composetemplate.core.data.security.AuthTokens
 import com.ytapps.composetemplate.core.data.security.TokenStore
 import com.ytapps.composetemplate.core.network.BaseRepository
 import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
+import com.ytapps.composetemplate.feature.auth.data.remote.AuthService
 import com.ytapps.composetemplate.feature.auth.domain.IAuthRepository
 import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
 import javax.inject.Inject
