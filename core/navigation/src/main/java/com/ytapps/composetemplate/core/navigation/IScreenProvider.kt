@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 interface IScreenProvider {
     /**
      * Provides the screen composable for the given route.
-     * Returns null if this provider doesn't handle the given route.
+     * Returns false if this provider doesn't handle the given route.
      */
     @Composable
     fun provideScreen(

@@ -15,6 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,6 +28,7 @@ import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
 import com.ytapps.composetemplate.feature.onboarding.navigation.OnboardingRoute
 import com.ytapps.composetemplate.feature.onboarding.presentation.R
+import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreen(navigationManager: INavigationManager) {
@@ -39,6 +42,7 @@ internal fun OnboardingScreenInternal(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = { uiState.totalPages })
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -51,6 +55,11 @@ internal fun OnboardingScreenInternal(
                 }
             }
         }
+    }
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .collect { page -> viewModel.onPageChanged(page) }
     }
 
     Column(
@@ -83,10 +92,11 @@ internal fun OnboardingScreenInternal(
         } else {
             Button(
                 onClick = {
-                    // In a real app, you might want to animate to next page
+                    scope.launch {
+                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = false, // Just for placeholder
             ) {
                 Text(text = stringResource(R.string.onboarding_button_next))
             }

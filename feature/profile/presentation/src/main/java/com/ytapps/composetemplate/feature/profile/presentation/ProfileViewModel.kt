@@ -23,7 +23,7 @@ internal class ProfileViewModel
         private val updateLanguage: UpdateLanguageUseCase,
         private val getLanguage: GetLanguageUseCase,
         private val logout: LogoutUseCase,
-    ) : BaseViewModel<ProfileUiState, Unit>() {
+    ) : BaseViewModel<ProfileUiState, ProfileEvent>() {
         override val uiStateInternal = MutableStateFlow(ProfileUiState())
 
         init {
@@ -62,6 +62,11 @@ internal class ProfileViewModel
         fun logout() {
             viewModelScope.launch {
                 logout.invoke()
+                sendEvent(ProfileEvent.NavigateToLogin)
             }
         }
     }
+
+sealed class ProfileEvent {
+    data object NavigateToLogin : ProfileEvent()
+}

@@ -200,6 +200,10 @@ EXPECTED_SIGNATURE_HASH="your_release_sha256_hex_with_or_without_colons"
 NATIVE_RUNTIME_CHECKS_ENABLED=true
 CERTIFICATE_PINNING_ENABLED=false
 CERTIFICATE_PINS=""
+STORE_FILE="release.keystore"
+KEY_ALIAS="your_key_alias"
+KEY_PASSWORD="your_key_password"
+STORE_PASSWORD="your_store_password"
 ```
 
 See `SECRET_MANAGEMENT.md` for the threat model and release checklist.

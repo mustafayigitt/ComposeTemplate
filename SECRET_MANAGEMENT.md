@@ -53,6 +53,7 @@ NATIVE_RUNTIME_CHECKS_ENABLED=true
 CERTIFICATE_PINNING_ENABLED=false
 CERTIFICATE_PINS="sha256/primaryBase64PinHereAAAAAAAAAAAAAAA=,sha256/backupBase64PinHereBBBBBBBBBBBBBBB="
 
+STORE_FILE="release.keystore"
 KEY_ALIAS="release_key_alias"
 KEY_PASSWORD="release_key_password"
 STORE_PASSWORD="release_store_password"
@@ -99,7 +100,7 @@ Bu yapi su riskleri azaltmayi hedefler:
 - `strings` ile APK icinde ham key yakalanmasi
 - Yanlis base URL veya placeholder ile artifact uretilmesi
 - User CA uzerinden release MITM denemeleri
-- Re-signed clone app'in release secret alabilmesi
+- Basit re-signed clone app'in release secret alabilmesi
 - Debugger/emulator/root/hooking gibi runtime analiz sinyalleri
 
 Bu yapi sunlari garanti etmez:
@@ -107,6 +108,7 @@ Bu yapi sunlari garanti etmez:
 - Client icindeki secret'in sonsuza kadar gizli kalmasi
 - Runtime memory'de acilan degerin hic yakalanamamasi
 - Frida/Xposed/root kontrollerinin bypass edilememesi
+- Patch'lenmis bir client'in native/Kotlin kontrollerini atlatamamasi
 - Backend authorization, token expiration veya attestation yerine gecmesi
 
 Gercek yuksek yetkili secret'lar backend, token exchange, expiration, Firebase/Supabase rules, Play Integrity/App Attest ve server-side kontrollerle korunmalidir.

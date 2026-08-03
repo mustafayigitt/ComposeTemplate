@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.detekt) apply false
     alias(libs.plugins.ktlint) apply false
     id("composetemplate.validate.secrets")
+    id("composetemplate.scaffold.feature")
 }
 
 tasks.register("clean", Delete::class) {

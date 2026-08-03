@@ -35,6 +35,7 @@ private val SECRET_KEYS =
         "NATIVE_RUNTIME_CHECKS_ENABLED",
         "CERTIFICATE_PINNING_ENABLED",
         "CERTIFICATE_PINS",
+        "STORE_FILE",
         "STORE_PASSWORD",
         "KEY_ALIAS",
         "KEY_PASSWORD",

@@ -27,16 +27,25 @@ android {
     }
 
     val localProperties =
-        rootProject.file("local.properties").inputStream().use { stream ->
-            Properties().apply { load(stream) }
+        Properties().apply {
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                localPropertiesFile.inputStream().use { load(it) }
+            }
         }
+
+    fun signingValue(key: String): String? =
+        secrets
+            .getProperty(key)
+            ?.replace("\"", "")
+            ?: localProperties.getProperty(key)
 
     signingConfigs {
         create("release") {
-            storeFile = file(localProperties.getProperty("STORE_FILE") ?: error("STORE_FILE not found in local.properties"))
-            keyAlias = secrets.getProperty("KEY_ALIAS")?.replace("\"", "")
-            keyPassword = secrets.getProperty("KEY_PASSWORD")?.replace("\"", "")
-            storePassword = secrets.getProperty("STORE_PASSWORD")?.replace("\"", "")
+            storeFile = file(signingValue("STORE_FILE") ?: "release.keystore")
+            keyAlias = signingValue("KEY_ALIAS")
+            keyPassword = signingValue("KEY_PASSWORD")
+            storePassword = signingValue("STORE_PASSWORD")
         }
     }
 

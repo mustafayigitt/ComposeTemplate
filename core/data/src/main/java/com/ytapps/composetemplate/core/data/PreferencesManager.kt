@@ -80,7 +80,7 @@ class PreferencesManager
 
         override fun getUUID(): String? = cachedUUID.value
 
-        override fun hasUser(): Boolean = cachedUUID.value != null
+        override fun hasUser(): Boolean = !cachedAccessToken.value.isNullOrBlank()
 
         // Async setters (DataStore operations)
         override suspend fun setAccessToken(accessToken: String) {
@@ -122,6 +122,15 @@ class PreferencesManager
         override suspend fun setOnboardingCompleted(isCompleted: Boolean) {
             dataStore.edit { preferences ->
                 preferences[Keys.IS_ONBOARDING_COMPLETED] = isCompleted
+            }
+        }
+
+        override suspend fun clearAuth() {
+            dataStore.edit { preferences ->
+                preferences.remove(Keys.ACCESS_TOKEN)
+                preferences.remove(Keys.REFRESH_TOKEN)
+                preferences.remove(Keys.TOKEN_TYPE)
+                preferences.remove(Keys.UUID)
             }
         }
 

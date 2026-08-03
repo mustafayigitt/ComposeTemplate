@@ -38,6 +38,15 @@ internal class TokenAuthenticator
             route: Route?,
             response: Response,
         ): Request? {
+            if (response
+                    .request
+                    .url
+                    .encodedPath
+                    .endsWith(AUTH_REFRESH_PATH)
+            ) {
+                return null
+            }
+
             // Don't retry if we've already tried multiple times
             if (responseCount(response) >= MAX_RETRY_COUNT) {
                 return null
@@ -103,6 +112,7 @@ internal class TokenAuthenticator
 
         companion object {
             private const val MAX_RETRY_COUNT = 3
+            private const val AUTH_REFRESH_PATH = "/auth/refresh"
             private const val HEADER_AUTHORIZATION = "Authorization"
         }
     }

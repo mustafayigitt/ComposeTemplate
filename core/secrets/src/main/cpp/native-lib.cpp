@@ -4,8 +4,8 @@
 #include <cstdlib>
 #include <algorithm>
 #include <cctype>
+#include <fstream>
 #include <android/log.h>
-#include <sys/ptrace.h>
 #include <unistd.h>
 #include <sys/system_properties.h>
 #include "secrets_generated.h"
@@ -18,10 +18,15 @@
  * Checks if a debugger is attached to the process.
  */
 bool isDebuggerAttached() {
-    if (ptrace(PTRACE_TRACEME, 0, 1, 0) < 0) {
-        return true;
+    std::ifstream statusFile("/proc/self/status");
+    std::string line;
+    while (std::getline(statusFile, line)) {
+        const std::string prefix = "TracerPid:";
+        if (line.rfind(prefix, 0) == 0) {
+            const std::string tracerPid = line.substr(prefix.length());
+            return tracerPid.find_first_not_of(" \t0") != std::string::npos;
+        }
     }
-    ptrace(PTRACE_DETACH, 0, 1, 0);
     return false;
 }
 

@@ -24,21 +24,6 @@ internal class AuthRepository
             email: String,
             password: String,
         ): Result<AuthModel> {
-            if (email == "admin" && password == "admin") {
-                val authModel =
-                    AuthModel(
-                        accessToken = "admin-token",
-                        refreshToken = "admin-refresh",
-                        expiresIn = "99999",
-                        tokenType = "Bearer",
-                    )
-                prefs.setAccessToken(authModel.accessToken)
-                prefs.setRefreshToken(authModel.refreshToken)
-                prefs.setTokenType(authModel.tokenType)
-                prefs.setUUID("admin-uuid")
-                return Result.Success(authModel)
-            }
-
             val result =
                 safeCall(
                     call = {

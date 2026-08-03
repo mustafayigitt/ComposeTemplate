@@ -9,6 +9,6 @@ class LogoutUseCase
         private val preferencesManager: IPreferencesManager,
     ) {
         suspend operator fun invoke() {
-            preferencesManager.clear()
+            preferencesManager.clearAuth()
         }
     }

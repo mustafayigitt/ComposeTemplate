@@ -58,6 +58,7 @@ class ValidateSecretsPlugin : Plugin<Project> {
                             |
                             |  For release builds, also add:
                             |    STORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
+                            |    STORE_FILE is optional and defaults to release.keystore.
                             |
                         """.trimMargin()
                         )
@@ -112,6 +113,11 @@ class ValidateSecretsPlugin : Plugin<Project> {
                 if (xorMask.length < MIN_XOR_MASK_LENGTH) {
                     throw GradleException(
                         "XOR_MASK must be at least $MIN_XOR_MASK_LENGTH characters to avoid weak obfuscation.",
+                    )
+                }
+                if (!SAFE_MASK_REGEX.matches(xorMask)) {
+                    throw GradleException(
+                        "XOR_MASK must use only letters, numbers, '.', '_', '+', '/', '=' or '-' to keep Gradle/CMake injection safe.",
                     )
                 }
 
@@ -327,6 +333,7 @@ class ValidateSecretsPlugin : Plugin<Project> {
         const val MIN_CERTIFICATE_PIN_COUNT = 2
         const val MIN_SCANNED_SECRET_LENGTH = 8
         val SHA_256_HEX_REGEX = Regex("^[A-F0-9]{64}$")
+        val SAFE_MASK_REGEX = Regex("^[A-Za-z0-9._+/=-]+$")
         val CERTIFICATE_PIN_REGEX = Regex("^sha256/[A-Za-z0-9+/=]{44}$")
         val SCANNED_SECRET_KEYS =
             listOf(
@@ -346,6 +353,7 @@ class ValidateSecretsPlugin : Plugin<Project> {
                 "NATIVE_RUNTIME_CHECKS_ENABLED",
                 "CERTIFICATE_PINNING_ENABLED",
                 "CERTIFICATE_PINS",
+                "STORE_FILE",
                 "STORE_PASSWORD",
                 "KEY_ALIAS",
                 "KEY_PASSWORD",

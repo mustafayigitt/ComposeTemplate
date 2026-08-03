@@ -44,7 +44,29 @@ class CreateNewAppPlugin : Plugin<Project> {
                 target.copy {
                     from(target.rootDir)
                     into(targetDir)
-                    exclude(".git", ".gradle", ".idea", "**/build", "local.properties", "**/.DS_Store")
+                    exclude(
+                        ".git",
+                        ".gradle",
+                        ".idea",
+                        ".kotlin",
+                        ".agents",
+                        ".codex",
+                        ".artifacts",
+                        ".navigation",
+                        ".cxx",
+                        ".externalNativeBuild",
+                        "**/build",
+                        "local.properties",
+                        "secrets.properties",
+                        "**/.DS_Store",
+                        "**/*.apk",
+                        "**/*.aab",
+                        "**/*.ap_",
+                        "**/*.dex",
+                        "**/*.keystore",
+                        "**/*.hprof",
+                        "**/*.log",
+                    )
                 }
 
                 printStep("Updating package names and references...")

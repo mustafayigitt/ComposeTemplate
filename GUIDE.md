@@ -42,7 +42,7 @@ Tüm ViewModel'ler `BaseViewModel` sınıfından türemelidir:
 ```kotlin
 @HiltViewModel
 class MyViewModel @Inject constructor() : BaseViewModel<MyUiState, MyEvent>() {
-    override val _uiState = MutableStateFlow(MyUiState())
+    override val uiStateInternal = MutableStateFlow(MyUiState())
 
     fun doSomething() {
         updateState { it.copy(isLoading = true) }

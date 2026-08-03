@@ -2,6 +2,7 @@ package com.ytapps.composetemplate.core.network.di
 
 import com.ytapps.composetemplate.core.network.AuthInterceptor
 import com.ytapps.composetemplate.core.network.BuildConfig
+import com.ytapps.composetemplate.core.network.TokenAuthenticator
 import com.ytapps.composetemplate.core.secrets.SecretManager
 import dagger.Module
 import dagger.Provides
@@ -20,12 +21,19 @@ import javax.inject.Singleton
 internal object NetworkModule {
     @Provides
     @Singleton
-    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient =
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        tokenAuthenticator: TokenAuthenticator,
+    ): OkHttpClient =
         OkHttpClient
             .Builder()
             .addInterceptor(authInterceptor)
+            .authenticator(tokenAuthenticator)
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
+                    redactHeader(AuthInterceptor.HEADER_AUTHORIZATION)
+                    redactHeader("Cookie")
+                    redactHeader("Set-Cookie")
                     level =
                         if (BuildConfig.DEBUG) {
                             HttpLoggingInterceptor.Level.BODY

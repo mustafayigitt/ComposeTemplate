@@ -28,6 +28,8 @@ interface IPreferencesManager {
 
     suspend fun setUUID(uuid: String)
 
+    suspend fun clearAuth()
+
     suspend fun clear()
 
     // Flow-based reactive access
