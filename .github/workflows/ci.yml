@@ -29,8 +29,8 @@ jobs:
       - name: Create local.properties and secrets.properties
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
-          echo "API_KEY_DEBUG=\"debug\"" > secrets.properties
-          echo "API_KEY_RELEASE=\"release\"" >> secrets.properties
+          echo "API_KEY_DEBUG=\"debug_secret_value\"" > secrets.properties
+          echo "API_KEY_RELEASE=\"release_secret_value\"" >> secrets.properties
           echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
           echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
           echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
@@ -67,8 +67,8 @@ jobs:
       - name: Create local.properties and secrets.properties
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
-          echo "API_KEY_DEBUG=\"debug\"" > secrets.properties
-          echo "API_KEY_RELEASE=\"release\"" >> secrets.properties
+          echo "API_KEY_DEBUG=\"debug_secret_value\"" > secrets.properties
+          echo "API_KEY_RELEASE=\"release_secret_value\"" >> secrets.properties
           echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
           echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
           echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
@@ -85,7 +85,7 @@ jobs:
         run: ./gradlew testDebugUnitTest
 
   build:
-    name: Assemble Debug
+    name: Assemble Debug + Release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -102,8 +102,8 @@ jobs:
       - name: Create local.properties and secrets.properties
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
-          echo "API_KEY_DEBUG=\"debug\"" > secrets.properties
-          echo "API_KEY_RELEASE=\"release\"" >> secrets.properties
+          echo "API_KEY_DEBUG=\"debug_secret_value\"" > secrets.properties
+          echo "API_KEY_RELEASE=\"release_secret_value\"" >> secrets.properties
           echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
           echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
           echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
@@ -116,5 +116,53 @@ jobs:
           echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
           echo "MIN_VERSION=1" >> secrets.properties
 
-      - name: Assemble debug
-        run: ./gradlew assembleDebug
+      - name: Assemble debug and release
+        run: ./gradlew assembleDebug :app:assembleRelease
+
+  template-smoke:
+    name: Template Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Create local.properties and secrets.properties
+        run: |
+          echo "STORE_FILE=debug.keystore" > local.properties
+          echo "API_KEY_DEBUG=\"debug_secret_value\"" > secrets.properties
+          echo "API_KEY_RELEASE=\"release_secret_value\"" >> secrets.properties
+          echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
+          echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
+          echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
+          echo "KEY_PASSWORD=\"android\"" >> secrets.properties
+          echo "STORE_PASSWORD=\"android\"" >> secrets.properties
+          echo "XOR_MASK=\"ci_mask_value_with_24_chars_minimum\"" >> secrets.properties
+          echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
+          echo "NATIVE_RUNTIME_CHECKS_ENABLED=true" >> secrets.properties
+          echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
+          echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
+          echo "MIN_VERSION=1" >> secrets.properties
+
+      - name: Verify scaffold task is registered
+        run: ./gradlew help --task scaffoldFeature
+
+      - name: Generate a feature scaffold
+        run: ./gradlew scaffoldFeature -PfeatureName=ci_feature
+
+      - name: Compile generated feature
+        run: ./gradlew :feature:ci_feature:presentation:compileDebugKotlin
+
+      - name: Verify create-new-app excludes local secrets
+        run: |
+          ./gradlew create-new-app -Pargs='com.example.generated,GeneratedApp' -q --console=plain
+          test ! -f ../GeneratedApp/secrets.properties
+          test ! -f ../GeneratedApp/local.properties
+          test ! -d ../GeneratedApp/.git

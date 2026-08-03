@@ -13,7 +13,11 @@ build-logic/
 │       ├── AndroidHiltConventionPlugin.kt
 │       ├── AndroidLibraryConventionPlugin.kt
 │       ├── AndroidLibraryNativeConventionPlugin.kt # NDK secret management
-│       ├── FeatureConventionPlugin.kt
+│       ├── FeatureDomainConventionPlugin.kt
+│       ├── FeatureDataConventionPlugin.kt
+│       ├── FeatureNavigationConventionPlugin.kt
+│       ├── FeaturePresentationConventionPlugin.kt
+│       ├── ScaffoldFeaturePlugin.kt
 │       ├── StaticAnalysisConventionPlugin.kt
 │       ├── TestConventionPlugin.kt
 │       └── ProjectExtensions.kt
@@ -39,6 +43,12 @@ build-logic/
 **What it does:**
 - Configures CMake and NDK.
 - Injects obfuscated secrets from `secrets.properties` or environment variables as native/compiler definitions.
+
+### `composetemplate.scaffold.feature`
+**What it does:**
+- Generates `data`, `domain`, `navigation`, and `presentation` feature sub-modules.
+- Wires settings/app dependencies.
+- Creates a route, ViewModel, UI state/event, stateless screen, screen provider, Hilt binding, and localized string resources.
 
 ---
 

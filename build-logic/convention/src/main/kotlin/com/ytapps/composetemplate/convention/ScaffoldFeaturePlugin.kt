@@ -14,6 +14,9 @@ class ScaffoldFeaturePlugin : Plugin<Project> {
             doLast {
                 val featureName = target.findProperty("featureName")?.toString()
                     ?: throw IllegalArgumentException("Required: -PfeatureName=<name> (e.g., -PfeatureName=settings)")
+                if (!FEATURE_NAME_REGEX.matches(featureName)) {
+                    throw GradleException("featureName must be lower_snake_case, for example: settings or user_profile")
+                }
 
                 val pkg = target.findProperty("featurePkg")?.toString()
                     ?: "com.ytapps.composetemplate.feature"
@@ -27,41 +30,56 @@ class ScaffoldFeaturePlugin : Plugin<Project> {
 
                 val subModules = listOf("domain", "data", "navigation", "presentation")
                 val featurePkg = "$pkg.$featureName"
+                val routeName = featureName.toPascalCase()
 
                 subModules.forEach { module ->
                     val moduleDir = File(featureDir, module)
                     moduleDir.mkdirs()
 
                     val srcDir = File(moduleDir, "src/main/java")
-                    val srcPath = featurePkg.replace('.', File.separatorChar)
-                    File(srcDir, srcPath).mkdirs()
+                    val basePath = featurePkg.replace('.', File.separatorChar)
+                    File(srcDir, basePath).mkdirs()
 
                     val buildGradle = getBuildGradleContent(featureName, module, pkg)
                     File(moduleDir, "build.gradle.kts").writeText(buildGradle)
 
                     if (module == "navigation") {
-                        val routeFile = File(File(srcDir, srcPath), "${featureName.replaceFirstChar { it.uppercase() }}Route.kt")
+                        val navigationDir = File(srcDir, "$basePath/navigation")
+                        navigationDir.mkdirs()
+                        val routeFile = File(navigationDir, "${routeName}Route.kt")
                         routeFile.writeText(getNavigationContent(featureName, featurePkg))
                     }
                     if (module == "domain") {
-                        val domainDir = File(srcDir, srcPath + File.separator + "domain")
+                        val domainDir = File(srcDir, "$basePath/domain")
                         domainDir.mkdirs()
-                        File(domainDir, "PlaceholderUseCase.kt").writeText(getDomainContent(featurePkg))
+                        File(domainDir, "Get${routeName}TitleUseCase.kt").writeText(getDomainContent(featureName, featurePkg))
                     }
 
                     if (module == "presentation") {
+                        val presentationDir = File(srcDir, "$basePath/presentation")
+                        val diDir = File(presentationDir, "di")
+                        presentationDir.mkdirs()
+                        diDir.mkdirs()
+
+                        File(presentationDir, "${routeName}UiState.kt").writeText(getUiStateContent(routeName, featurePkg))
+                        File(presentationDir, "${routeName}Event.kt").writeText(getEventContent(routeName, featurePkg))
+                        File(presentationDir, "${routeName}ViewModel.kt").writeText(getViewModelContent(routeName, featurePkg))
+                        File(presentationDir, "${routeName}Route.kt").writeText(getPresentationRouteContent(featureName, routeName, featurePkg))
+                        File(presentationDir, "${routeName}ScreenProvider.kt").writeText(getScreenProviderContent(routeName, featurePkg))
+                        File(diDir, "${routeName}Module.kt").writeText(getPresentationModuleContent(routeName, featurePkg))
+
                         val resDir = File(moduleDir, "src/main/res")
                         val valuesDir = File(resDir, "values")
                         val valuesTrDir = File(resDir, "values-tr")
                         valuesDir.mkdirs()
                         valuesTrDir.mkdirs()
 
-                        File(valuesDir, "strings.xml").writeText("<resources>\n    <string name=\"feature_${featureName}_title\">${featureName.replaceFirstChar { it.uppercase() }}</string>\n</resources>")
-                        File(valuesTrDir, "strings.xml").writeText("<resources>\n    <string name=\"feature_${featureName}_title\">${featureName.replaceFirstChar { it.uppercase() }}</string>\n</resources>")
+                        File(valuesDir, "strings.xml").writeText(getStringsContent(featureName, routeName))
+                        File(valuesTrDir, "strings.xml").writeText(getStringsContent(featureName, routeName))
                     }
 
                     if (module == "data" && target.findProperty("withDatabase")?.toString()?.toBoolean() == true) {
-                        val daoDir = File(srcDir, srcPath + File.separator + "data" + File.separator + "dao")
+                        val daoDir = File(srcDir, "$basePath/data/dao")
                         daoDir.mkdirs()
                         // Placeholder for DAO
                     }
@@ -154,6 +172,7 @@ android {
 
 dependencies {
     implementation(project(":feature:$featureName:domain"))
+    implementation(project(":feature:$featureName:navigation"))
 }
 """
             else -> ""
@@ -161,7 +180,7 @@ dependencies {
     }
 
     private fun getNavigationContent(featureName: String, pkg: String): String {
-        val routeName = featureName.replaceFirstChar { it.uppercase() }
+        val routeName = featureName.toPascalCase()
         return """package $pkg.navigation
 
 import com.ytapps.composetemplate.core.navigation.INavigationItem
@@ -174,8 +193,173 @@ data object ${routeName}Route : INavigationItem {
 """
     }
 
-    private fun getDomainContent(featurePkg: String): String {
+    private fun getDomainContent(featureName: String, featurePkg: String): String {
+        val routeName = featureName.toPascalCase()
         return """package $featurePkg.domain
+
+import javax.inject.Inject
+
+class Get${routeName}TitleUseCase
+    @Inject
+    constructor() {
+        operator fun invoke(): String = "$routeName"
+    }
 """
+    }
+
+    private fun getUiStateContent(routeName: String, featurePkg: String): String {
+        return """package $featurePkg.presentation
+
+data class ${routeName}UiState(
+    val isLoading: Boolean = false,
+)
+"""
+    }
+
+    private fun getEventContent(routeName: String, featurePkg: String): String {
+        return """package $featurePkg.presentation
+
+sealed interface ${routeName}Event
+"""
+    }
+
+    private fun getViewModelContent(routeName: String, featurePkg: String): String {
+        return """package $featurePkg.presentation
+
+import androidx.lifecycle.viewModelScope
+import com.ytapps.composetemplate.core.ui.BaseViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class ${routeName}ViewModel
+    @Inject
+    constructor() : BaseViewModel<${routeName}UiState, ${routeName}Event>() {
+        override val uiStateInternal = MutableStateFlow(${routeName}UiState())
+
+        init {
+            viewModelScope.launch {
+                updateState { it.copy(isLoading = false) }
+            }
+        }
+    }
+"""
+    }
+
+    private fun getPresentationRouteContent(featureName: String, routeName: String, featurePkg: String): String {
+        return """package $featurePkg.presentation
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import $featurePkg.presentation.R
+
+@Composable
+fun ${routeName}Route(
+    viewModel: ${routeName}ViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    ${routeName}Screen(
+        title = stringResource(R.string.feature_${featureName}_title),
+        uiState = uiState,
+    )
+}
+
+@Composable
+internal fun ${routeName}Screen(
+    title: String,
+    uiState: ${routeName}UiState,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (uiState.isLoading) {
+            CircularProgressIndicator()
+        } else {
+            Text(text = title)
+        }
+    }
+}
+"""
+    }
+
+    private fun getScreenProviderContent(routeName: String, featurePkg: String): String {
+        return """package $featurePkg.presentation
+
+import androidx.compose.runtime.Composable
+import com.ytapps.composetemplate.core.navigation.INavigationItem
+import com.ytapps.composetemplate.core.navigation.INavigationManager
+import com.ytapps.composetemplate.core.navigation.IScreenProvider
+import $featurePkg.navigation.${routeName}Route
+import javax.inject.Inject
+
+class ${routeName}ScreenProvider
+    @Inject
+    constructor() : IScreenProvider {
+        @Composable
+        override fun provideScreen(
+            route: INavigationItem,
+            navigationManager: INavigationManager,
+        ): Boolean =
+            when (route) {
+                is ${routeName}Route -> {
+                    ${routeName}Route()
+                    true
+                }
+
+                else -> false
+            }
+    }
+"""
+    }
+
+    private fun getPresentationModuleContent(routeName: String, featurePkg: String): String {
+        return """package $featurePkg.presentation.di
+
+import com.ytapps.composetemplate.core.navigation.IScreenProvider
+import $featurePkg.presentation.${routeName}ScreenProvider
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoSet
+
+@Module
+@InstallIn(SingletonComponent::class)
+internal abstract class ${routeName}Module {
+    @Binds
+    @IntoSet
+    abstract fun bind${routeName}ScreenProvider(provider: ${routeName}ScreenProvider): IScreenProvider
+}
+"""
+    }
+
+    private fun getStringsContent(featureName: String, routeName: String): String {
+        return """<resources>
+    <string name="feature_${featureName}_title">$routeName</string>
+</resources>
+"""
+    }
+
+    private fun String.toPascalCase(): String =
+        split('-', '_')
+            .filter { it.isNotBlank() }
+            .joinToString("") { part -> part.replaceFirstChar { it.uppercase() } }
+
+    companion object {
+        val FEATURE_NAME_REGEX = Regex("^[a-z][a-z0-9_]*$")
     }
 }
