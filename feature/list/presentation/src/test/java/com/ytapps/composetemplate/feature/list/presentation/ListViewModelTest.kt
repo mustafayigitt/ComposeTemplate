@@ -15,14 +15,26 @@ internal class ListViewModelTest {
     fun `given getItems called when collect state then items populated`() {
         viewModel.getItems()
 
-        assertThat(viewModel.uiState.value.items).hasSize(100)
+        assertThat(viewModel.uiState.value.items).hasSize(4)
         assertThat(
             viewModel.uiState.value.items
                 .first(),
-        ).isEqualTo("Item 0")
+        ).isEqualTo(
+            ListItemUiModel(
+                id = "architecture",
+                title = "Clean Architecture",
+                subtitle = "Feature modules split into data, domain, navigation, and presentation.",
+            ),
+        )
         assertThat(
             viewModel.uiState.value.items
                 .last(),
-        ).isEqualTo("Item 99")
+        ).isEqualTo(
+            ListItemUiModel(
+                id = "design-system",
+                title = "Design System",
+                subtitle = "Reusable Compose components, theme tokens, and preview helpers.",
+            ),
+        )
     }
 }

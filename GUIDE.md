@@ -18,7 +18,7 @@ Bu komut şunları otomatik yapar:
 
 ## 2. Navigasyon Kaydı
 
-Bir ekranın navigasyonda görünmesi için `presentation` modülündeki `IScreenProvider` implementasyonuna eklenmelidir:
+`scaffoldFeature` komutu `navigation` modülünde route'u, `presentation` modülünde `IScreenProvider` binding'ini oluşturur. Elle ekleme yapmanız gerekirse pattern şu olmalıdır:
 
 ```kotlin
 class SettingsScreenProvider @Inject constructor() : IScreenProvider {
@@ -26,7 +26,7 @@ class SettingsScreenProvider @Inject constructor() : IScreenProvider {
     override fun provideScreen(route: INavigationItem, navigationManager: INavigationManager): Boolean =
         when (route) {
             is SettingsRoute -> {
-                SettingsScreen(navigationManager)
+                SettingsRoute()
                 true
             }
             else -> false
@@ -54,6 +54,7 @@ class MyViewModel @Inject constructor() : BaseViewModel<MyUiState, MyEvent>() {
 ### UI State ve Event
 - **UiState:** Ekranın tüm durumunu temsil eden tek bir data class.
 - **Event:** Snackbar gösterimi, navigasyon gibi bir kerelik olaylar için `Channel` tabanlı sistem.
+- **Route/UI ayrımı:** Route composable ViewModel, lifecycle collection, event ve navigasyonu bağlar. Plain UI composable sadece immutable state ve callback alır.
 
 ## 4. Secret Management
 
@@ -76,7 +77,13 @@ Ortak bileşenleri `:core:ui` modülünde bulabilirsiniz:
 
 ## 6. Onboarding ve Akış Kontrolü
 
-Uygulama açılışında (`Splash`) onboarding kontrolü otomatik yapılır. Yeni bir onboarding adımı eklemek için `:feature:onboarding` modülündeki `OnboardingUiState` ve `OnboardingScreen` dosyalarını güncellemeniz yeterlidir.
+Uygulama açılışında `:feature:splash` start destination kararını verir. Onboarding akışı `:feature:onboarding` altında data/domain/navigation/presentation olarak ayrılmıştır.
+
+Yeni bir onboarding adımı eklerken genellikle şu dosyaları birlikte güncelleyin:
+- `feature/onboarding/presentation/.../OnboardingUiState.kt`
+- `feature/onboarding/presentation/.../OnboardingRoute.kt`
+- `feature/onboarding/presentation/src/main/res/values/strings.xml`
+- Gerekirse `feature/onboarding/domain` use case'leri ve `feature/onboarding/data` repository implementasyonu
 
 ## 7. İzin Yönetimi (Permissions)
 
@@ -85,7 +92,19 @@ Uygulama açılışında (`Splash`) onboarding kontrolü otomatik yapılır. Yen
 ```kotlin
 PermissionRequired(
     permission = Manifest.permission.CAMERA,
-    // ...
+    rationaleTitle = "Camera permission",
+    rationaleMessage = "Camera access is needed to scan codes.",
+    permanentlyDeniedTitle = "Permission disabled",
+    permanentlyDeniedMessage = "Enable camera permission from settings.",
+    onPermissionGranted = {
+        CameraContent()
+    },
+    onPermissionDenied = { status, requestPermission ->
+        PermissionDeniedContent(
+            status = status,
+            onRequestPermission = requestPermission,
+        )
+    },
 )
 ```
 
@@ -107,6 +126,6 @@ reviewManager.requestReview(activity)
 
 Kodunuzu göndermeden önce mutlaka şu komutları çalıştırın:
 ```bash
-./gradlew ktlintCheck  # Format kontrolü
-./gradlew detekt       # Statik analiz
+./gradlew ktlintCheck detekt
+./gradlew testDebugUnitTest assembleDebug :app:assembleRelease
 ```

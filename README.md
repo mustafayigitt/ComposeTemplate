@@ -66,15 +66,21 @@ ComposeTemplate/
 │           ├── CreateNewAppPlugin.kt
 │           └── ProjectExtensions.kt
 ├── core/
+│   ├── analytics/          # Analytics contracts and Timber tracker
 │   ├── common/             # Shared utilities (Result, Dispatchers)
+│   ├── config/             # Local config and force-update contract
 │   ├── data/               # DataStore-based PreferencesManager
+│   ├── database/           # Room database foundation
+│   ├── google-play/        # In-app review and update helpers
 │   ├── navigation/         # NavigationManager, ScreenRegistry
 │   ├── network/            # Retrofit, OkHttp, BaseRepository
+│   ├── permission/         # Runtime permission helpers
 │   ├── secrets/            # Secret management and native obfuscation
+│   ├── security/           # Runtime integrity and hardening signals
 │   └── ui/                 # Theme, BaseViewModel, shared components
 ├── feature/
-│   ├── auth/               # Login flow (fully implemented)
-│   ├── detail/             # Detail screen (placeholder)
+│   ├── auth/               # Login flow and token refresh example
+│   ├── detail/             # Typed route argument example
 │   ├── home/               # Home tab (bottom bar)
 │   ├── list/               # List tab (bottom bar)
 │   ├── profile/            # Profile tab (bottom bar)
@@ -107,16 +113,19 @@ Located in `build-logic/convention/`, these plugins encapsulate common build con
 - **`composetemplate.android.application.compose`**: Jetpack Compose setup with metrics and stability reports support
 - **`composetemplate.android.hilt`**: Hilt dependency injection configuration
 - **`composetemplate.android.library`**: Android library module configuration
+- **`composetemplate.android.library.compose`**: Compose setup for Android library modules
+- **`composetemplate.android.room`**: Room and KSP setup with schema export support
 - **`composetemplate.test`**: Common testing dependencies (JUnit, Truth, MockK, Espresso)
-- **`composetemplate.feature.domain`**: Domain module dependencies (`:core:common`, `:core:network`)
-- **`composetemplate.feature.data`**: Data module dependencies (`:core:common`, `:core:data`, `:core:network`, `:core:secrets`)
-- **`composetemplate.feature.navigation`**: Navigation module dependencies (`:core:common`, `:core:navigation`)
-- **`composetemplate.feature.presentation`**: Presentation module dependencies (`:core:common`, `:core:ui`, `:core:navigation`)
+- **`composetemplate.feature.domain`**: Domain module dependencies (`:core:common`) and test/Hilt setup
+- **`composetemplate.feature.data`**: Data module dependencies (`:core:common`, `:core:data`, `:core:database`, `:core:network`, `:core:secrets`)
+- **`composetemplate.feature.navigation`**: Navigation module dependencies (`:core:common`, `:core:navigation`, Compose icons)
+- **`composetemplate.feature.presentation`**: Presentation module dependencies (`:core:common`, `:core:ui`, `:core:navigation`, Compose, Hilt, test setup)
 - **`composetemplate.android.library.native`**: CMake/NDK native library support for secret obfuscation
 - **`composetemplate.validate.secrets`**: Validates `secrets.properties` presence and content
 - **`composetemplate.scaffold.feature`**: Auto-generates a new feature module with all 4 sub-modules
 - **`composetemplate.create.new.app`**: Creates a new app from this template with custom package name
 - **`composetemplate.static.analysis`**: Centralized Detekt and Ktlint configuration for all modules
+- **`composetemplate.baseline.profile.generator`**: Baseline Profile generator module setup
 
 ### Version Catalog
 
@@ -183,15 +192,25 @@ git clone https://github.com/mustafayigitt/ComposeTemplate.git
 cd ComposeTemplate
 ```
 
-2. **Configure Secrets**
+2. **Create a new app from the template**
 
-Create a `secrets.properties` in the project root:
+```bash
+./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -q --console=plain
+cd ../MyNewApp
+```
+
+The initializer rewrites package/application identifiers and intentionally does not copy `local.properties`, `secrets.properties`, `.git`, or build outputs.
+
+3. **Configure local secrets in the generated app**
+
+Create a `secrets.properties` in the generated app root:
 
 ```properties
 API_KEY_DEBUG="your_debug_key"
 API_KEY_RELEASE="your_release_key"
 BASE_URL_DEBUG="https://api-debug.test.com/"
 BASE_URL_RELEASE="https://api.test.com/"
+STORE_FILE="release.keystore"
 KEY_ALIAS="your_key_alias"
 KEY_PASSWORD="your_key_password"
 STORE_PASSWORD="your_store_password"
@@ -200,19 +219,11 @@ EXPECTED_SIGNATURE_HASH="your_release_sha256_hex_with_or_without_colons"
 NATIVE_RUNTIME_CHECKS_ENABLED=true
 CERTIFICATE_PINNING_ENABLED=false
 CERTIFICATE_PINS=""
-STORE_FILE="release.keystore"
-KEY_ALIAS="your_key_alias"
-KEY_PASSWORD="your_key_password"
-STORE_PASSWORD="your_store_password"
 ```
 
 See `SECRET_MANAGEMENT.md` for the threat model and release checklist.
 
-3. **Run the Initializer Plugin**
-
-```bash
-./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -q --console=plain
-```
+Use `./gradlew validateSecrets` to verify the file before building.
 
 ### Feature Scaffolding
 
@@ -237,8 +248,8 @@ This project follows **Clean Architecture** principles:
 ## Testing
 
 ```sh
-# Unit tests
-./gradlew test
+# CI-equivalent local checks
+./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug :app:assembleRelease
 
 # Macrobenchmark
 ./gradlew :benchmark:connectedBenchmarkAndroidTest

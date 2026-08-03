@@ -13,8 +13,10 @@ internal class DetailViewModelTest {
 
     @Test
     fun `given setDetailId called when collect state then id updated`() {
-        viewModel.setDetailId("test-id-42")
+        viewModel.setDetailId("design-system")
 
-        assertThat(viewModel.uiState.value.id).isEqualTo("test-id-42")
+        assertThat(viewModel.uiState.value.id).isEqualTo("design-system")
+        assertThat(viewModel.uiState.value.title).isEqualTo("Design System")
+        assertThat(viewModel.uiState.value.description).isNotEmpty()
     }
 }

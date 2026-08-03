@@ -39,6 +39,12 @@ Onemli sinir: public bir mobil uygulamanin icine konan deger, yeterince motivasy
 
 ## secrets.properties
 
+Yeni app'i urettikten sonra root dizinde ornek dosyadan baslayabilirsin:
+
+```bash
+cp secrets.properties.example secrets.properties
+```
+
 ```properties
 API_KEY_DEBUG="debug_key"
 API_KEY_RELEASE="release_key"

@@ -9,5 +9,17 @@ import javax.inject.Inject
 internal class SearchViewModel
     @Inject
     constructor() : BaseViewModel<SearchUiState, Unit>() {
-        override val uiStateInternal = MutableStateFlow(SearchUiState)
+        override val uiStateInternal = MutableStateFlow(SearchUiState())
+
+        fun onQueryChanged(query: String) {
+            updateState {
+                it.copy(
+                    query = query,
+                    results =
+                        SearchUiState.defaultResults.filter { result ->
+                            result.contains(query, ignoreCase = true)
+                        },
+                )
+            }
+        }
     }

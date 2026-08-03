@@ -15,14 +15,29 @@ internal class ListViewModel
             updateState { state ->
                 state.copy(
                     items =
-                        List(ITEM_COUNT) {
-                            "Item $it"
-                        },
+                        listOf(
+                            ListItemUiModel(
+                                id = "architecture",
+                                title = "Clean Architecture",
+                                subtitle = "Feature modules split into data, domain, navigation, and presentation.",
+                            ),
+                            ListItemUiModel(
+                                id = "networking",
+                                title = "Networking",
+                                subtitle = "Retrofit, OkHttp, token refresh, and repository error handling.",
+                            ),
+                            ListItemUiModel(
+                                id = "security",
+                                title = "Client Hardening",
+                                subtitle = "Build-time secret validation, native access, and release checks.",
+                            ),
+                            ListItemUiModel(
+                                id = "design-system",
+                                title = "Design System",
+                                subtitle = "Reusable Compose components, theme tokens, and preview helpers.",
+                            ),
+                        ),
                 )
             }
-        }
-
-        private companion object {
-            const val ITEM_COUNT = 100
         }
     }
