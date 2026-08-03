@@ -16,5 +16,26 @@ val Project.secrets: Properties
         if (secretsFile.exists()) {
             secretsFile.inputStream().use { properties.load(it) }
         }
+        System.getenv().forEach { (key, value) ->
+            if (key in SECRET_KEYS && value.isNotBlank()) {
+                properties.setProperty(key, value)
+            }
+        }
         return properties
     }
+
+private val SECRET_KEYS =
+    setOf(
+        "API_KEY_DEBUG",
+        "API_KEY_RELEASE",
+        "BASE_URL_DEBUG",
+        "BASE_URL_RELEASE",
+        "XOR_MASK",
+        "EXPECTED_SIGNATURE_HASH",
+        "NATIVE_RUNTIME_CHECKS_ENABLED",
+        "CERTIFICATE_PINNING_ENABLED",
+        "CERTIFICATE_PINS",
+        "STORE_PASSWORD",
+        "KEY_ALIAS",
+        "KEY_PASSWORD",
+    )

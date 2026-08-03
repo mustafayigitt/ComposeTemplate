@@ -11,7 +11,12 @@ class AndroidLibraryNativeConventionPlugin : Plugin<Project> {
             val useNativeSecrets = findProperty("composetemplate.useNativeSecrets")?.toString()?.toBoolean() ?: true
 
             val fullMask = secrets.getProperty("XOR_MASK")?.replace("\"", "") ?: "DEFAULT_MASK"
-            val expectedSignature = secrets.getProperty("EXPECTED_SIGNATURE_HASH")?.replace("\"", "") ?: ""
+            val expectedSignature = secrets.getProperty("EXPECTED_SIGNATURE_HASH").normalizeSignatureHash()
+            val nativeRuntimeChecksEnabled =
+                secrets.getProperty("NATIVE_RUNTIME_CHECKS_ENABLED")?.removePropertyQuotes()?.toBooleanStrictOrNull() ?: true
+            val certificatePinningEnabled =
+                secrets.getProperty("CERTIFICATE_PINNING_ENABLED")?.removePropertyQuotes()?.toBooleanStrictOrNull() ?: false
+            val certificatePins = secrets.getProperty("CERTIFICATE_PINS").orEmpty()
 
             extensions.configure<LibraryExtension> {
                 buildFeatures {
@@ -95,7 +100,8 @@ class AndroidLibraryNativeConventionPlugin : Plugin<Project> {
                                 arguments(
                                     "-DGENERATED_SECRETS_PATH=${generatedDir.absolutePath}",
                                     "-DCM_PART=$cmakeMask",
-                                    "-DK_PART=$kotlinMask"
+                                    "-DK_PART=$kotlinMask",
+                                    "-DNATIVE_RUNTIME_CHECKS_ENABLED=$nativeRuntimeChecksEnabled",
                                 )
                             }
                         }
@@ -108,13 +114,30 @@ class AndroidLibraryNativeConventionPlugin : Plugin<Project> {
                     } else {
                         // Standard Mode: Inject plain secrets into BuildConfig
                         buildConfigField("String", "K_PART", "\"\"")
-                        buildConfigField("String", "API_KEY_DEBUG", secrets.getProperty("API_KEY_DEBUG") ?: "\"\"")
-                        buildConfigField("String", "API_KEY_RELEASE", secrets.getProperty("API_KEY_RELEASE") ?: "\"\"")
-                        buildConfigField("String", "BASE_URL_DEBUG", secrets.getProperty("BASE_URL_DEBUG") ?: "\"\"")
-                        buildConfigField("String", "BASE_URL_RELEASE", secrets.getProperty("BASE_URL_RELEASE") ?: "\"\"")
+                        buildConfigField("String", "API_KEY_DEBUG", secrets.getProperty("API_KEY_DEBUG").toBuildConfigString())
+                        buildConfigField("String", "API_KEY_RELEASE", secrets.getProperty("API_KEY_RELEASE").toBuildConfigString())
+                        buildConfigField("String", "BASE_URL_DEBUG", secrets.getProperty("BASE_URL_DEBUG").toBuildConfigString())
+                        buildConfigField("String", "BASE_URL_RELEASE", secrets.getProperty("BASE_URL_RELEASE").toBuildConfigString())
                     }
+                    buildConfigField("String", "EXPECTED_SIGNATURE_HASH", expectedSignature.toBuildConfigString())
+                    buildConfigField("boolean", "NATIVE_RUNTIME_CHECKS_ENABLED", "$nativeRuntimeChecksEnabled")
+                    buildConfigField("boolean", "CERTIFICATE_PINNING_ENABLED", "$certificatePinningEnabled")
+                    buildConfigField("String", "CERTIFICATE_PINS", certificatePins.toBuildConfigString())
                 }
             }
         }
+    }
+
+    private fun String?.removePropertyQuotes(): String = this?.trim()?.removeSurrounding("\"").orEmpty()
+
+    private fun String?.normalizeSignatureHash(): String = removePropertyQuotes().replace(":", "").uppercase()
+
+    private fun String?.toBuildConfigString(): String {
+        val value = removePropertyQuotes()
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+        return "\"$value\""
     }
 }

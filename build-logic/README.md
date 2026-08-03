@@ -23,7 +23,7 @@ build-logic/
 ## ✨ Recent Improvements
 
 - **Compose Metrics & Reports**: Integrated support for generating performance and stability metrics.
-- **Secure Native Secrets**: Automated Hex-encoding of secrets from `secrets.properties` to ensure robust NDK builds.
+- **Secret Management**: Automated validation, native obfuscation, and artifact scanning support.
 - **Centralized Versioning**: Categorized dependencies in Version Catalog for better maintainability.
 
 ## 🔌 Available Plugins
@@ -38,7 +38,7 @@ build-logic/
 ### `composetemplate.android.library.native`
 **What it does:**
 - Configures CMake and NDK.
-- Injects Hex-encoded secrets from `secrets.properties` as compiler definitions.
+- Injects obfuscated secrets from `secrets.properties` or environment variables as native/compiler definitions.
 
 ---
 

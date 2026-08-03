@@ -75,6 +75,7 @@ dependencies {
     implementation(project(":core:secrets"))
     implementation(project(":core:data"))
     implementation(project(":core:network"))
+    implementation(project(":core:security"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
     implementation(project(":core:analytics"))

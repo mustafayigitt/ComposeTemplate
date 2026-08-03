@@ -1,11 +1,12 @@
 package com.ytapps.composetemplate.core.navigation
 
-import com.ytapps.composetemplate.core.data.IPreferencesManager
 import com.google.common.truth.Truth.assertThat
+import com.ytapps.composetemplate.core.data.IPreferencesManager
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 
@@ -15,9 +16,10 @@ internal class NavigationManagerTest {
 
     @Before
     fun setUp() {
-        preferencesManager = mockk {
-            every { isDarkModeFlow } returns MutableStateFlow(false)
-        }
+        preferencesManager =
+            mockk {
+                every { isDarkModeFlow } returns MutableStateFlow(false)
+            }
         navigationManager =
             NavigationManager(
                 startDestination = TestRoute.Home,
@@ -158,7 +160,7 @@ internal class NavigationManagerTest {
 
     @Test
     fun `given backStack is StateFlow then emits updates`() =
-        kotlinx.coroutines.test.runTest {
+        runTest {
             navigationManager.navigate(TestRoute.Detail)
 
             val stack = navigationManager.backStack.first()

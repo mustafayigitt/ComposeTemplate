@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <algorithm>
+#include <cctype>
 #include <android/log.h>
 #include <sys/ptrace.h>
 #include <unistd.h>
@@ -44,6 +46,18 @@ bool isEmulator() {
     return false;
 }
 
+int getSdkInt(JNIEnv* env) {
+    jclass versionClass = env->FindClass("android/os/Build$VERSION");
+    jfieldID sdkIntField = env->GetStaticFieldID(versionClass, "SDK_INT", "I");
+    return env->GetStaticIntField(versionClass, sdkIntField);
+}
+
+std::string normalizeHash(std::string hash) {
+    hash.erase(std::remove(hash.begin(), hash.end(), ':'), hash.end());
+    std::transform(hash.begin(), hash.end(), hash.begin(), ::toupper);
+    return hash;
+}
+
 /**
  * Decrypts data using the combined mask (STATIC_MASK + CM_PART + runtimeMaskPart).
  */
@@ -62,9 +76,9 @@ std::string decrypt(const unsigned char* data, int dataLen, const std::string& r
 }
 
 /**
- * Robustly checks the app signature hash using JNI.
+ * Reads app signing certificates using SigningInfo on modern Android and falls back to signatures.
  */
-bool isSignatureValid(JNIEnv* env, jobject context) {
+jobjectArray getAppSignatures(JNIEnv* env, jobject context) {
     jclass contextClass = env->GetObjectClass(context);
     jmethodID getPM = env->GetMethodID(contextClass, "getPackageManager", "()Landroid/content/pm/PackageManager;");
     jobject pm = env->CallObjectMethod(context, getPM);
@@ -74,16 +88,33 @@ bool isSignatureValid(JNIEnv* env, jobject context) {
 
     jclass pmClass = env->GetObjectClass(pm);
     jmethodID getPI = env->GetMethodID(pmClass, "getPackageInfo", "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
-    jobject pi = env->CallObjectMethod(pm, getPI, packageName, 64);
+    int flags = getSdkInt(env) >= 28 ? 0x08000000 : 64; // GET_SIGNING_CERTIFICATES : GET_SIGNATURES
+    jobject pi = env->CallObjectMethod(pm, getPI, packageName, flags);
 
     jclass piClass = env->GetObjectClass(pi);
-    jfieldID signaturesField = env->GetFieldID(piClass, "signatures", "[Landroid/content/pm/Signature;");
-    jobjectArray signatures = (jobjectArray)env->GetObjectField(pi, signaturesField);
-    jobject firstSignature = env->GetObjectArrayElement(signatures, 0);
 
-    jclass sigClass = env->GetObjectClass(firstSignature);
+    if (getSdkInt(env) >= 28) {
+        jfieldID signingInfoField = env->GetFieldID(piClass, "signingInfo", "Landroid/content/pm/SigningInfo;");
+        jobject signingInfo = env->GetObjectField(pi, signingInfoField);
+        if (signingInfo != nullptr) {
+            jclass signingInfoClass = env->GetObjectClass(signingInfo);
+            jmethodID hasMultipleSigners = env->GetMethodID(signingInfoClass, "hasMultipleSigners", "()Z");
+            bool multipleSigners = env->CallBooleanMethod(signingInfo, hasMultipleSigners);
+            const char* methodName = multipleSigners ? "getApkContentsSigners" : "getSigningCertificateHistory";
+            jmethodID getSigners = env->GetMethodID(signingInfoClass, methodName, "()[Landroid/content/pm/Signature;");
+            return (jobjectArray)env->CallObjectMethod(signingInfo, getSigners);
+        }
+    }
+
+    jfieldID signaturesField = env->GetFieldID(piClass, "signatures", "[Landroid/content/pm/Signature;");
+    return (jobjectArray)env->GetObjectField(pi, signaturesField);
+}
+
+std::string hashSignature(JNIEnv* env, jobject signature) {
+    jclass sigClass = env->GetObjectClass(signature);
     jmethodID toByteArray = env->GetMethodID(sigClass, "toByteArray", "()[B");
-    jbyteArray certBytes = (jbyteArray)env->CallObjectMethod(firstSignature, toByteArray);
+    jbyteArray certBytes = (jbyteArray)env->CallObjectMethod(signature, toByteArray);
+
 
     jclass mdClass = env->FindClass("java/security/MessageDigest");
     jmethodID getInstance = env->GetStaticMethodID(mdClass, "getInstance", "(Ljava/lang/String;)Ljava/security/MessageDigest;");
@@ -97,23 +128,43 @@ bool isSignatureValid(JNIEnv* env, jobject context) {
 
     jsize length = env->GetArrayLength(hashBytes);
     jbyte* buffer = env->GetByteArrayElements(hashBytes, nullptr);
-    char hex[length * 2 + 1];
+    static const char hexDigits[] = "0123456789ABCDEF";
+    std::string hex;
+    hex.reserve(length * 2);
     for (int i = 0; i < length; i++) {
-        sprintf(&hex[i * 2], "%02X", (unsigned char)buffer[i]);
+        unsigned char byte = (unsigned char)buffer[i];
+        hex.push_back(hexDigits[(byte >> 4) & 0x0F]);
+        hex.push_back(hexDigits[byte & 0x0F]);
     }
     env->ReleaseByteArrayElements(hashBytes, buffer, JNI_ABORT);
+    return hex;
+}
 
-    std::string actualHash(hex);
-
+/**
+ * Robustly checks the app signature hash using JNI.
+ */
+bool isSignatureValid(JNIEnv* env, jobject context) {
     std::string expectedHash;
     for(int i=0; i < EXPECTED_SIGNATURE_HASH_LEN; i++) expectedHash.push_back((char)EXPECTED_SIGNATURE_HASH[i]);
+    expectedHash = normalizeHash(expectedHash);
 
-    if (actualHash != expectedHash) {
-        LOGE("Signature validation failed!");
+    jobjectArray signatures = getAppSignatures(env, context);
+    if (signatures == nullptr || env->GetArrayLength(signatures) == 0) {
+        LOGE("Signature validation failed: no signatures available.");
         return false;
     }
 
-    return true;
+    jsize signatureCount = env->GetArrayLength(signatures);
+    for (int i = 0; i < signatureCount; i++) {
+        jobject signature = env->GetObjectArrayElement(signatures, i);
+        std::string actualHash = normalizeHash(hashSignature(env, signature));
+        if (actualHash == expectedHash) {
+            return true;
+        }
+    }
+
+    LOGE("Signature validation failed!");
+    return false;
 }
 
 extern "C" JNIEXPORT jstring JNICALL
@@ -129,7 +180,7 @@ Java_com_ytapps_composetemplate_core_secrets_SecretManager_getApiKeyNative(
     env->ReleaseStringUTFChars(runtime_mask, mask_part);
 
     // Production environment checks
-    if (!isDebug) {
+    if (!isDebug && NATIVE_RUNTIME_CHECKS_ENABLED) {
         if (isDebuggerAttached() || isEmulator() || !isSignatureValid(env, context)) {
             return env->NewStringUTF("UNAUTHORIZED_ACCESS");
         }
@@ -154,7 +205,7 @@ Java_com_ytapps_composetemplate_core_secrets_SecretManager_getBaseUrlNative(
     std::string sRuntimeMask(mask_part);
     env->ReleaseStringUTFChars(runtime_mask, mask_part);
 
-    if (!isDebug) {
+    if (!isDebug && NATIVE_RUNTIME_CHECKS_ENABLED) {
         if (isDebuggerAttached() || isEmulator() || !isSignatureValid(env, context)) {
             return env->NewStringUTF("UNAUTHORIZED_ACCESS");
         }

@@ -31,13 +31,16 @@ jobs:
           echo "STORE_FILE=debug.keystore" > local.properties
           echo "API_KEY_DEBUG=\"debug\"" > secrets.properties
           echo "API_KEY_RELEASE=\"release\"" >> secrets.properties
-          echo "BASE_URL_DEBUG=\"https://example.com\"" >> secrets.properties
-          echo "BASE_URL_RELEASE=\"https://example.com\"" >> secrets.properties
+          echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
+          echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
           echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
           echo "KEY_PASSWORD=\"android\"" >> secrets.properties
           echo "STORE_PASSWORD=\"android\"" >> secrets.properties
-          echo "XOR_MASK=\"mask\"" >> secrets.properties
+          echo "XOR_MASK=\"ci_mask_value_with_24_chars_minimum\"" >> secrets.properties
           echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
+          echo "NATIVE_RUNTIME_CHECKS_ENABLED=true" >> secrets.properties
+          echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
+          echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
           echo "MIN_VERSION=1" >> secrets.properties
 
       - name: Run ktlint
@@ -66,13 +69,16 @@ jobs:
           echo "STORE_FILE=debug.keystore" > local.properties
           echo "API_KEY_DEBUG=\"debug\"" > secrets.properties
           echo "API_KEY_RELEASE=\"release\"" >> secrets.properties
-          echo "BASE_URL_DEBUG=\"https://example.com\"" >> secrets.properties
-          echo "BASE_URL_RELEASE=\"https://example.com\"" >> secrets.properties
+          echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
+          echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
           echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
           echo "KEY_PASSWORD=\"android\"" >> secrets.properties
           echo "STORE_PASSWORD=\"android\"" >> secrets.properties
-          echo "XOR_MASK=\"mask\"" >> secrets.properties
+          echo "XOR_MASK=\"ci_mask_value_with_24_chars_minimum\"" >> secrets.properties
           echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
+          echo "NATIVE_RUNTIME_CHECKS_ENABLED=true" >> secrets.properties
+          echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
+          echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
           echo "MIN_VERSION=1" >> secrets.properties
 
       - name: Run unit tests
@@ -98,13 +104,16 @@ jobs:
           echo "STORE_FILE=debug.keystore" > local.properties
           echo "API_KEY_DEBUG=\"debug\"" > secrets.properties
           echo "API_KEY_RELEASE=\"release\"" >> secrets.properties
-          echo "BASE_URL_DEBUG=\"https://example.com\"" >> secrets.properties
-          echo "BASE_URL_RELEASE=\"https://example.com\"" >> secrets.properties
+          echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
+          echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
           echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
           echo "KEY_PASSWORD=\"android\"" >> secrets.properties
           echo "STORE_PASSWORD=\"android\"" >> secrets.properties
-          echo "XOR_MASK=\"mask\"" >> secrets.properties
+          echo "XOR_MASK=\"ci_mask_value_with_24_chars_minimum\"" >> secrets.properties
           echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
+          echo "NATIVE_RUNTIME_CHECKS_ENABLED=true" >> secrets.properties
+          echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
+          echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
           echo "MIN_VERSION=1" >> secrets.properties
 
       - name: Assemble debug

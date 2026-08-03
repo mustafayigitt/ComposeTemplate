@@ -1,101 +1,112 @@
-# Android'de NDK ve Gradle ile Uçtan Uca Güvenli Secret Yönetimi
+# Android Secret Management
 
-Android uygulamalarında API anahtarları gibi hassas verileri korumak, kedi-fare oyununa benzer. Bu makalede, ComposeTemplate projesinde kullanılan ve "Defense in Depth" (Derinlemesine Savunma) prensibini temel alan profesyonel secret yönetimi mimarisini inceleyeceğiz.
+Bu template, backend olmayan senaryolarda Android client icindeki hassas config degerlerinin cikarilma maliyetini artirmak icin katmanli bir secret management yaklasimi sunar.
 
----
+Onemli sinir: public bir mobil uygulamanin icine konan deger, yeterince motivasyonu olan biri tarafindan cikarilabilir. Bu yapi secret'i imkansiz kilmaz; native obfuscation, runtime integrity checks ve MITM korumalariyla reverse engineering/decompile maliyetini artirir.
 
-## 1. Problem: Neden Sadece Strings.xml Yetmez?
+## Katmanlar
 
-Çoğu geliştirici anahtarlarını `Strings.xml` veya `BuildConfig` içine koyar. Ancak:
-- **Statik Analiz:** `strings` komutuyla binary içindeki tüm düz metinler okunabilir.
-- **Decompile:** JADX ile Java koduna dönüştürülen bir APK'da anahtarlar "altın tepside" sunulur.
-- **Güvenlik Açığı:** Anahtar bir kez çalındığında, uygulamanızın kimliğini taklit eden sahte istekler oluşturulabilir.
+1. Local/CI secret loading
+   - Local gelistirmede `secrets.properties` kullanilir.
+   - CI icin ayni key isimleri environment variable olarak verilebilir.
+   - `secrets.properties` git disinda tutulur.
 
----
+2. Build-time validation
+   - `validateSecrets` artik Android `preBuild` akislari oncesinde calisir.
+   - Eksik deger, bos secret, `YOUR_` placeholder, kisa `XOR_MASK`, gecersiz SHA-256 signature hash ve slash'siz Retrofit base URL build'i durdurur.
+   - Release build signing key eksikse warning degil fail olur.
 
-## 2. Mimari Çözüm: Katmanlı Savunma (STAR Analizi)
+3. Native secret obfuscation
+   - `composetemplate.useNativeSecrets=true` iken API key ve base URL degerleri BuildConfig'e duz metin yazilmaz.
+   - Degerler build sirasinda XOR ile obfuscate edilir ve generated C++ header'a byte array olarak yazilir.
+   - XOR mask static header, CMake define ve Kotlin runtime parcasi olarak bolunur.
+   - Native katman release'te app signature, emulator ve debugger sinyallerini kontrol edebilir.
 
-- **S (Situation):** Hassas verilerin APK içinden çalınma riski.
-- **T (Task):** Verileri hem statik hem de dinamik analizlere karşı korumak.
-- **A (Action):** Gradle'da XOR şifreleme, NDK'da imza doğrulamalı C++ katmanı kurulumu.
-- **R (Result):** JADX ile okunamaz, klonlanamaz ve merkezi olarak yönetilen bir güvenlik sistemi.
+4. Runtime integrity checks
+   - `core:security` modulu app signature, package name, installer, emulator, debugger, root ve hooking sinyallerini toplar.
+   - Debug build'lerde bulgular warn davranisi icin uygundur.
+   - Release build'lerde `NATIVE_RUNTIME_CHECKS_ENABLED=true` ise startup block uygulanir.
 
----
+5. Network/MITM hardening
+   - Main network security config cleartext kapatir ve sadece system CA trust eder.
+   - Debug kaynaklari localhost/10.0.2.2 cleartext ve user CA icin override saglar.
+   - `CERTIFICATE_PINNING_ENABLED=true` oldugunda release OkHttp client primary + backup `sha256/...` pin bekler.
 
-## 3. Mimari Katmanlar
+6. Artifact scan
+   - `scanApkForSecrets` APK/AAB icinde ham `API_KEY_*` ve `BASE_URL_*` degerlerini arar.
+   - Release `assembleRelease` ve `bundleRelease` sonrasi otomatik calisir.
+   - `hardeningReport` aktif secret management/hardening ayarlarini yazdirir.
 
-Çözümümüz 4 ana katmandan oluşur:
-1. **Yerel Katman:** Verilerin Git dışında tutulması.
-2. **Derleme Katmanı (Gradle):** Verilerin şifrelenip C++ katmanına enjekte edilmesi.
-3. **Native Katman (NDK):** Bellek içinde şifre çözme ve imza doğrulama.
-4. **Uygulama Katmanı (Kotlin):** Basit ve temiz bir API ile erişim.
-
----
-
-## 4. Yapılandırma Seçenekleri
-
-Güvenlik seviyesini `gradle.properties` üzerinden projenize göre ayarlayabilirsiniz:
-
-```properties
-# Yüksek Güvenlik (NDK + Hardening) - Önerilen
-composetemplate.useNativeSecrets=true
-
-# Standart Güvenlik (BuildConfig) - Hızlı Debug
-composetemplate.useNativeSecrets=false
-```
-
----
-
-## 5. Teknik Uygulama Detayları
-
-### A. Yerel Yapılandırma (`secrets.properties`)
-Tüm sırlar projenin kök dizininde, asla VCS'ye (Git) girmeyen bir dosyada tutulur. `secrets.properties.example` dosyası bir şablon görevi görür.
+## secrets.properties
 
 ```properties
-API_KEY_RELEASE="4fde2..."
-XOR_MASK="my_secret_mask_123"
-EXPECTED_SIGNATURE_HASH="A1:B2:C3..."
+API_KEY_DEBUG="debug_key"
+API_KEY_RELEASE="release_key"
+
+BASE_URL_DEBUG="https://api-debug.example.com/"
+BASE_URL_RELEASE="https://api.example.com/"
+
+XOR_MASK="at_least_24_chars_mask_value"
+EXPECTED_SIGNATURE_HASH="AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899"
+NATIVE_RUNTIME_CHECKS_ENABLED=true
+
+CERTIFICATE_PINNING_ENABLED=false
+CERTIFICATE_PINS="sha256/primaryBase64PinHereAAAAAAAAAAAAAAA=,sha256/backupBase64PinHereBBBBBBBBBBBBBBB="
+
+KEY_ALIAS="release_key_alias"
+KEY_PASSWORD="release_key_password"
+STORE_PASSWORD="release_store_password"
 ```
 
-### B. Gradle Validasyonu
-`ValidateSecretsPlugin` sayesinde, bir anahtar eksikse veya placeholder (`YOUR_...`) olarak bırakılmışsa derleme anında hata alınır. Bu, hatalı APK üretimini engeller.
+`EXPECTED_SIGNATURE_HASH` colon'lu veya colon'suz verilebilir; build ve native taraf bunu normalize eder. Google Play App Signing kullaniyorsan release icin Play Console'daki App signing key certificate SHA-256 hash'ini kullan.
 
-### C. Build-Time Şifreleme (XOR & Hex)
-Veriler C++ katmanına ham halde gönderilmez. `AndroidLibraryNativeConventionPlugin` içerisinde XOR şifrelemesinden geçirilir ve Hex formatına dönüştürülür. Bu sayede binary içinde düz metin arayan araçlar sadece anlamsız Hex karakterleri görür.
+## Pinning
 
-### D. NDK ile Güvenlik Kilidi (C++)
-`native-lib.cpp` içerisindeki en kritik nokta **JNI Signature Validation** işlemidir. C++ kodu, JNI üzerinden Android sistemine bağlanarak uygulamanın SHA-256 imza hash'ini sorgular:
+OkHttp pin formatini kullan:
 
-```cpp
-bool isSignatureValid(JNIEnv* env, jobject context) {
-    // JNI üzerinden uygulamanın SHA-256 hash'ini al ve kontrol et
-    if (actualHash != expectedHash) return false;
-    return true;
-}
-```
-**Neden Önemli?** Uygulamanızı biri kopyalayıp (clone) kendi imzasıyla imzalarsa, C++ katmanı bunu anlar ve anahtarları "UNAUTHORIZED_ACCESS" olarak döndürür.
-
-### E. Kotlin API (`SecretManager`)
-Tüm bu karmaşık yapı, uygulama tarafında `SecretManager` singleton nesnesi ile soyutlanır.
-
-```kotlin
-// Başlatma (App.kt)
-SecretManager.initialize(this)
-
-// Kullanım
-val api = SecretManager.getApiKey()
+```properties
+CERTIFICATE_PINNING_ENABLED=true
+CERTIFICATE_PINS="sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=,sha256/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB="
 ```
 
----
+En az iki pin gir: current pin ve backup/rotation pin. Pinning debug'da otomatik bypass edilir, release'te zorunlu calisir.
 
-## 5. Önemli İpuçları ve Uyarılar
+## Komutlar
 
-> [!TIP]
-> **XOR Maskesi Seçimi:** Maskenizi ne kadar uzun ve karmaşık tutarsanız, brute-force saldırılarına karşı o kadar dirençli olur. Proje kökündeki `XOR_MASK` değerini periyodik olarak değiştirmek güvenliği artırır.
+```bash
+./gradlew validateSecrets
+./gradlew hardeningReport
+./gradlew :core:secrets:assembleDebug
+./gradlew :app:compileDebugKotlin
+./gradlew :app:assembleRelease
+```
 
-> [!WARNING]
-> **Release İmzası:** Uygulamanızı Google Play App Signing ile yayınlıyorsanız, `EXPECTED_SIGNATURE_HASH` değerine yerel keystore hash'inizi değil, **Google Play Console**'da "App Integrity" bölümünde bulunan "App signing key certificate" SHA-256 hash'ini yazmalısınız.
+## Release Checklist
 
----
+- `./gradlew validateSecrets`
+- `./gradlew hardeningReport`
+- `EXPECTED_SIGNATURE_HASH` release signing cert ile uyumlu
+- `BASE_URL_RELEASE` HTTPS ve trailing slash ile bitiyor
+- `CERTIFICATE_PINNING_ENABLED=true` ise en az iki pin mevcut
+- Release signing keyleri env var veya `secrets.properties` ile saglaniyor
+- `./gradlew :app:assembleRelease` sonrasi `scanApkForSecrets` temiz geciyor
 
-Bu yapı, bir Android uygulamasında güvenliği sadece bir ayar değil, projenin derleme döngüsüne (build lifecycle) entegre edilmiş bir sisteme dönüştürür.
+## Tehdit Modeli
+
+Bu yapi su riskleri azaltmayi hedefler:
+
+- JADX/decompile ile duz secret gorulmesi
+- `strings` ile APK icinde ham key yakalanmasi
+- Yanlis base URL veya placeholder ile artifact uretilmesi
+- User CA uzerinden release MITM denemeleri
+- Re-signed clone app'in release secret alabilmesi
+- Debugger/emulator/root/hooking gibi runtime analiz sinyalleri
+
+Bu yapi sunlari garanti etmez:
+
+- Client icindeki secret'in sonsuza kadar gizli kalmasi
+- Runtime memory'de acilan degerin hic yakalanamamasi
+- Frida/Xposed/root kontrollerinin bypass edilememesi
+- Backend authorization, token expiration veya attestation yerine gecmesi
+
+Gercek yuksek yetkili secret'lar backend, token exchange, expiration, Firebase/Supabase rules, Play Integrity/App Attest ve server-side kontrollerle korunmalidir.

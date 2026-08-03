@@ -70,7 +70,7 @@ ComposeTemplate/
 │   ├── data/               # DataStore-based PreferencesManager
 │   ├── navigation/         # NavigationManager, ScreenRegistry
 │   ├── network/            # Retrofit, OkHttp, BaseRepository
-│   ├── secrets/            # NDK-based secret management
+│   ├── secrets/            # Secret management and native obfuscation
 │   └── ui/                 # Theme, BaseViewModel, shared components
 ├── feature/
 │   ├── auth/               # Login flow (fully implemented)
@@ -112,7 +112,7 @@ Located in `build-logic/convention/`, these plugins encapsulate common build con
 - **`composetemplate.feature.data`**: Data module dependencies (`:core:common`, `:core:data`, `:core:network`, `:core:secrets`)
 - **`composetemplate.feature.navigation`**: Navigation module dependencies (`:core:common`, `:core:navigation`)
 - **`composetemplate.feature.presentation`**: Presentation module dependencies (`:core:common`, `:core:ui`, `:core:navigation`)
-- **`composetemplate.android.library.native`**: CMake/NDK native library support for secure secrets
+- **`composetemplate.android.library.native`**: CMake/NDK native library support for secret obfuscation
 - **`composetemplate.validate.secrets`**: Validates `secrets.properties` presence and content
 - **`composetemplate.scaffold.feature`**: Auto-generates a new feature module with all 4 sub-modules
 - **`composetemplate.create.new.app`**: Creates a new app from this template with custom package name
@@ -146,11 +146,12 @@ For detailed build configuration documentation, see [build-logic/README.md](buil
 - Profiles are automatically packaged into release builds via the `androidx.baselineprofile` Gradle plugin.
 - Run profile generation: `./gradlew :baselineprofile:connectedBenchmarkAndroidTest`.
 
-### Secure Secret Management
-- **NDK-based Protection**: API keys and Base URLs are stored encrypted and retrieved via JNI.
-- **Hex-encoded Build Defines**: Secrets are Hex-encoded during build to avoid character issues in Ninja files.
-- **Signature Validation**: The native layer verifies the app's signature hash before releasing secrets in non-debug builds.
-- **Centralized Secrets**: All sensitive data is kept in `secrets.properties`.
+### Secret Management
+- **NDK Secret Obfuscation**: API keys and base URLs are obfuscated in native code when `composetemplate.useNativeSecrets=true`.
+- **Build-Time Validation**: `validateSecrets` blocks missing values, placeholders, weak masks, invalid signature hashes, and invalid Retrofit base URLs.
+- **Runtime Integrity Checks**: `:core:security` reports signature, package, installer, emulator, debugger, root, and hooking signals.
+- **MITM Protection**: Release builds use cleartext-off network config and optional OkHttp certificate pinning.
+- **Artifact Scanning**: `scanApkForSecrets` checks APK/AAB outputs for raw configured secrets.
 
 ### Static Analysis
 - **Detekt Integration**: Custom rule sets optimized for Android, Compose, and Hilt.
@@ -189,14 +190,19 @@ Create a `secrets.properties` in the project root:
 ```properties
 API_KEY_DEBUG="your_debug_key"
 API_KEY_RELEASE="your_release_key"
-BASE_URL_DEBUG="https://api-debug.test.com"
-BASE_URL_RELEASE="https://api.test.com"
+BASE_URL_DEBUG="https://api-debug.test.com/"
+BASE_URL_RELEASE="https://api.test.com/"
 KEY_ALIAS="your_key_alias"
 KEY_PASSWORD="your_key_password"
 STORE_PASSWORD="your_store_password"
-XOR_MASK="your_custom_mask"
-EXPECTED_SIGNATURE_HASH="your_release_sha256_hex_without_colons"
+XOR_MASK="your_custom_mask_with_24_plus_chars"
+EXPECTED_SIGNATURE_HASH="your_release_sha256_hex_with_or_without_colons"
+NATIVE_RUNTIME_CHECKS_ENABLED=true
+CERTIFICATE_PINNING_ENABLED=false
+CERTIFICATE_PINS=""
 ```
+
+See `SECRET_MANAGEMENT.md` for the threat model and release checklist.
 
 3. **Run the Initializer Plugin**
 

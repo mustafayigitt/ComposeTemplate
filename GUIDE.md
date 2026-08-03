@@ -55,13 +55,16 @@ class MyViewModel @Inject constructor() : BaseViewModel<MyUiState, MyEvent>() {
 - **UiState:** Ekranın tüm durumunu temsil eden tek bir data class.
 - **Event:** Snackbar gösterimi, navigasyon gibi bir kerelik olaylar için `Channel` tabanlı sistem.
 
-## 4. Güvenli Sır Yönetimi (Secret Management)
+## 4. Secret Management
 
-Yeni bir API anahtarı eklemek için:
+Yeni bir API anahtarı veya client config değeri eklemek için:
 1. `secrets.properties` dosyasına anahtarı ekleyin.
 2. `./gradlew validateSecrets` ile doğrulayın.
 3. `SecretManager.kt` içinde yeni bir metod tanımlayın.
 4. `native-lib.cpp` içinde JNI metodunu implemente edin.
+5. Release için `./gradlew hardeningReport` ve `scanApkForSecrets` çıktısını kontrol edin.
+
+Not: Client içine konan değer mutlak güvenli değildir; bu yapı native obfuscation, runtime integrity checks ve MITM korumalarıyla reverse engineering maliyetini artıran defense-in-depth katmanıdır.
 
 ## 5. UI Bileşenleri
 

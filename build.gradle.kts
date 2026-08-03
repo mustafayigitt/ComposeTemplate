@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.dagger.hilt) apply false
     alias(libs.plugins.detekt) apply false
     alias(libs.plugins.ktlint) apply false
+    id("composetemplate.validate.secrets")
 }
 
 tasks.register("clean", Delete::class) {
