@@ -26,7 +26,7 @@ class SettingsScreenProvider @Inject constructor() : IScreenProvider {
     override fun provideScreen(route: INavigationItem, navigationManager: INavigationManager): Boolean =
         when (route) {
             is SettingsRoute -> {
-                SettingsRoute()
+                SettingsScreen(navigationManager)
                 true
             }
             else -> false

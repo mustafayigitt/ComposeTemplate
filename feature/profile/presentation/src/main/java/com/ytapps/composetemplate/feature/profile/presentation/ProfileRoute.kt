@@ -25,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ytapps.composetemplate.core.common.Language
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.core.ui.components.AppCard
+import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
 
 @Composable
 fun ProfileScreen(navigationManager: INavigationManager) {
@@ -46,7 +47,7 @@ internal fun ProfileScreenInternal(
                     AppCompatDelegate.setApplicationLocales(appLocale)
                 }
 
-                ProfileEvent.NavigateToLogin -> navigationManager.navigateBackToRoot()
+                ProfileEvent.NavigateToLogin -> navigationManager.navigateToTop(LoginRoute)
             }
         }
     }

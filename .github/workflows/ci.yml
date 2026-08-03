@@ -160,6 +160,12 @@ jobs:
       - name: Compile generated feature
         run: ./gradlew :feature:ci_feature:presentation:compileDebugKotlin
 
+      - name: Generate a database feature scaffold
+        run: ./gradlew scaffoldFeature -PfeatureName=ci_database_feature -PwithDatabase=true
+
+      - name: Compile generated database feature
+        run: ./gradlew :feature:ci_database_feature:data:compileDebugKotlin :feature:ci_database_feature:presentation:compileDebugKotlin
+
       - name: Verify create-new-app excludes local secrets
         run: |
           ./gradlew create-new-app -Pargs='com.example.generated,GeneratedApp' -q --console=plain

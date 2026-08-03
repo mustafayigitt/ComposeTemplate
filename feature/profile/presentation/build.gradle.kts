@@ -7,6 +7,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":feature:auth:navigation"))
     implementation(project(":feature:profile:domain"))
     implementation(project(":feature:profile:navigation"))
     implementation(libs.androidx.appcompat)
