@@ -20,6 +20,7 @@ class ScaffoldFeaturePlugin : Plugin<Project> {
 
                 val pkg = target.findProperty("featurePkg")?.toString()
                     ?: "com.ytapps.composetemplate.feature"
+                val withDatabase = target.findProperty("withDatabase")?.toString()?.toBooleanStrictOrNull() ?: false
 
                 val featureDir = File(target.rootProject.rootDir, "feature/$featureName")
                 if (featureDir.exists()) {
@@ -40,7 +41,7 @@ class ScaffoldFeaturePlugin : Plugin<Project> {
                     val basePath = featurePkg.replace('.', File.separatorChar)
                     File(srcDir, basePath).mkdirs()
 
-                    val buildGradle = getBuildGradleContent(featureName, module, pkg)
+                    val buildGradle = getBuildGradleContent(featureName, module, pkg, withDatabase)
                     File(moduleDir, "build.gradle.kts").writeText(buildGradle)
 
                     if (module == "navigation") {
@@ -78,24 +79,30 @@ class ScaffoldFeaturePlugin : Plugin<Project> {
                         File(valuesTrDir, "strings.xml").writeText(getStringsContent(featureName, routeName))
                     }
 
-                    if (module == "data" && target.findProperty("withDatabase")?.toString()?.toBoolean() == true) {
+                    if (module == "data" && withDatabase) {
                         val daoDir = File(srcDir, "$basePath/data/dao")
+                        val entityDir = File(srcDir, "$basePath/data/entity")
                         daoDir.mkdirs()
-                        // Placeholder for DAO
+                        entityDir.mkdirs()
+                        File(entityDir, "${routeName}Entity.kt").writeText(getEntityContent(featureName, routeName, featurePkg))
+                        File(daoDir, "${routeName}Dao.kt").writeText(getDaoContent(featureName, routeName, featurePkg))
                     }
                 }
 
                 // Register in settings.gradle.kts
+                var settingsUpdated = false
                 val settingsFile = File(target.rootProject.rootDir, "settings.gradle.kts")
                 if (settingsFile.exists()) {
                     val settingsContent = settingsFile.readText()
                     val newIncludes = subModules.joinToString("\n") { "include(\":feature:$featureName:$it\")" }
                     if (!settingsContent.contains(":feature:$featureName:")) {
                         settingsFile.appendText("\n$newIncludes")
+                        settingsUpdated = true
                     }
                 }
 
                 // Register in app/build.gradle.kts
+                var appDependenciesUpdated = false
                 val appBuildFile = File(target.rootProject.rootDir, "app/build.gradle.kts")
                 if (appBuildFile.exists()) {
                     val appBuildContent = appBuildFile.readLines().toMutableList()
@@ -104,6 +111,7 @@ class ScaffoldFeaturePlugin : Plugin<Project> {
                         val newDeps = subModules.map { "    implementation(project(\":feature:$featureName:$it\"))" }
                         appBuildContent.addAll(dependenciesIndex + 1, newDeps)
                         appBuildFile.writeText(appBuildContent.joinToString("\n"))
+                        appDependenciesUpdated = true
                     }
                 }
 
@@ -112,17 +120,15 @@ class ScaffoldFeaturePlugin : Plugin<Project> {
                     |
                     |✅ Feature '$featureName' scaffolded at feature/$featureName/
                     |
+                    |Automation:
+                    |  - settings.gradle.kts: ${if (settingsUpdated) "updated" else "not changed"}
+                    |  - app/build.gradle.kts dependencies: ${if (appDependenciesUpdated) "updated" else "not changed"}
+                    |  - Room starter files: ${if (withDatabase) "created" else "skipped"}
+                    |
                     |Next steps:
-                    |  1. Add to settings.gradle.kts:
-                    |     include(":feature:$featureName:domain")
-                    |     include(":feature:$featureName:data")
-                    |     include(":feature:$featureName:navigation")
-                    |     include(":feature:$featureName:presentation")
-                    |  2. Add dependencies to app/build.gradle.kts:
-                    |     implementation(project(":feature:$featureName:data"))
-                    |     implementation(project(":feature:$featureName:domain"))
-                    |     implementation(project(":feature:$featureName:navigation"))
-                    |     implementation(project(":feature:$featureName:presentation"))
+                    |  1. Replace generated title/loading UI with real screen state.
+                    |  2. Add repository/use case contracts if the feature needs data.
+                    |  3. Run ./gradlew :feature:$featureName:presentation:compileDebugKotlin.
                     |
                 """.trimMargin()
                 )
@@ -130,7 +136,12 @@ class ScaffoldFeaturePlugin : Plugin<Project> {
         }
     }
 
-    private fun getBuildGradleContent(featureName: String, module: String, pkg: String): String {
+    private fun getBuildGradleContent(
+        featureName: String,
+        module: String,
+        pkg: String,
+        withDatabase: Boolean,
+    ): String {
         val namespace = "$pkg.$featureName.$module"
         return when (module) {
             "domain" -> """plugins {
@@ -141,8 +152,12 @@ android {
     namespace = "$namespace"
 }
 """
-            "data" -> """plugins {
+            "data" -> {
+                val roomPlugin = if (withDatabase) """    id("composetemplate.android.room")
+""" else ""
+                """plugins {
     id("composetemplate.feature.data")
+${roomPlugin.trimEnd()}
 }
 
 android {
@@ -153,6 +168,7 @@ dependencies {
     implementation(project(":feature:$featureName:domain"))
 }
 """
+            }
             "navigation" -> """plugins {
     id("composetemplate.feature.navigation")
     alias(libs.plugins.kotlin.serialization)
@@ -204,6 +220,49 @@ class Get${routeName}TitleUseCase
     constructor() {
         operator fun invoke(): String = "$routeName"
     }
+"""
+    }
+
+    private fun getEntityContent(featureName: String, routeName: String, featurePkg: String): String {
+        return """package $featurePkg.data.entity
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "$featureName")
+data class ${routeName}Entity(
+    @PrimaryKey val id: String,
+    val title: String,
+    val description: String,
+)
+"""
+    }
+
+    private fun getDaoContent(featureName: String, routeName: String, featurePkg: String): String {
+        return """package $featurePkg.data.dao
+
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import $featurePkg.data.entity.${routeName}Entity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface ${routeName}Dao {
+    @Query("SELECT * FROM $featureName")
+    fun observeAll(): Flow<List<${routeName}Entity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(entity: ${routeName}Entity)
+
+    @Delete
+    suspend fun delete(entity: ${routeName}Entity)
+
+    @Query("DELETE FROM $featureName")
+    suspend fun clear()
+}
 """
     }
 
