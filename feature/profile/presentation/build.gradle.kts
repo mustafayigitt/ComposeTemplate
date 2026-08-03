@@ -9,4 +9,5 @@ android {
 dependencies {
     implementation(project(":feature:profile:domain"))
     implementation(project(":feature:profile:navigation"))
+    implementation(libs.androidx.appcompat)
 }

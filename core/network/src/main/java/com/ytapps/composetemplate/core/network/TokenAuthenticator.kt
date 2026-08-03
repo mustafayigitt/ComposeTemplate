@@ -1,5 +1,6 @@
 package com.ytapps.composetemplate.core.network
 
+import com.ytapps.composetemplate.core.common.ITokenRefresher
 import com.ytapps.composetemplate.core.common.getOrNull
 import com.ytapps.composetemplate.core.data.IPreferencesManager
 import dagger.Lazy

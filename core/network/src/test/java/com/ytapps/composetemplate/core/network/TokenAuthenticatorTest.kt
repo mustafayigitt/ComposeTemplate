@@ -1,6 +1,7 @@
 package com.ytapps.composetemplate.core.network
 
 import com.google.common.truth.Truth.assertThat
+import com.ytapps.composetemplate.core.common.ITokenRefresher
 import com.ytapps.composetemplate.core.common.Result
 import com.ytapps.composetemplate.core.data.IPreferencesManager
 import dagger.Lazy

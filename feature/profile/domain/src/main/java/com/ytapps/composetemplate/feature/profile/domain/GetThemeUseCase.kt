@@ -1,13 +1,12 @@
 package com.ytapps.composetemplate.feature.profile.domain
 
-import com.ytapps.composetemplate.core.data.IPreferencesManager
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetThemeUseCase
     @Inject
     constructor(
-        private val preferencesManager: IPreferencesManager,
+        private val profileRepository: IProfileRepository,
     ) {
-        val isDarkModeFlow: StateFlow<Boolean> = preferencesManager.isDarkModeFlow
+        val isDarkModeFlow: Flow<Boolean> = profileRepository.isDarkModeFlow
     }

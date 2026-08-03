@@ -1,14 +1,13 @@
 package com.ytapps.composetemplate.feature.profile.domain
 
-import com.ytapps.composetemplate.core.data.IPreferencesManager
 import javax.inject.Inject
 
 class UpdateThemeUseCase
     @Inject
     constructor(
-        private val preferencesManager: IPreferencesManager,
+        private val profileRepository: IProfileRepository,
     ) {
         suspend operator fun invoke(isDarkMode: Boolean) {
-            preferencesManager.setDarkMode(isDarkMode)
+            profileRepository.setDarkMode(isDarkMode)
         }
     }

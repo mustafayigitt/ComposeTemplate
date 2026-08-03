@@ -1,5 +1,6 @@
 package com.ytapps.composetemplate.feature.profile.presentation
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ytapps.composetemplate.core.common.Language
@@ -39,6 +41,11 @@ internal fun ProfileScreenInternal(
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
+                is ProfileEvent.ApplyLanguage -> {
+                    val appLocale = LocaleListCompat.forLanguageTags(event.language.code)
+                    AppCompatDelegate.setApplicationLocales(appLocale)
+                }
+
                 ProfileEvent.NavigateToLogin -> navigationManager.navigateBackToRoot()
             }
         }

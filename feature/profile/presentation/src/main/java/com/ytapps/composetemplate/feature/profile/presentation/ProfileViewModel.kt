@@ -50,6 +50,7 @@ internal class ProfileViewModel
         fun onLanguageSelected(language: Language) {
             viewModelScope.launch {
                 updateLanguage(language)
+                sendEvent(ProfileEvent.ApplyLanguage(language))
             }
         }
 
@@ -69,4 +70,8 @@ internal class ProfileViewModel
 
 sealed class ProfileEvent {
     data object NavigateToLogin : ProfileEvent()
+
+    data class ApplyLanguage(
+        val language: Language,
+    ) : ProfileEvent()
 }
