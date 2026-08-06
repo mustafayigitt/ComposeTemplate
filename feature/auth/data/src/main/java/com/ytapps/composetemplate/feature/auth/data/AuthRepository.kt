@@ -12,56 +12,64 @@ import com.ytapps.composetemplate.feature.auth.domain.model.AuthModel
 import javax.inject.Inject
 
 internal class AuthRepository
-    @Inject
-    constructor(
-        private val authService: AuthService,
-        private val prefs: IPreferencesManager,
-    ) : BaseRepository(),
-        IAuthRepository {
-        override fun hasUser(): Boolean = prefs.hasUser()
+@Inject
+constructor(
+    private val authService: AuthService,
+    private val prefs: IPreferencesManager,
+) : BaseRepository(),
+    IAuthRepository {
+    override fun hasUser(): Boolean = prefs.hasUser()
 
-        override suspend fun login(
-            email: String,
-            password: String,
-        ): Result<AuthModel> {
-            val result =
-                safeCall(
-                    call = {
-                        val requestModel =
-                            AuthRequestModel(
-                                email = email,
-                                password = password,
-                            )
-                        authService.login(requestModel)
-                    },
-                ).map {
-                    AuthModel(
-                        accessToken = it.accessToken,
-                        refreshToken = it.refreshToken,
-                        expiresIn = it.expiresIn,
-                        tokenType = it.tokenType,
-                    )
-                }
-            if (result is Result.Success) {
-                val data = result.data
-                prefs.setAccessToken(data.accessToken)
-                prefs.setRefreshToken(data.refreshToken)
-                prefs.setTokenType(data.tokenType)
+    override suspend fun login(
+        email: String,
+        password: String,
+    ): Result<AuthModel> {
+        // todo: Do not use this in production
+        val result = if (email == "admin" && password == "admin") {
+            Result.Success(
+                AuthModel(
+                    accessToken = "access_token",
+                    refreshToken = "refresh_token",
+                    expiresIn = "3600",
+                    tokenType = "Bearer",
+                ),
+            )
+        } else {
+            safeCall {
+                val requestModel = AuthRequestModel(
+                    email = email,
+                    password = password,
+                )
+                authService.login(requestModel)
+            }.map {
+                AuthModel(
+                    accessToken = it.accessToken,
+                    refreshToken = it.refreshToken,
+                    expiresIn = it.expiresIn,
+                    tokenType = it.tokenType,
+                )
             }
-            return result
         }
+        if (result is Result.Success) {
+            val data = result.data
+            prefs.setAccessToken(data.accessToken)
+            prefs.setRefreshToken(data.refreshToken)
+            prefs.setTokenType(data.tokenType)
+        }
+        return result
+    }
 
-        override suspend fun refreshToken(): Result<String> {
-            val currentRefreshToken =
-                prefs.getRefreshToken()
-                    ?: return Result.Error("No refresh token available")
+    override suspend fun refreshToken(): Result<String> {
+        val currentRefreshToken =
+            prefs.getRefreshToken()
+                ?: return Result.Error("No refresh token available")
 
-            return safeCall {
-                authService.refreshToken(RefreshTokenRequestModel(currentRefreshToken))
-            }.map { response ->
-                prefs.setAccessToken(response.accessToken)
-                prefs.setRefreshToken(response.refreshToken)
-                response.accessToken
-            }
+        return safeCall {
+            authService.refreshToken(RefreshTokenRequestModel(currentRefreshToken))
+        }.map { response ->
+            prefs.setAccessToken(response.accessToken)
+            prefs.setRefreshToken(response.refreshToken)
+            response.accessToken
         }
     }
+}
