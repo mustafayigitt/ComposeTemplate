@@ -6,6 +6,9 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -16,8 +19,18 @@ dependencyResolutionManagement {
 
 rootProject.name = "ComposeTemplate"
 include(":app")
-include(":core")
-include(":contract")
+include(":core:common")
+include(":core:secrets")
+include(":core:data")
+include(":core:network")
+include(":core:security")
+include(":core:ui")
+include(":core:navigation")
+include(":core:analytics")
+include(":core:config")
+include(":core:permission")
+include(":core:google-play")
+include(":core:database")
 include(":feature:auth:data")
 include(":feature:auth:domain")
 include(":feature:auth:navigation")
@@ -34,6 +47,10 @@ include(":feature:profile:data")
 include(":feature:profile:domain")
 include(":feature:profile:navigation")
 include(":feature:profile:presentation")
+include(":feature:onboarding:data")
+include(":feature:onboarding:domain")
+include(":feature:onboarding:navigation")
+include(":feature:onboarding:presentation")
 include(":feature:search:data")
 include(":feature:search:domain")
 include(":feature:search:navigation")
@@ -46,3 +63,5 @@ include(":feature:home:data")
 include(":feature:home:domain")
 include(":feature:home:navigation")
 include(":feature:home:presentation")
+include(":benchmark")
+include(":baselineprofile")

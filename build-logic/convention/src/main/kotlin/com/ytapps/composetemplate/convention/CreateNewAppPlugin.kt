@@ -44,7 +44,29 @@ class CreateNewAppPlugin : Plugin<Project> {
                 target.copy {
                     from(target.rootDir)
                     into(targetDir)
-                    exclude(".git", ".gradle", ".idea", "**/build", "local.properties", "**/.DS_Store")
+                    exclude(
+                        ".git",
+                        ".gradle",
+                        ".idea",
+                        ".kotlin",
+                        ".agents",
+                        ".codex",
+                        ".artifacts",
+                        ".navigation",
+                        ".cxx",
+                        ".externalNativeBuild",
+                        "**/build",
+                        "local.properties",
+                        "secrets.properties",
+                        "**/.DS_Store",
+                        "**/*.apk",
+                        "**/*.aab",
+                        "**/*.ap_",
+                        "**/*.dex",
+                        "**/*.keystore",
+                        "**/*.hprof",
+                        "**/*.log",
+                    )
                 }
 
                 printStep("Updating package names and references...")
@@ -90,16 +112,35 @@ class CreateNewAppPlugin : Plugin<Project> {
     private fun refactorDirectories(targetDir: File, oldPkg: String, newPkg: String) {
         val oldPath = oldPkg.replace(".", File.separator)
         val newPath = newPkg.replace(".", File.separator)
-        val sourceRoots = listOf("app/src/main/java", "app/src/androidTest/java", "app/src/test/java", "build-logic/convention/src/main/kotlin")
+
+        val sourceRoots = mutableListOf<String>()
+        targetDir.walkTopDown().filter { it.isDirectory && (it.name == "java" || it.name == "kotlin") }.forEach { dir ->
+            if (dir.absolutePath.contains("src${File.separator}main") ||
+                dir.absolutePath.contains("src${File.separator}test") ||
+                dir.absolutePath.contains("src${File.separator}androidTest")
+            ) {
+                sourceRoots.add(dir.absolutePath.removePrefix(targetDir.absolutePath).removePrefix(File.separator))
+            }
+        }
 
         sourceRoots.forEach { path ->
-            val root = File(targetDir, path.replace("/", File.separator))
+            val root = File(targetDir, path)
             val oldFolder = File(root, oldPath)
             if (oldFolder.exists()) {
                 val newFolder = File(root, newPath).apply { mkdirs() }
                 oldFolder.copyRecursively(newFolder, overwrite = true)
                 oldFolder.deleteRecursively()
-                File(root, "com/ytapps".replace("/", File.separator)).deleteRecursively()
+
+                // Clean up parent folders if they are empty or contain only the path to our project
+                var parent = oldFolder.parentFile
+                while (parent != null && parent != root) {
+                    if (parent.listFiles()?.isEmpty() == true) {
+                        parent.delete()
+                        parent = parent.parentFile
+                    } else {
+                        break
+                    }
+                }
             }
         }
     }

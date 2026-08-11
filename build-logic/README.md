@@ -12,265 +12,121 @@ build-logic/
 │       ├── AndroidComposeConventionPlugin.kt
 │       ├── AndroidHiltConventionPlugin.kt
 │       ├── AndroidLibraryConventionPlugin.kt
-│       ├── FeatureConventionPlugin.kt
+│       ├── AndroidLibraryNativeConventionPlugin.kt # NDK secret management
+│       ├── AndroidRoomConventionPlugin.kt
+│       ├── BaselineProfileGeneratorConventionPlugin.kt
+│       ├── CreateNewAppPlugin.kt
+│       ├── FeatureDomainConventionPlugin.kt
+│       ├── FeatureDataConventionPlugin.kt
+│       ├── FeatureNavigationConventionPlugin.kt
+│       ├── FeaturePresentationConventionPlugin.kt
+│       ├── ScaffoldFeaturePlugin.kt
+│       ├── StaticAnalysisConventionPlugin.kt
 │       ├── TestConventionPlugin.kt
-│       ├── KotlinAndroid.kt
+│       ├── ValidateSecretsPlugin.kt
 │       └── ProjectExtensions.kt
 └── settings.gradle.kts
 ```
 
-## 🎯 Why Convention Plugins?
-
-Convention Plugins help you:
-- **Reduce duplication**: Share common build logic across modules
-- **Centralize configuration**: Manage SDK versions, dependencies in one place
-- **Improve maintainability**: Update configuration once, apply everywhere
-- **Type-safe**: Use Kotlin instead of Groovy for build scripts
-
 ## ✨ Recent Improvements
 
-- **New Test Plugin**: Eliminates 60+ lines of repeated test dependencies across 15+ modules
-- **New Feature Plugin**: Provides consistent base dependencies for all feature modules
-- **Organized Version Catalog**: Better categorized dependencies and versions for improved maintainability
-- **Cleaner Module Builds**: Simplified build.gradle.kts files with less duplication
+- **Compose Metrics & Reports**: Integrated support for generating performance and stability metrics.
+- **Secret Management**: Automated validation, native obfuscation, and artifact scanning support.
+- **Centralized Versioning**: Categorized dependencies in Version Catalog for better maintainability.
 
 ## 🔌 Available Plugins
 
 ### `composetemplate.android.application`
 **What it does:**
-- Applies Android Application plugin
-- Applies Kotlin Android plugin
-- Configures SDK versions (from `libs.versions.toml`)
-- Sets up Java/Kotlin compatibility (Java 17, JVM 17)
-- Configures packaging options
-
-**Usage:**
-```kotlin
-plugins {
-    id("composetemplate.android.application")
-}
-```
-
-### `composetemplate.android.library`
-**What it does:**
-- Applies Android Library plugin
-- Applies Kotlin Android plugin
-- Configures SDK versions (from `libs.versions.toml`)
-- Sets up Java/Kotlin compatibility (Java 17, JVM 17)
-- Configures test options and packaging
-
-**Usage:**
-```kotlin
-plugins {
-    id("composetemplate.android.library")
-}
-```
+- Applies the Android application plugin, Kotlin Android plugin, and shared SDK/default config.
+- Configures build types, packaging, and project-wide Android defaults.
 
 ### `composetemplate.android.application.compose`
 **What it does:**
-- Applies Kotlin Compose Compiler plugin
-- Enables Compose build features
-- Adds common Compose dependencies (UI, Material3, Tooling)
-- Adds Compose BOM for version alignment
+- Applies Kotlin Compose Compiler plugin.
+- Enables Compose build features.
+- Adds common Compose dependencies.
+- **New**: Supports metrics and stability reports via `gradle.properties`.
 
-**Usage:**
-```kotlin
-plugins {
-    id("composetemplate.android.application.compose")
-}
-```
+### `composetemplate.android.library`
+**What it does:**
+- Applies the Android library plugin, Kotlin Android plugin, and shared library defaults.
+- Keeps module SDK and packaging configuration consistent.
+
+### `composetemplate.android.library.compose`
+**What it does:**
+- Applies the shared Compose setup for Android library modules.
+- Reuses the same compiler metrics and reports toggles.
 
 ### `composetemplate.android.hilt`
 **What it does:**
-- Applies Hilt Android plugin
-- Applies KSP (Kotlin Symbol Processing)
-- Adds Hilt dependencies
-- Adds Hilt Navigation Compose
-
-**Usage:**
-```kotlin
-plugins {
-    id("composetemplate.android.hilt")
-}
-```
+- Applies Hilt and KSP configuration.
+- Adds Hilt dependencies used by app, feature, and core modules.
 
 ### `composetemplate.test`
 **What it does:**
-- Adds common testing dependencies (JUnit, Truth, MockK, Coroutines testing)
-- Adds Android testing dependencies (JUnit Android, Espresso)
-- Eliminates test dependency duplication across modules
+- Adds the common unit/UI test dependency set used across modules.
+- Includes JUnit, Truth, MockK, coroutine testing, and AndroidX test libraries.
 
-**Usage:**
-```kotlin
-plugins {
-    id("composetemplate.test")
-}
-```
-
-### `composetemplate.feature`
+### `composetemplate.android.room`
 **What it does:**
-- Adds common feature module dependencies (:core, :contract)
-- Provides consistent base dependencies for all feature modules
+- Applies Room dependencies and KSP compiler setup.
+- Configures schema export for database modules.
 
-**Usage:**
-```kotlin
-plugins {
-    id("composetemplate.feature")
-}
-```
+### `composetemplate.android.library.native`
+**What it does:**
+- Configures CMake and NDK.
+- Injects obfuscated secrets from `secrets.properties` or environment variables as native/compiler definitions.
 
-## 💡 Practical Usage Examples
+### `composetemplate.validate.secrets`
+**What it does:**
+- Fails builds when required secret values are missing, placeholders, weak, or malformed.
+- Validates Retrofit base URL shape, signature hash format, certificate pinning config, and minimum version.
 
-### App Module
-```kotlin
-plugins {
-    id("composetemplate.android.application")
-    id("composetemplate.android.application.compose")
-    id("composetemplate.android.hilt")
-    id("composetemplate.test")
-    alias(libs.plugins.kotlin.serialization)
-}
-```
+### `composetemplate.static.analysis`
+**What it does:**
+- Applies Ktlint and Detekt consistently across modules.
+- Uses the shared Detekt config from `config/detekt/detekt.yml`.
 
-### Feature Presentation Module
-```kotlin
-plugins {
-    id("composetemplate.android.library")
-    id("composetemplate.android.library.compose")
-    id("composetemplate.android.hilt")
-    id("composetemplate.feature")  // Provides :core and :contract
-    id("composetemplate.test")     // Provides all test dependencies
-}
-```
+### `composetemplate.scaffold.feature`
+**What it does:**
+- Generates `data`, `domain`, `navigation`, and `presentation` feature sub-modules.
+- Wires settings/app dependencies.
+- Creates a route, ViewModel, UI state/event, stateless screen, screen provider, Hilt binding, and localized string resources.
 
-### Feature Domain Module
-```kotlin
-plugins {
-    id("composetemplate.android.library")
-    id("composetemplate.android.hilt")
-    id("composetemplate.test")
-}
-```
+### `composetemplate.create.new.app`
+**What it does:**
+- Copies the template into a sibling project with a new package and app name.
+- Excludes local-only files such as `local.properties`, `secrets.properties`, `.git`, and build outputs.
 
+### `composetemplate.baseline.profile.generator`
+**What it does:**
+- Applies the Baseline Profile generator setup used by the `:baselineprofile` module.
+
+### Feature layer plugins
+**What they do:**
+- `composetemplate.feature.domain`: keeps domain modules lean with `:core:common`, Hilt, and tests.
+- `composetemplate.feature.data`: adds data/network/database/secrets infrastructure for repository implementations.
+- `composetemplate.feature.navigation`: adds typed route/navigation dependencies.
+- `composetemplate.feature.presentation`: adds Compose, UI, navigation, Hilt, and test dependencies.
+
+---
 
 ## 📦 Version Catalog Integration
 
-Convention Plugins work seamlessly with the Version Catalog (`gradle/libs.versions.toml`):
+All dependencies and versions are managed in `gradle/libs.versions.toml`.
 
-### Organized Version Structure
-```toml
-[versions]
-# SDK versions
-minSdk = "23"
-compileSdk = "36"
-targetSdk = "36"
+### Key SDK Versions
+- **minSdk**: 23
+- **compileSdk**: 37
+- **targetSdk**: 36
+- **Kotlin**: 2.3.21
 
-# AndroidX
-androidx-core = "1.13.1"
-androidx-compose-bom = "2024.06.00"
-androidx-lifecycle = "2.8.4"
+## 🔧 Configuring Metrics
 
-# Network
-retrofit = "2.11.0"
-converter-gson = "2.11.0"
+You can enable Compose Metrics by toggling these flags in `gradle.properties`:
 
-# Testing
-junit = "4.13.2"
-truth = "1.1.5"
-mockk = "1.13.7"
+```properties
+composetemplate.composeCompilerMetricsEnabled=true
+composetemplate.composeCompilerReportsEnabled=true
 ```
-
-### Categorized Dependencies
-```toml
-[libraries]
-# AndroidX Core
-androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
-androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
-
-# Compose
-androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "androidx-compose-bom" }
-androidx-ui = { module = "androidx.compose.ui:ui" }
-androidx-material3 = { module = "androidx.compose.material3:material3" }
-
-# Testing
-junit = { module = "junit:junit", version.ref = "junit" }
-truth = { module = "com.google.truth:truth", version.ref = "truth" }
-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
-```
-
-Access in build files:
-```kotlin
-dependencies {
-    implementation(libs.androidx.core)
-    testImplementation(libs.junit)
-}
-```
-
-## 🏗️ How It Works
-
-1. **Convention Plugins are defined** in `build-logic/convention/`
-2. **Plugins are registered** in `build-logic/settings.gradle.kts`
-3. **Plugins are applied** in module `build.gradle.kts` files
-4. **Configuration is centralized** using Version Catalog
-
-### Example Flow:
-
-```
-app/build.gradle.kts
-    ↓ applies
-composetemplate.android.application
-    ↓ reads from
-libs.versions.toml (compileSdk, minSdk, targetSdk)
-    ↓ configures
-Android SDK, Kotlin, Java versions
-```
-
-## 🔧 Modifying Convention Plugins
-
-To change SDK versions or dependencies:
-
-1. **Update Version Catalog** (`gradle/libs.versions.toml`)
-   ```toml
-   [versions]
-   compileSdk = "37"  # Update here
-   ```
-
-2. **Convention Plugin automatically picks it up**
-   ```kotlin
-   compileSdk = libs.findVersion("compileSdk").get().toString().toInt()
-   ```
-
-3. **All modules using the plugin get the update**
-
-## 📝 Best Practices
-
-1. **Keep plugins focused**: Each plugin should have a single responsibility
-2. **Use Version Catalog**: Never hardcode versions in Convention Plugins
-3. **Document changes**: Update this README when adding new plugins
-4. **Test thoroughly**: Changes affect all modules using the plugin
-5. **Organize dependencies**: Group related dependencies in version catalog with clear categories
-6. **Leverage convention plugins**: Use `test` and `feature` plugins to eliminate duplication
-
-## 🚀 Adding a New Convention Plugin
-
-1. Create new file in `convention/src/main/kotlin/.../convention/`
-2. Implement `Plugin<Project>` interface
-3. Register in `convention/build.gradle.kts`
-4. Apply in module `build.gradle.kts`
-
-Example:
-```kotlin
-class MyConventionPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        with(target) {
-            // Your configuration here
-        }
-    }
-}
-```
-
-## 📚 Resources
-
-- [Gradle Convention Plugins](https://docs.gradle.org/current/samples/sample_convention_plugins.html)
-- [Version Catalogs](https://docs.gradle.org/current/userguide/platforms.html)
-- [Android Build Configuration](https://developer.android.com/build)

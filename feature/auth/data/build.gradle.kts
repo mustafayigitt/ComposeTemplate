@@ -1,7 +1,5 @@
 plugins {
-    id("composetemplate.android.library")
-    id("composetemplate.android.hilt")
-    id("composetemplate.test")
+    id("composetemplate.feature.data")
 }
 
 android {
@@ -9,9 +7,9 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
     implementation(project(":feature:auth:domain"))
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
 
+    testImplementation(libs.okhttp)
 }

@@ -1,0 +1,10 @@
+<resources>
+    <string name="onboarding_step_1_title">Welcome</string>
+    <string name="onboarding_step_1_desc">Discover the power of this template.</string>
+    <string name="onboarding_step_2_title">Modular</string>
+    <string name="onboarding_step_2_desc">Everything is separated for scalability.</string>
+    <string name="onboarding_step_3_title">Ready</string>
+    <string name="onboarding_step_3_desc">Start building your production app now.</string>
+    <string name="onboarding_button_finish">Get Started</string>
+    <string name="onboarding_button_next">Next</string>
+</resources>

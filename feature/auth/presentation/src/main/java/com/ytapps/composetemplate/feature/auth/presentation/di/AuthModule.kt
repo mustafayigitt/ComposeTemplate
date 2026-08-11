@@ -13,7 +13,5 @@ import dagger.multibindings.IntoSet
 internal abstract class AuthModule {
     @Binds
     @IntoSet
-    abstract fun bindAuthScreenProvider(
-        provider: AuthScreenProvider
-    ): IScreenProvider
+    abstract fun bindAuthScreenProvider(provider: AuthScreenProvider): IScreenProvider
 }

@@ -1,7 +1,5 @@
 plugins {
-    id("composetemplate.android.library")
-    id("composetemplate.android.library.compose")
-    id("composetemplate.android.hilt")
+    id("composetemplate.feature.presentation")
 }
 
 android {
@@ -9,8 +7,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
-    implementation(project(":contract"))
+    implementation(project(":feature:auth:navigation"))
     implementation(project(":feature:profile:domain"))
     implementation(project(":feature:profile:navigation"))
 }

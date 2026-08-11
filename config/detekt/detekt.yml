@@ -1,0 +1,70 @@
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+complexity:
+  active: true
+  LongParameterList:
+    active: true
+    functionThreshold: 10
+    constructorThreshold: 10
+    ignoreDefaultParameters: true
+  LongMethod:
+    active: true
+    threshold: 100
+  LargeClass:
+    active: true
+    threshold: 600
+
+style:
+  active: true
+  UnusedParameter:
+    active: true
+    allowedNames: 'navigationManager|viewModel'
+  MagicNumber:
+    active: true
+    ignoreNumbers:
+      - '-1'
+      - '0'
+      - '1'
+      - '2'
+    ignorePropertyDeclaration: true
+    ignoreAnnotation: true
+    ignoreEnums: true
+  MaxLineLength:
+    active: true
+    maxLineLength: 140
+  UnusedPrivateMember:
+    active: true
+    ignoreAnnotated:
+      - 'Preview'
+      - 'ThemePreviews'
+      - 'DevicePreviews'
+  WildcardImport:
+    active: true
+  ReturnCount:
+    active: true
+    max: 4
+  NewLineAtEndOfFile:
+    active: true
+
+naming:
+  active: true
+  FunctionNaming:
+    active: true
+    functionPattern: "^([a-z][a-zA-Z0-9]*|[A-Z][a-zA-Z0-9]*)$"
+
+potential-bugs:
+  active: true
+  LateinitUsage:
+    active: false # Disable globally as it's common with Hilt/Dagger
+  UnsafeCallOnNullableType:
+    active: true
+
+exceptions:
+  active: true
+  TooGenericExceptionCaught:
+    active: false # Disable globally as we often wrap exceptions
+
+comments:
+  active: true

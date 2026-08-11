@@ -1,6 +1,5 @@
 plugins {
-    id("composetemplate.android.library")
-    id("composetemplate.android.hilt")
+    id("composetemplate.feature.navigation")
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -9,8 +8,5 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
-    implementation(project(":contract"))
     implementation(libs.kotlinx.serialization.core)
 }
-

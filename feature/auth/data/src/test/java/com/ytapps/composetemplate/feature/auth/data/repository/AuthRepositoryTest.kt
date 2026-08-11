@@ -1,8 +1,8 @@
 package com.ytapps.composetemplate.feature.auth.data.repository
 
 import com.google.common.truth.Truth
-import com.ytapps.composetemplate.core.api.Result
-import com.ytapps.composetemplate.core.local.IPreferencesManager
+import com.ytapps.composetemplate.core.common.Result
+import com.ytapps.composetemplate.core.data.IPreferencesManager
 import com.ytapps.composetemplate.feature.auth.data.AuthRepository
 import com.ytapps.composetemplate.feature.auth.data.model.AuthRequestModel
 import com.ytapps.composetemplate.feature.auth.data.model.AuthResponseModel
@@ -12,18 +12,13 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
 
-/**
- * Created by mustafayigitt on 05/09/2023
- * mustafa.yt65@gmail.com
- */
 internal class AuthRepositoryTest {
-
     private lateinit var authRepository: IAuthRepository
     private lateinit var authService: AuthService
     private lateinit var preferencesManager: IPreferencesManager
@@ -60,48 +55,75 @@ internal class AuthRepositoryTest {
     }
 
     @Test
-    fun `given valid authRequestModel when login() then verify setAccessToken called`() {
-        // Given
-        val authRequestModel = AuthRequestModel(
-            email = "email",
-            password = "password"
-        )
-        val authResponseModel = AuthResponseModel(
-            accessToken = "token",
-            refreshToken = "refresh",
-            tokenType = "Bearer",
-            expiresIn = "3600"
-        )
+    fun `given valid authRequestModel when login() then verify setAccessToken called`() =
+        runTest {
+            val authRequestModel =
+                AuthRequestModel(
+                    email = "email",
+                    password = "password",
+                )
+            val authResponseModel =
+                AuthResponseModel(
+                    accessToken = "token",
+                    refreshToken = "refresh",
+                    tokenType = "Bearer",
+                    expiresIn = "3600",
+                )
 
-        // When
-        coEvery { authService.login(authRequestModel) } returns Response.success(authResponseModel)
-        val result = runBlocking { authRepository.login("email", "password") }
+            coEvery { authService.login(authRequestModel) } returns Response.success(authResponseModel)
+            val result = authRepository.login("email", "password")
 
-        // Then
-        Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
-        coVerify { preferencesManager.setAccessToken("token") }
-        coVerify { preferencesManager.setRefreshToken("refresh") }
-        coVerify { preferencesManager.setTokenType("Bearer") }
-    }
+            Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
+            coVerify { preferencesManager.setAccessToken("token") }
+            coVerify { preferencesManager.setRefreshToken("refresh") }
+            coVerify { preferencesManager.setTokenType("Bearer") }
+        }
 
     @Test
-    fun `given invalid authRequestModel when login() then verify setAccessToken not called`() {
-        // Given
-        val authRequestModel = AuthRequestModel(
-            email = "email",
-            password = "password"
-        )
+    fun `given admin credentials when login then calls auth service`() =
+        runTest {
+            val authRequestModel =
+                AuthRequestModel(
+                    email = "admin",
+                    password = "admin",
+                )
+            val authResponseModel =
+                AuthResponseModel(
+                    accessToken = "token",
+                    refreshToken = "refresh",
+                    tokenType = "Bearer",
+                    expiresIn = "3600",
+                )
 
-        // When
-        coEvery { authService.login(authRequestModel) } returns Response.error(
-            400,
-            "Bad Request".toResponseBody()
-        )
-        val result = runBlocking { authRepository.login("email", "password") }
+            coEvery { authService.login(authRequestModel) } returns Response.success(authResponseModel)
 
-        // Then
-        Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
-        coVerify(exactly = 0) { preferencesManager.setAccessToken(any()) }
-    }
+            val result = authRepository.login("admin", "admin")
 
+            Truth.assertThat(result).isInstanceOf(Result.Success::class.java)
+            coVerify { authService.login(authRequestModel) }
+            coVerify(exactly = 0) { preferencesManager.setUUID(any()) }
+            coVerify { preferencesManager.setAccessToken("token") }
+            coVerify { preferencesManager.setRefreshToken("refresh") }
+            coVerify { preferencesManager.setTokenType("Bearer") }
+        }
+
+    @Test
+    fun `given invalid authRequestModel when login() then verify setAccessToken not called`() =
+        runTest {
+            val authRequestModel =
+                AuthRequestModel(
+                    email = "email",
+                    password = "password",
+                )
+
+            coEvery { authService.login(authRequestModel) } returns
+                Response.error(
+                    400,
+                    "Bad Request".toResponseBody(),
+                )
+            val result = authRepository.login("email", "password")
+
+            Truth.assertThat(result).isInstanceOf(Result.Error::class.java)
+            coVerify(exactly = 0) { preferencesManager.setAccessToken(any()) }
+        }
 }

@@ -13,7 +13,5 @@ import dagger.multibindings.IntoSet
 internal abstract class DetailModule {
     @Binds
     @IntoSet
-    abstract fun bindDetailScreenProvider(
-        provider: DetailScreenProvider
-    ): IScreenProvider
+    abstract fun bindDetailScreenProvider(provider: DetailScreenProvider): IScreenProvider
 }

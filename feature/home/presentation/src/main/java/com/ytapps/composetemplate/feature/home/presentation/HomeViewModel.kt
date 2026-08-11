@@ -1,12 +1,21 @@
 package com.ytapps.composetemplate.feature.home.presentation
 
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.ytapps.composetemplate.core.ui.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * Created by mustafayigitt on 02/12/2025
- * mustafa.yt65@gmail.com
- */
 @HiltViewModel
-internal class HomeViewModel @Inject constructor(): ViewModel()
+internal class HomeViewModel
+    @Inject
+    constructor() : BaseViewModel<HomeUiState, Nothing>() {
+        override val uiStateInternal = MutableStateFlow(HomeUiState())
+
+        init {
+            viewModelScope.launch {
+                updateState { it.copy(isLoading = false) }
+            }
+        }
+    }

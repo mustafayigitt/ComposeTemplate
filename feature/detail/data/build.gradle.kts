@@ -1,6 +1,5 @@
 plugins {
-    id("composetemplate.android.library")
-    id("composetemplate.android.hilt")
+    id("composetemplate.feature.data")
 }
 
 android {
@@ -8,6 +7,5 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
     implementation(project(":feature:detail:domain"))
 }

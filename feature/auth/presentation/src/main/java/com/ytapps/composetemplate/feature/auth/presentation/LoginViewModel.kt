@@ -1,45 +1,47 @@
 package com.ytapps.composetemplate.feature.auth.presentation
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ytapps.composetemplate.core.api.onError
-import com.ytapps.composetemplate.core.api.onSuccess
+import com.ytapps.composetemplate.core.common.onError
+import com.ytapps.composetemplate.core.common.onSuccess
+import com.ytapps.composetemplate.core.ui.BaseViewModel
 import com.ytapps.composetemplate.feature.auth.domain.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * Created by mustafayigitt on 26/08/2023
- * mustafa.yt65@gmail.com
- */
 @HiltViewModel
-internal class LoginViewModel @Inject constructor(
-    private val login: LoginUseCase
-) : ViewModel() {
+internal class LoginViewModel
+    @Inject
+    constructor(
+        private val login: LoginUseCase,
+    ) : BaseViewModel<LoginUiState, LoginEvent>() {
+        override val uiStateInternal = MutableStateFlow(LoginUiState())
 
-    private val _uiState = MutableStateFlow(LoginUiState())
-    val uiState = _uiState.asStateFlow()
+        fun onEmailChanged(email: String) {
+            updateState { it.copy(email = email) }
+        }
 
-    fun login(email: String, password: String) {
-        viewModelScope.launch {
-            _uiState.value = LoginUiState(isLoading = true)
-            
-            login.invoke(email, password)
-                .onSuccess {
-                    _uiState.value = LoginUiState(
-                        shouldNavigateToSplash = true,
-                        isLoading = false
-                    )
-                }
-                .onError { message, _ ->
-                    _uiState.value = LoginUiState(
-                        isLoading = false,
-                        error = message
-                    )
-                }
+        fun onPasswordChanged(password: String) {
+            updateState { it.copy(password = password) }
+        }
+
+        fun login(
+            email: String,
+            password: String,
+        ) {
+            viewModelScope.launch {
+                updateState { it.copy(isLoading = true) }
+
+                login
+                    .invoke(email, password)
+                    .onSuccess {
+                        updateState { it.copy(isLoading = false) }
+                        sendEvent(LoginEvent.NavigateToSplash)
+                    }.onError { message, _ ->
+                        updateState { it.copy(isLoading = false) }
+                        sendEvent(LoginEvent.ShowSnackbar(message))
+                    }
+            }
         }
     }
-}

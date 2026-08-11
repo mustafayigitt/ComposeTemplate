@@ -13,7 +13,5 @@ import dagger.multibindings.IntoSet
 internal abstract class SearchModule {
     @Binds
     @IntoSet
-    abstract fun bindSearchScreenProvider(
-        provider: SearchScreenProvider
-    ): IScreenProvider
+    abstract fun bindSearchScreenProvider(provider: SearchScreenProvider): IScreenProvider
 }

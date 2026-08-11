@@ -1,54 +1,76 @@
 [versions]
 # SDK versions
 minSdk = "23"
-compileSdk = "36"
+compileSdk = "37"
 targetSdk = "36"
+ndk = "27.0.12077973"
 versionCode = "1"
 versionName = "1.0.0"
 
 # AndroidX
-androidx-core = "1.13.1"
-androidx-compose-bom = "2024.06.00"
-androidx-lifecycle = "2.8.4"
-androidx-activity-compose = "1.9.1"
-androidx-navigation3 = "1.0.0"
-androidx-lifecycle-navigation3 = "2.10.0"
-androidx-datastore = "1.1.1"
+androidx-core = "1.18.0"
+androidx-appcompat = "1.7.0"
+androidx-compose-bom = "2026.05.01"
+androidx-lifecycle = "2.10.0"
+androidx-activity-compose = "1.13.0"
+androidx-navigation3 = "1.1.2"
+androidx-datastore = "1.2.1"
+androidx-room = "2.8.4"
+androidx-material-icons-core = "1.7.8"
 
 # Network
-retrofit = "2.11.0"
-converter-gson = "2.11.0"
+retrofit = "2.12.0"
+converter-gson = "2.12.0"
+okhttp = "4.12.0"
 logging-interceptor = "4.12.0"
 
 # Dependency Injection
-hilt-android = "2.57.1"
-hilt-android-compiler = "2.57.1"
+hilt-android = "2.59.2"
+hilt-android-compiler = "2.59.2"
 hilt-navigation-compose = "1.2.0"
 
 # Kotlin
-kotlin = "2.2.10"
-kotlinx-coroutines-test = "1.7.3"
-kotlinx-serialization = "2.1.21"
+kotlin = "2.0.21"
+kotlinx-coroutines-test = "1.11.0"
 kotlinx-serialization-core = "1.8.1"
+
+# Logging
+timber = "5.0.1"
+
+# Static Analysis
+detekt = "1.23.8"
+ktlint = "14.2.0"
 
 # Testing
 junit = "4.13.2"
 junit-android = "1.2.1"
 espresso-core = "3.6.1"
-truth = "1.1.5"
-mockk = "1.13.7"
+truth = "1.4.5"
+mockk = "1.14.11"
 
 # Build Tools
-ksp = "2.2.10-2.0.2"
-android-gradle-plugin = "8.13.0"
+ksp = "2.0.21-1.0.28"
+android-gradle-plugin = "9.2.1"
 
-# Material Design
-material3-adaptive-navigation3 = "1.3.0-alpha04"
+# Benchmarking
+androidx-benchmark-macro-junit4 = "1.5.0-alpha06"
+androidx-benchmark-baseline-profile-gradle-plugin = "1.5.0-alpha06"
+androidx-material3-adaptive = "1.3.0-beta02"
+androidx-uiautomator = "2.3.0"
+androidx-profileinstaller = "1.4.1"
+
+# Google Play
+google-play-review = "2.0.2"
+google-play-app-update = "2.1.0"
+
+
 
 [libraries]
 # AndroidX Core
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
 
 # Compose
@@ -60,19 +82,24 @@ androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview
 androidx-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 androidx-material3 = { module = "androidx.compose.material3:material3" }
+androidx-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "androidx-material-icons-core" }
 
 # Navigation
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "androidx-navigation3" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "androidx-navigation3" }
-androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "androidx-lifecycle-navigation3" }
-androidx-material3-adaptive-navigation3 = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation3", version.ref = "material3-adaptive-navigation3" }
+androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "androidx-lifecycle" }
+androidx-material3-adaptive-navigation3 = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation3", version.ref = "androidx-material3-adaptive" }
 
 # Data Storage
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "androidx-datastore" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidx-room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidx-room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidx-room" }
 
 # Network
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converter-gson" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "logging-interceptor" }
 
 # Dependency Injection
@@ -84,6 +111,9 @@ androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-com
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-test" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization-core" }
 
+# Logging
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+
 # Testing
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junit-android" }
@@ -91,11 +121,23 @@ androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", vers
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
+# Benchmarking
+androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "androidx-benchmark-macro-junit4" }
+androidx-benchmark-baseline-profile-gradle-plugin = { group = "androidx.benchmark", name = "benchmark-baseline-profile-gradle-plugin", version.ref = "androidx-benchmark-baseline-profile-gradle-plugin" }
+androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "androidx-uiautomator" }
+androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "androidx-profileinstaller" }
+
+# Google Play
+google-play-review = { module = "com.google.android.play:review-ktx", version.ref = "google-play-review" }
+google-play-app-update = { module = "com.google.android.play:app-update-ktx", version.ref = "google-play-app-update" }
+
 # Build Logic Dependencies
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "android-gradle-plugin" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "symbol-processing-gradle-plugin", version.ref = "ksp" }
 compose-compiler-gradle-plugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
+detekt-gradle-plugin = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
+ktlint-gradle-plugin = { group = "org.jlleitschuh.gradle", name = "ktlint-gradle", version.ref = "ktlint" }
 
 [plugins]
 # Android
@@ -104,7 +146,7 @@ android-library = { id = "com.android.library", version.ref = "android-gradle-pl
 
 # Kotlin
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinx-serialization" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
 # Build Tools
@@ -113,5 +155,12 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 # Dependency Injection
 dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt-android" }
 
+# Static Analysis
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+
 # Build Logic
 kotlin-dsl = { id = "org.gradle.kotlin.kotlin-dsl", version.ref = "kotlin" }
+
+# Baseline Profile
+baselineprofile = { id = "androidx.baselineprofile", version.ref = "androidx-benchmark-baseline-profile-gradle-plugin" }
