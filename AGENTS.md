@@ -24,10 +24,10 @@ feature/
 
 ### Convention Plugins
 - Feature sub-modules must use the dedicated convention plugins for infrastructure dependencies. Inter-module feature dependencies (e.g., data → domain) are added manually in `build.gradle.kts`:
-  - `composetemplate.feature.domain` — provides `:core:common`, `:core:network`
-  - `composetemplate.feature.data` — provides `:core:common`, `:core:data`, `:core:network`, `:core:secrets`
+  - `composetemplate.feature.domain` — provides `:core:common`
+  - `composetemplate.feature.data` — provides `:core:common`, `:core:data`, `:core:database`, `:core:network`, `:core:secrets`
   - `composetemplate.feature.navigation` — provides `:core:common`, `:core:navigation`, material-icons-core, compose
-  - `composetemplate.feature.presentation` — provides `:core:common`, `:core:ui`, `:core:navigation`, material-icons-core, compose, hilt, test deps
+  - `composetemplate.feature.presentation` — provides `:core:common`, `:core:ui`, `:core:navigation`, material-icons-core, compose, hilt, lifecycle-runtime-compose, test deps
 - Convention plugins are registered in `build-logic/convention/build.gradle.kts`.
 - To add a new plugin, create the `.kt` file in `build-logic/convention/src/main/kotlin/...` and register it in `build.gradle.kts`.
 
@@ -71,7 +71,27 @@ feature/
 - `com.google.common.truth` for assertions.
 - ViewModel tests must set `Dispatchers.setMain(UnconfinedTestDispatcher())` in `@Before` when testing `viewModelScope.launch`.
 
-### Adding a New Feature
+### Localization
+- `LocaleManager` (in `:core:data`) handles runtime language switching via `AppCompatDelegate.setApplicationLocales()`.
+- On app start, `MainActivity` restores the saved language through `LocaleManager.restoreSavedLanguage()`.
+- Profile screen calls `localeManager.applyLanguage(language)` for user-initiated language changes.
+- On Android API 33+, language switching is instant. On older APIs, `AppCompatDelegate` triggers an activity recreate.
+
+### Feature Complexity Levels
+Features in the template intentionally vary in complexity to demonstrate different patterns:
+
+| Feature | Complexity | Demonstrates |
+|---------|-----------|-------------|
+| `auth` | **Full** | Complete Clean Architecture with API service, full data/domain/presentation layers, token refresh, tests at all layers |
+| `splash` | **Full** | Repository pattern with start destination logic, tests at all layers |
+| `profile` | **Medium** | Preferences-based data layer, multiple use cases, dynamic theme/language switching |
+| `home` | **Minimal** | Bottom-bar tab with the minimum correct structure (data class UiState, BaseViewModel, ScreenProvider) |
+| `detail` | **Minimal** | Parameterized route with ID extraction in ScreenProvider |
+| `list` | **Minimal** | List screen with navigation to detail |
+| `search` | **Minimal** | Search field with filterable list |
+| `onboarding` | **Medium** | Pager-based UI with repository, pass-through use case |
+
+For new features, reference the feature at your desired complexity level. The `scaffoldFeature` task generates a minimal structure by default.
 Create 4 sub-modules under `feature/{name}/`:
 - `data/` — `composetemplate.feature.data` plugin
 - `domain/` — `composetemplate.feature.domain` plugin

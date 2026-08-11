@@ -36,6 +36,10 @@ style:
     maxLineLength: 140
   UnusedPrivateMember:
     active: true
+    ignoreAnnotated:
+      - 'Preview'
+      - 'ThemePreviews'
+      - 'DevicePreviews'
   WildcardImport:
     active: true
   ReturnCount:

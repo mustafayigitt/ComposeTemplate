@@ -4,9 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ytapps.composetemplate.core.analytics.IAnalyticsManager
+import com.ytapps.composetemplate.core.data.LocaleManager
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.core.navigation.ScreenRegistry
 import com.ytapps.composetemplate.core.network.NetworkMonitor
@@ -29,11 +31,18 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var analyticsManager: IAnalyticsManager
 
+    @Inject
+    lateinit var localeManager: LocaleManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             val isDarkMode by navigationManager.isDarkModeFlow.collectAsStateWithLifecycle()
+
+            LaunchedEffect(Unit) {
+                localeManager.restoreSavedLanguage()
+            }
 
             ComposeTemplateTheme(darkTheme = isDarkMode) {
                 AppNavigation(
@@ -41,7 +50,6 @@ class MainActivity : ComponentActivity() {
                     screenRegistry = screenRegistry,
                     networkMonitor = networkMonitor,
                     analyticsManager = analyticsManager,
-                    isDarkMode = isDarkMode,
                 )
             }
         }

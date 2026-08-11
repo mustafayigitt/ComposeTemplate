@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -15,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ytapps.composetemplate.core.navigation.INavigationManager
+import com.ytapps.composetemplate.core.ui.components.AppButton
 import com.ytapps.composetemplate.feature.list.navigation.ListRoute
 
 @Composable
@@ -40,12 +40,11 @@ internal fun HomeScreenInternal(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
+        AppButton(
+            text = "Go to List",
             onClick = {
                 navigationManager.navigate(ListRoute)
             },
-        ) {
-            Text(text = "Go to List")
-        }
+        )
     }
 }

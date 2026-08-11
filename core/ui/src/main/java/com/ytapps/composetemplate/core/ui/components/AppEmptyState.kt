@@ -1,6 +1,7 @@
 package com.ytapps.composetemplate.core.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ytapps.composetemplate.core.ui.ThemePreviews
+import com.ytapps.composetemplate.core.ui.theme.ComposeTemplateTheme
 
 @Composable
 fun AppEmptyState(
@@ -43,5 +46,15 @@ fun AppEmptyState(
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun AppEmptyStatePreview() {
+    ComposeTemplateTheme {
+        Box(modifier = Modifier.fillMaxSize()) {
+            AppEmptyState(message = "No items found. Try adjusting your filters.")
+        }
     }
 }

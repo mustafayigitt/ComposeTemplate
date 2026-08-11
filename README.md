@@ -172,7 +172,7 @@ For detailed build configuration documentation, see [build-logic/README.md](buil
 
 ### Network Layer
 - **Retrofit Integration**: Configured with Gson converter.
-- **SafeRepository**: Safe API call wrapper returning `Result<T>` (Success/Error/Loading).
+- **BaseRepository**: Safe API call wrapper returning `Result<T>` (Success/Error/Loading).
 
 ## Getting Started
 

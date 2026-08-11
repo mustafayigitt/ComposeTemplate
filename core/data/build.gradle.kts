@@ -1,6 +1,7 @@
 plugins {
     id("composetemplate.android.library")
     id("composetemplate.android.hilt")
+    id("composetemplate.test")
 }
 
 android {
@@ -10,4 +11,5 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.appcompat)
 }

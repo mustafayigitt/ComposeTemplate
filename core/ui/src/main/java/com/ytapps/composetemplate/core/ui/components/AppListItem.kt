@@ -9,13 +9,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.ytapps.composetemplate.core.ui.ThemePreviews
 import com.ytapps.composetemplate.core.ui.theme.AppTheme
+import com.ytapps.composetemplate.core.ui.theme.ComposeTemplateTheme
 
 @Composable
 fun AppListItem(
@@ -59,6 +64,32 @@ fun AppListItem(
         if (trailingContent != null) {
             Spacer(modifier = Modifier.width(AppTheme.spacing.small))
             trailingContent()
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun AppListItemPreview() {
+    ComposeTemplateTheme {
+        Column(modifier = Modifier.padding(16.dp)) {
+            AppListItem(
+                title = "Simple Item",
+            )
+            AppListItem(
+                title = "Item with Subtitle",
+                subtitle = "This is a descriptive subtitle text",
+            )
+            AppListItem(
+                title = "Complete Item",
+                subtitle = "With leading content",
+                leadingContent = {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = null,
+                    )
+                },
+            )
         }
     }
 }

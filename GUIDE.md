@@ -1,24 +1,24 @@
-# ComposeTemplate Geliştirme Rehberi 🚀
+# ComposeTemplate Development Guide
 
-Bu rehber, ComposeTemplate kullanarak nasıl hızlıca yeni özellikler ekleyebileceğinizi ve projeyi nasıl genişletebileceğinizi anlatır.
+This guide explains how to quickly add new features and extend the project using ComposeTemplate.
 
-## 1. Yeni Bir Özellik (Feature) Ekleme
+## 1. Adding a New Feature
 
-Yeni bir özellik eklemek için hazır scaffolding görevini kullanın:
+Use the scaffolding task to add a new feature:
 
 ```bash
 ./gradlew scaffoldFeature -PfeatureName=settings
 ```
 
-Bu komut şunları otomatik yapar:
-- `feature/settings` dizinini ve 4 alt modülünü oluşturur.
-- Modülleri `settings.gradle.kts` dosyasına dahil eder.
-- Modül bağımlılıklarını `app/build.gradle.kts` dosyasına ekler.
-- Temel navigasyon rotasını (`SettingsRoute`) oluşturur.
+This command automatically:
+- Creates the `feature/settings` directory and 4 sub-modules.
+- Includes the modules in `settings.gradle.kts`.
+- Adds module dependencies to `app/build.gradle.kts`.
+- Generates the base navigation route (`SettingsRoute`).
 
-## 2. Navigasyon Kaydı
+## 2. Navigation Registration
 
-`scaffoldFeature` komutu `navigation` modülünde route'u, `presentation` modülünde `IScreenProvider` binding'ini oluşturur. Elle ekleme yapmanız gerekirse pattern şu olmalıdır:
+The `scaffoldFeature` command creates the route in the `navigation` module and the `IScreenProvider` binding in the `presentation` module. If adding manually, follow this pattern:
 
 ```kotlin
 class SettingsScreenProvider @Inject constructor() : IScreenProvider {
@@ -34,10 +34,27 @@ class SettingsScreenProvider @Inject constructor() : IScreenProvider {
 }
 ```
 
-## 3. Mimari Standartlar
+### Bottom Bar Tabs
+If the feature should appear in the bottom navigation bar, register it in the navigation DI module:
 
-### ViewModel Yapısı
-Tüm ViewModel'ler `BaseViewModel` sınıfından türemelidir:
+```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+object SettingsNavigationModule {
+    @Provides
+    @IntoMap
+    @StringKey("4")
+    fun provideBottomBarItem(): IBottomBarItem = SettingsRoute
+}
+```
+
+### Cross-Feature Navigation
+Feature presentation modules may depend on other feature navigation modules (e.g., `:feature:home:presentation` depending on `:feature:list:navigation`). This is intentional for the template — it keeps navigation targets directly resolvable at compile time. For larger projects, consider abstracting navigation targets through a shared navigation abstraction or resolving dependencies at the app level.
+
+## 3. Architecture Standards
+
+### ViewModel Structure
+All ViewModels must extend `BaseViewModel`:
 
 ```kotlin
 @HiltViewModel
@@ -51,43 +68,69 @@ class MyViewModel @Inject constructor() : BaseViewModel<MyUiState, MyEvent>() {
 }
 ```
 
-### UI State ve Event
-- **UiState:** Ekranın tüm durumunu temsil eden tek bir data class.
-- **Event:** Snackbar gösterimi, navigasyon gibi bir kerelik olaylar için `Channel` tabanlı sistem.
-- **Route/UI ayrımı:** Route composable ViewModel, lifecycle collection, event ve navigasyonu bağlar. Plain UI composable sadece immutable state ve callback alır.
+### UI State and Events
+- **UiState:** A single data class representing all screen state.
+- **Event:** Channel-based system for one-shot events like snackbar display and navigation.
+- **Route/UI Separation:** The Route composable wires the ViewModel, lifecycle collection, events, and navigation. The plain UI composable receives only immutable state and callbacks.
+
+### Feature Complexity Levels
+Features in the template intentionally vary in complexity to demonstrate different patterns:
+
+| Feature | Complexity | Demonstrates |
+|---------|-----------|-------------|
+| `auth` | **Full** | Complete Clean Architecture with API service, full data/domain/presentation layers, token refresh, tests at all layers |
+| `splash` | **Full** | Repository pattern with start destination logic, tests at all layers |
+| `profile` | **Medium** | Preferences-based data layer, multiple use cases, dynamic theme/language switching |
+| `home` | **Minimal** | Bottom-bar tab with the minimum correct structure (data class UiState, BaseViewModel, ScreenProvider) |
+| `detail` | **Minimal** | Parameterized route with ID extraction in ScreenProvider |
+| `list` | **Minimal** | List screen with navigation to detail |
+| `search` | **Minimal** | Search field with filterable list |
+| `onboarding` | **Medium** | Pager-based UI with repository, pass-through use case |
+
+For new features, reference the feature at your desired complexity level. The `scaffoldFeature` task generates a minimal structure by default.
 
 ## 4. Secret Management
 
-Yeni bir API anahtarı veya client config değeri eklemek için:
-1. `secrets.properties` dosyasına anahtarı ekleyin.
-2. `./gradlew validateSecrets` ile doğrulayın.
-3. `SecretManager.kt` içinde yeni bir metod tanımlayın.
-4. `native-lib.cpp` içinde JNI metodunu implemente edin.
-5. Release için `./gradlew hardeningReport` ve `scanApkForSecrets` çıktısını kontrol edin.
+To add a new API key or client config value:
+1. Add the key to `secrets.properties`.
+2. Validate with `./gradlew validateSecrets`.
+3. Define a new method in `SecretManager.kt`.
+4. Implement the JNI method in `native-lib.cpp`.
+5. For release, check `./gradlew hardeningReport` and `scanApkForSecrets` output.
 
-Not: Client içine konan değer mutlak güvenli değildir; bu yapı native obfuscation, runtime integrity checks ve MITM korumalarıyla reverse engineering maliyetini artıran defense-in-depth katmanıdır.
+Note: Values placed in the client are never absolutely secure; this architecture provides a defense-in-depth layer that increases the cost of reverse engineering through native obfuscation, runtime integrity checks, and MITM protections.
 
-## 5. UI Bileşenleri
+## 5. UI Components
 
-Ortak bileşenleri `:core:ui` modülünde bulabilirsiniz:
-- `AppButton`: Standart buton.
-- `AppLoading`: Yükleme göstergesi.
-- `AppErrorState`: Hata durumları için hazır ekran.
-- `AppCard`: Gölgelendirmesi ayarlanmış kart yapısı.
+Shared components are in the `:core:ui` module:
+- `AppButton`: Standard button.
+- `AppTextField`: Text input with icon slots and error state.
+- `AppLoading`: Loading indicator (inline/fullscreen modes).
+- `AppErrorState`: Ready-made error screen with optional retry.
+- `AppEmptyState`: Empty state with icon and message.
+- `AppCard`: Card with configurable elevation.
+- `AppTopBar`: Center-aligned top bar with navigation and actions.
+- `AppDialog`: Alert dialog with confirm/dismiss buttons.
+- `AppNoInternetBanner`: Animated network status banner.
+- `AppSkeleton`: Shimmer loading skeletons.
+- `AppSearchField`: Search input with clear button.
+- `AppSurface`: Themed surface wrapper.
+- `AppListItem`: List item with leading/trailing slots.
+- `AppBadge`, `AppChip`, `AppDivider`, `AppIconButton`, `AppAvatar`
 
-## 6. Onboarding ve Akış Kontrolü
+## 6. Onboarding and Flow Control
 
-Uygulama açılışında `:feature:splash` start destination kararını verir. Onboarding akışı `:feature:onboarding` altında data/domain/navigation/presentation olarak ayrılmıştır.
+At app launch, `:feature:splash` determines the start destination. The onboarding flow is separated into data/domain/navigation/presentation under `:feature:onboarding`.
 
-Yeni bir onboarding adımı eklerken genellikle şu dosyaları birlikte güncelleyin:
+When adding a new onboarding step, typically update:
 - `feature/onboarding/presentation/.../OnboardingUiState.kt`
 - `feature/onboarding/presentation/.../OnboardingRoute.kt`
 - `feature/onboarding/presentation/src/main/res/values/strings.xml`
-- Gerekirse `feature/onboarding/domain` use case'leri ve `feature/onboarding/data` repository implementasyonu
+- If needed, `feature/onboarding/domain` use cases and `feature/onboarding/data` repository implementation
 
-## 7. İzin Yönetimi (Permissions)
+## 7. Permission Management
 
-`:core:permission` modülü ile izinleri kolayca yönetebilirsiniz:
+Use `:core:permission` module to easily manage permissions:
 
 ```kotlin
 PermissionRequired(
@@ -108,23 +151,29 @@ PermissionRequired(
 )
 ```
 
-## 8. Premium UI ve Google Play Özellikleri
+## 8. Premium UI and Google Play Features
 
-### Shimmer (Yükleme Efekti)
-Herhangi bir bileşene `Modifier.shimmer()` ekleyerek profesyonel bir yükleme efekti verebilirsiniz.
+### Shimmer (Loading Effect)
+Add `Modifier.shimmer()` or use `AppListSkeleton` for professional shimmer loading placeholders.
+
+### Dynamic Theme
+Dark/light mode is controlled via `PreferencesManager.isDarkModeFlow`. Toggle it via `ProfileViewModel.toggleTheme()`. The theme updates instantly without activity recreation.
+
+### Dynamic Language
+Language switching is handled by `LocaleManager` in `:core:data`. It applies the locale via `AppCompatDelegate.setApplicationLocales()` and automatically restores the saved language on app start. On Android API 33+, switching is instant; on older APIs, the activity recreates.
 
 ### In-App Review
-`ReviewManager`'ı inject ederek kullanıcıdan puan isteyebilirsiniz:
+Inject `ReviewManager` to request a rating from users:
 ```kotlin
 reviewManager.requestReview(activity)
 ```
 
 ### App Update
-`UpdateManager` ile hem Google Play güncellemelerini hem de Remote Config tabanlı "Zorunlu Güncelleme" (Force Update) mantığını yönetebilirsiniz.
+Use `UpdateManager` to handle both Google Play updates and Remote Config-based "Force Update" logic.
 
-## 9. Statik Analiz ve Kalite
+## 9. Static Analysis and Quality
 
-Kodunuzu göndermeden önce mutlaka şu komutları çalıştırın:
+Before submitting code, always run:
 ```bash
 ./gradlew ktlintCheck detekt
 ./gradlew testDebugUnitTest assembleDebug :app:assembleRelease

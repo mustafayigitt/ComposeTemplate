@@ -1,45 +1,45 @@
 # Android Secret Management
 
-Bu template, backend olmayan senaryolarda Android client icindeki hassas config degerlerinin cikarilma maliyetini artirmak icin katmanli bir secret management yaklasimi sunar.
+This template provides a layered secret management approach to increase the extraction cost of sensitive config values from Android clients in scenarios without a dedicated backend.
 
-Onemli sinir: public bir mobil uygulamanin icine konan deger, yeterince motivasyonu olan biri tarafindan cikarilabilir. Bu yapi secret'i imkansiz kilmaz; native obfuscation, runtime integrity checks ve MITM korumalariyla reverse engineering/decompile maliyetini artirir.
+Important limitation: any value placed inside a public mobile application can be extracted by a sufficiently motivated attacker. This architecture does not make secrets impossible to extract; it increases the cost of reverse engineering and decompilation through native obfuscation, runtime integrity checks, and MITM protections.
 
-## Katmanlar
+## Layers
 
 1. Local/CI secret loading
-   - Local gelistirmede `secrets.properties` kullanilir.
-   - CI icin ayni key isimleri environment variable olarak verilebilir.
-   - `secrets.properties` git disinda tutulur.
+   - During local development, `secrets.properties` is used.
+   - For CI, the same key names can be provided as environment variables.
+   - `secrets.properties` is kept outside of git.
 
 2. Build-time validation
-   - `validateSecrets` artik Android `preBuild` akislari oncesinde calisir.
-   - Eksik deger, bos secret, `YOUR_` placeholder, kisa `XOR_MASK`, gecersiz SHA-256 signature hash ve slash'siz Retrofit base URL build'i durdurur.
-   - Release build signing key eksikse warning degil fail olur.
+   - `validateSecrets` runs before Android `preBuild` flows.
+   - Missing values, empty secrets, `YOUR_` placeholders, short `XOR_MASK`, invalid SHA-256 signature hashes, and Retrofit base URLs without trailing slashes will stop the build.
+   - Missing release signing keys cause a failure rather than a warning.
 
 3. Native secret obfuscation
-   - `composetemplate.useNativeSecrets=true` iken API key ve base URL degerleri BuildConfig'e duz metin yazilmaz.
-   - Degerler build sirasinda XOR ile obfuscate edilir ve generated C++ header'a byte array olarak yazilir.
-   - XOR mask static header, CMake define ve Kotlin runtime parcasi olarak bolunur.
-   - Native katman release'te app signature, emulator ve debugger sinyallerini kontrol edebilir.
+   - When `composetemplate.useNativeSecrets=true`, API key and base URL values are not written to BuildConfig as plain text.
+   - Values are XOR-obfuscated at build time and written to a generated C++ header as byte arrays.
+   - The XOR mask is split across a static header, CMake define, and Kotlin runtime piece.
+   - The native layer can check app signature, emulator, and debugger signals in release builds.
 
 4. Runtime integrity checks
-   - `core:security` modulu app signature, package name, installer, emulator, debugger, root ve hooking sinyallerini toplar.
-   - Debug build'lerde bulgular warn davranisi icin uygundur.
-   - Release build'lerde `NATIVE_RUNTIME_CHECKS_ENABLED=true` ise startup block uygulanir.
+   - The `core:security` module collects signals for app signature, package name, installer, emulator, debugger, root, and hooking.
+   - In debug builds, findings produce warnings.
+   - In release builds with `NATIVE_RUNTIME_CHECKS_ENABLED=true`, startup is blocked on findings.
 
 5. Network/MITM hardening
-   - Main network security config cleartext kapatir ve sadece system CA trust eder.
-   - Debug kaynaklari localhost/10.0.2.2 cleartext ve user CA icin override saglar.
-   - `CERTIFICATE_PINNING_ENABLED=true` oldugunda release OkHttp client primary + backup `sha256/...` pin bekler.
+   - The main network security config disables cleartext and trusts only system CAs.
+   - Debug resources provide overrides for localhost/10.0.2.2 cleartext and user CAs.
+   - When `CERTIFICATE_PINNING_ENABLED=true`, the release OkHttp client expects primary + backup `sha256/...` pins.
 
 6. Artifact scan
-   - `scanApkForSecrets` APK/AAB icinde ham `API_KEY_*` ve `BASE_URL_*` degerlerini arar.
-   - Release `assembleRelease` ve `bundleRelease` sonrasi otomatik calisir.
-   - `hardeningReport` aktif secret management/hardening ayarlarini yazdirir.
+   - `scanApkForSecrets` searches APK/AAB artifacts for raw `API_KEY_*` and `BASE_URL_*` values.
+   - Runs automatically after release `assembleRelease` and `bundleRelease`.
+   - `hardeningReport` prints the active secret management/hardening configuration.
 
 ## secrets.properties
 
-Yeni app'i urettikten sonra root dizinde ornek dosyadan baslayabilirsin:
+After generating a new app, start from the example file in the root directory:
 
 ```bash
 cp secrets.properties.example secrets.properties
@@ -65,20 +65,20 @@ KEY_PASSWORD="release_key_password"
 STORE_PASSWORD="release_store_password"
 ```
 
-`EXPECTED_SIGNATURE_HASH` colon'lu veya colon'suz verilebilir; build ve native taraf bunu normalize eder. Google Play App Signing kullaniyorsan release icin Play Console'daki App signing key certificate SHA-256 hash'ini kullan.
+`EXPECTED_SIGNATURE_HASH` can be provided with or without colons; the build and native layer normalize it. If using Google Play App Signing, use the App signing key certificate SHA-256 hash from the Play Console for release.
 
 ## Pinning
 
-OkHttp pin formatini kullan:
+Use the OkHttp pin format:
 
 ```properties
 CERTIFICATE_PINNING_ENABLED=true
 CERTIFICATE_PINS="sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=,sha256/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB="
 ```
 
-En az iki pin gir: current pin ve backup/rotation pin. Pinning debug'da otomatik bypass edilir, release'te zorunlu calisir.
+Provide at least two pins: the current pin and a backup/rotation pin. Pinning is automatically bypassed in debug builds and enforced in release builds.
 
-## Komutlar
+## Commands
 
 ```bash
 ./gradlew validateSecrets
@@ -92,29 +92,29 @@ En az iki pin gir: current pin ve backup/rotation pin. Pinning debug'da otomatik
 
 - `./gradlew validateSecrets`
 - `./gradlew hardeningReport`
-- `EXPECTED_SIGNATURE_HASH` release signing cert ile uyumlu
-- `BASE_URL_RELEASE` HTTPS ve trailing slash ile bitiyor
-- `CERTIFICATE_PINNING_ENABLED=true` ise en az iki pin mevcut
-- Release signing keyleri env var veya `secrets.properties` ile saglaniyor
-- `./gradlew :app:assembleRelease` sonrasi `scanApkForSecrets` temiz geciyor
+- `EXPECTED_SIGNATURE_HASH` matches the release signing cert
+- `BASE_URL_RELEASE` uses HTTPS and ends with a trailing slash
+- If `CERTIFICATE_PINNING_ENABLED=true`, at least two pins are present
+- Release signing keys are provided via env vars or `secrets.properties`
+- After `./gradlew :app:assembleRelease`, `scanApkForSecrets` passes cleanly
 
-## Tehdit Modeli
+## Threat Model
 
-Bu yapi su riskleri azaltmayi hedefler:
+This architecture aims to mitigate the following risks:
 
-- JADX/decompile ile duz secret gorulmesi
-- `strings` ile APK icinde ham key yakalanmasi
-- Yanlis base URL veya placeholder ile artifact uretilmesi
-- User CA uzerinden release MITM denemeleri
-- Basit re-signed clone app'in release secret alabilmesi
-- Debugger/emulator/root/hooking gibi runtime analiz sinyalleri
+- Secret values appearing as plain text via JADX/decompile
+- Raw keys appearing in APK artifacts via `strings`
+- Artifact generation with incorrect base URLs or placeholder values
+- Release MITM attempts via user CA
+- Simple re-signed clone apps accessing release secrets
+- Runtime analysis signals (debugger, emulator, root, hooking)
 
-Bu yapi sunlari garanti etmez:
+This architecture does NOT guarantee:
 
-- Client icindeki secret'in sonsuza kadar gizli kalmasi
-- Runtime memory'de acilan degerin hic yakalanamamasi
-- Frida/Xposed/root kontrollerinin bypass edilememesi
-- Patch'lenmis bir client'in native/Kotlin kontrollerini atlatamamasi
-- Backend authorization, token expiration veya attestation yerine gecmesi
+- Permanent secrecy of client-side values
+- Prevention of in-memory value extraction at runtime
+- Unbypassable Frida/Xposed/root checks
+- Unpatchable native/Kotlin integrity checks
+- Replacement for backend authorization, token expiration, or attestation
 
-Gercek yuksek yetkili secret'lar backend, token exchange, expiration, Firebase/Supabase rules, Play Integrity/App Attest ve server-side kontrollerle korunmalidir.
+Truly high-value secrets should be protected by backend, token exchange, expiration, Firebase/Supabase rules, Play Integrity/App Attest, and server-side controls.

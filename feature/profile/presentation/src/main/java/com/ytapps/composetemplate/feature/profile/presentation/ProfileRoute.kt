@@ -1,6 +1,5 @@
 package com.ytapps.composetemplate.feature.profile.presentation
 
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -19,11 +17,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ytapps.composetemplate.core.common.Language
 import com.ytapps.composetemplate.core.navigation.INavigationManager
+import com.ytapps.composetemplate.core.ui.components.AppButton
 import com.ytapps.composetemplate.core.ui.components.AppCard
 import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
 
@@ -42,11 +40,6 @@ internal fun ProfileScreenInternal(
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                is ProfileEvent.ApplyLanguage -> {
-                    val appLocale = LocaleListCompat.forLanguageTags(event.language.code)
-                    AppCompatDelegate.setApplicationLocales(appLocale)
-                }
-
                 ProfileEvent.NavigateToLogin -> navigationManager.navigateToTop(LoginRoute)
             }
         }
@@ -112,11 +105,9 @@ internal fun ProfileScreenInternal(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
+        AppButton(
+            text = "Logout",
             onClick = { viewModel.logout() },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(text = "Logout")
-        }
+        )
     }
 }

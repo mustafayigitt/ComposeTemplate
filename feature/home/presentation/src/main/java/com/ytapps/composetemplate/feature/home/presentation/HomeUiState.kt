@@ -1,3 +1,5 @@
 package com.ytapps.composetemplate.feature.home.presentation
 
-internal object HomeUiState
+internal data class HomeUiState(
+    val isLoading: Boolean = true,
+)

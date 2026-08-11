@@ -20,7 +20,6 @@ import com.ytapps.composetemplate.core.navigation.ScreenRegistry
 import com.ytapps.composetemplate.core.network.NetworkMonitor
 import com.ytapps.composetemplate.core.network.NetworkStatus
 import com.ytapps.composetemplate.core.ui.components.AppNoInternetBanner
-import com.ytapps.composetemplate.core.ui.theme.ComposeTemplateTheme
 import com.ytapps.composetemplate.core.ui.theme.component.AppNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,7 +29,6 @@ fun AppNavigation(
     screenRegistry: ScreenRegistry,
     networkMonitor: NetworkMonitor,
     analyticsManager: IAnalyticsManager,
-    isDarkMode: Boolean = false,
 ) {
     val backStack by navigationManager.backStack.collectAsStateWithLifecycle()
     val currentRoute = backStack.lastOrNull()
@@ -49,41 +47,39 @@ fun AppNavigation(
         }
     }
 
-    ComposeTemplateTheme(darkTheme = isDarkMode) {
-        if (currentRoute != null) {
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                topBar = {
-                    AppNoInternetBanner(isVisible = networkStatus != NetworkStatus.Available)
-                },
-                bottomBar = {
-                    if (navigationManager.showBottomBar(currentRoute)) {
-                        AppNavigationBar(
-                            currentRoute = currentRoute,
-                            items = navigationManager.bottomBarItems,
-                            onItemClick = { selected ->
-                                navigationManager.selectTab(selected)
-                            },
-                        )
+    if (currentRoute != null) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            topBar = {
+                AppNoInternetBanner(isVisible = networkStatus != NetworkStatus.Available)
+            },
+            bottomBar = {
+                if (navigationManager.showBottomBar(currentRoute)) {
+                    AppNavigationBar(
+                        currentRoute = currentRoute,
+                        items = navigationManager.bottomBarItems,
+                        onItemClick = { selected ->
+                            navigationManager.selectTab(selected)
+                        },
+                    )
+                }
+            },
+        ) { paddingValues ->
+            NavDisplay(
+                modifier = Modifier.padding(paddingValues),
+                backStack = backStack,
+                onBack = {
+                    val handled = navigationManager.navigateBack()
+                    if (!handled) {
+                        (context as? Activity)?.finish()
                     }
                 },
-            ) { paddingValues ->
-                NavDisplay(
-                    modifier = Modifier.padding(paddingValues),
-                    backStack = backStack,
-                    onBack = {
-                        val handled = navigationManager.navigateBack()
-                        if (!handled) {
-                            (context as? Activity)?.finish()
-                        }
-                    },
-                    entryProvider = { key ->
-                        NavEntry(key) {
-                            screenRegistry.ScreenProvider(key, navigationManager)
-                        }
-                    },
-                )
-            }
+                entryProvider = { key ->
+                    NavEntry(key) {
+                        screenRegistry.ScreenProvider(key, navigationManager)
+                    }
+                },
+            )
         }
     }
 }
