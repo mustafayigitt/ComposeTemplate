@@ -2,15 +2,12 @@ package com.ytapps.composetemplate.feature.profile.presentation
 
 import com.google.common.truth.Truth.assertThat
 import com.ytapps.composetemplate.core.common.Language
-import com.ytapps.composetemplate.core.data.LocaleManager
 import com.ytapps.composetemplate.feature.profile.domain.GetLanguageUseCase
 import com.ytapps.composetemplate.feature.profile.domain.GetThemeUseCase
 import com.ytapps.composetemplate.feature.profile.domain.IProfileRepository
 import com.ytapps.composetemplate.feature.profile.domain.LogoutUseCase
 import com.ytapps.composetemplate.feature.profile.domain.UpdateLanguageUseCase
 import com.ytapps.composetemplate.feature.profile.domain.UpdateThemeUseCase
-import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +26,6 @@ import org.junit.Test
 internal class ProfileViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: FakeProfileRepository
-    private lateinit var localeManager: LocaleManager
 
     private lateinit var viewModel: ProfileViewModel
 
@@ -37,7 +33,6 @@ internal class ProfileViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         repository = FakeProfileRepository()
-        localeManager = mockk(relaxed = true)
 
         viewModel =
             ProfileViewModel(
@@ -46,7 +41,6 @@ internal class ProfileViewModelTest {
                 updateLanguage = UpdateLanguageUseCase(repository),
                 getLanguage = GetLanguageUseCase(repository),
                 logout = LogoutUseCase(repository),
-                localeManager = localeManager,
             )
     }
 
@@ -68,24 +62,27 @@ internal class ProfileViewModelTest {
         }
 
     @Test
-    fun `given language selected when onLanguageSelected called then locale applied`() =
+    fun `given language selected when onLanguageSelected called then repository applies language`() =
         runTest(testDispatcher) {
             viewModel.onLanguageSelected(Language.TURKISH)
             advanceUntilIdle()
 
-            verify(exactly = 1) { localeManager.applyLanguage(Language.TURKISH) }
+            assertThat(repository.appliedLanguage).isEqualTo(Language.TURKISH)
         }
 
     private class FakeProfileRepository : IProfileRepository {
         override val isDarkModeFlow = MutableStateFlow(false)
         override val languageCodeFlow: Flow<String> = MutableStateFlow(Language.ENGLISH.code)
         var clearAuthCalled = false
+        var appliedLanguage: Language? = null
 
         override suspend fun setDarkMode(isDarkMode: Boolean) {
             isDarkModeFlow.value = isDarkMode
         }
 
-        override suspend fun setLanguageCode(languageCode: String) = Unit
+        override suspend fun applyLanguage(language: Language) {
+            appliedLanguage = language
+        }
 
         override suspend fun clearAuth() {
             clearAuthCalled = true

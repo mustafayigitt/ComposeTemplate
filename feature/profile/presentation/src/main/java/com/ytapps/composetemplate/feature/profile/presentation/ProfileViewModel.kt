@@ -2,7 +2,6 @@ package com.ytapps.composetemplate.feature.profile.presentation
 
 import androidx.lifecycle.viewModelScope
 import com.ytapps.composetemplate.core.common.Language
-import com.ytapps.composetemplate.core.data.LocaleManager
 import com.ytapps.composetemplate.core.ui.BaseViewModel
 import com.ytapps.composetemplate.feature.profile.domain.GetLanguageUseCase
 import com.ytapps.composetemplate.feature.profile.domain.GetThemeUseCase
@@ -24,7 +23,6 @@ internal class ProfileViewModel
         private val updateLanguage: UpdateLanguageUseCase,
         private val getLanguage: GetLanguageUseCase,
         private val logout: LogoutUseCase,
-        private val localeManager: LocaleManager,
     ) : BaseViewModel<ProfileUiState, ProfileEvent>() {
         override val uiStateInternal = MutableStateFlow(ProfileUiState())
 
@@ -52,7 +50,6 @@ internal class ProfileViewModel
         fun onLanguageSelected(language: Language) {
             viewModelScope.launch {
                 updateLanguage(language)
-                localeManager.applyLanguage(language)
             }
         }
 

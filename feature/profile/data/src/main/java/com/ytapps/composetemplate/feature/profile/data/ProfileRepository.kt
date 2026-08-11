@@ -1,6 +1,8 @@
 package com.ytapps.composetemplate.feature.profile.data
 
+import com.ytapps.composetemplate.core.common.Language
 import com.ytapps.composetemplate.core.data.IPreferencesManager
+import com.ytapps.composetemplate.core.data.LocaleManager
 import com.ytapps.composetemplate.feature.profile.domain.IProfileRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -10,6 +12,7 @@ internal class ProfileRepository
     @Inject
     constructor(
         private val preferencesManager: IPreferencesManager,
+        private val localeManager: LocaleManager,
     ) : IProfileRepository {
         override val isDarkModeFlow: Flow<Boolean> = preferencesManager.isDarkModeFlow
         override val languageCodeFlow: Flow<String> = preferencesManager.languageCodeFlow.map { it ?: DEFAULT_LANGUAGE_CODE }
@@ -18,8 +21,9 @@ internal class ProfileRepository
             preferencesManager.setDarkMode(isDarkMode)
         }
 
-        override suspend fun setLanguageCode(languageCode: String) {
-            preferencesManager.setLanguageCode(languageCode)
+        override suspend fun applyLanguage(language: Language) {
+            preferencesManager.setLanguageCode(language.code)
+            localeManager.applyLanguage(language)
         }
 
         override suspend fun clearAuth() {

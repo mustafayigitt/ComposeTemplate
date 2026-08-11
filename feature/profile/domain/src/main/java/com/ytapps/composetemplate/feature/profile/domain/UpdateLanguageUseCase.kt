@@ -9,6 +9,6 @@ class UpdateLanguageUseCase
         private val profileRepository: IProfileRepository,
     ) {
         suspend operator fun invoke(language: Language) {
-            profileRepository.setLanguageCode(language.code)
+            profileRepository.applyLanguage(language)
         }
     }

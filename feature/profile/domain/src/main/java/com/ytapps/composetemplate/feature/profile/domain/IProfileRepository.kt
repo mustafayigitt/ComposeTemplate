@@ -1,5 +1,6 @@
 package com.ytapps.composetemplate.feature.profile.domain
 
+import com.ytapps.composetemplate.core.common.Language
 import kotlinx.coroutines.flow.Flow
 
 interface IProfileRepository {
@@ -8,7 +9,7 @@ interface IProfileRepository {
 
     suspend fun setDarkMode(isDarkMode: Boolean)
 
-    suspend fun setLanguageCode(languageCode: String)
+    suspend fun applyLanguage(language: Language)
 
     suspend fun clearAuth()
 }
