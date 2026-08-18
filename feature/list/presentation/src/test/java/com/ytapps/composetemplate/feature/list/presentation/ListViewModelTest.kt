@@ -24,6 +24,7 @@ internal class ListViewModelTest {
                 id = "architecture",
                 title = "Clean Architecture",
                 subtitle = "Feature modules split into data, domain, navigation, and presentation.",
+                imageUrl = "https://picsum.photos/seed/architecture/200",
             ),
         )
         assertThat(
@@ -34,6 +35,7 @@ internal class ListViewModelTest {
                 id = "design-system",
                 title = "Design System",
                 subtitle = "Reusable Compose components, theme tokens, and preview helpers.",
+                imageUrl = "https://picsum.photos/seed/design-system/200",
             ),
         )
     }

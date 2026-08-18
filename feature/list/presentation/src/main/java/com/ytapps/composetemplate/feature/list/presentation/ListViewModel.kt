@@ -20,21 +20,25 @@ internal class ListViewModel
                                 id = "architecture",
                                 title = "Clean Architecture",
                                 subtitle = "Feature modules split into data, domain, navigation, and presentation.",
+                                imageUrl = "https://picsum.photos/seed/architecture/200",
                             ),
                             ListItemUiModel(
                                 id = "networking",
                                 title = "Networking",
                                 subtitle = "Retrofit, OkHttp, token refresh, and repository error handling.",
+                                imageUrl = "https://picsum.photos/seed/networking/200",
                             ),
                             ListItemUiModel(
                                 id = "security",
                                 title = "Client Hardening",
                                 subtitle = "Build-time secret validation, native access, and release checks.",
+                                imageUrl = "https://picsum.photos/seed/security/200",
                             ),
                             ListItemUiModel(
                                 id = "design-system",
                                 title = "Design System",
                                 subtitle = "Reusable Compose components, theme tokens, and preview helpers.",
+                                imageUrl = "https://picsum.photos/seed/design-system/200",
                             ),
                         ),
                 )

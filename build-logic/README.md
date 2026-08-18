@@ -120,7 +120,7 @@ All dependencies and versions are managed in `gradle/libs.versions.toml`.
 - **minSdk**: 23
 - **compileSdk**: 37
 - **targetSdk**: 36
-- **Kotlin**: 2.3.21
+- **Kotlin**: 2.0.21
 
 ## 🔧 Configuring Metrics
 

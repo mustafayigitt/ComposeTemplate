@@ -1,0 +1,54 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":gradle",
+    ":semanticCommits",
+    "schedule:weekly"
+  ],
+  "timezone": "UTC",
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "description": "Group all AndroidX libraries together",
+      "matchPackageNames": ["/^androidx\\./"],
+      "groupName": "androidx"
+    },
+    {
+      "description": "Group Kotlin, KSP, and the Compose compiler together — these must stay in lockstep",
+      "matchPackageNames": [
+        "/^org\\.jetbrains\\.kotlin/",
+        "/^com\\.google\\.devtools\\.ksp/"
+      ],
+      "groupName": "kotlin toolchain"
+    },
+    {
+      "description": "Group Hilt/Dagger together",
+      "matchPackageNames": ["/^com\\.google\\.dagger/"],
+      "groupName": "hilt"
+    },
+    {
+      "description": "Group static analysis tooling",
+      "matchPackageNames": [
+        "/^io\\.gitlab\\.arturbosch\\.detekt/",
+        "/^org\\.jlleitschuh\\.gradle/"
+      ],
+      "groupName": "static analysis"
+    },
+    {
+      "description": "Require manual approval for the Android Gradle Plugin — it tends to need code changes alongside the bump",
+      "matchPackageNames": ["com.android.tools.build:gradle", "com.android.application", "com.android.library"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Require manual approval for major version bumps across the board",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ],
+  "gradle": {
+    "enabled": true
+  }
+}

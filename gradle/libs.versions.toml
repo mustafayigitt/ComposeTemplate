@@ -63,6 +63,9 @@ androidx-profileinstaller = "1.4.1"
 google-play-review = "2.0.2"
 google-play-app-update = "2.1.0"
 
+# Image Loading
+coil = "3.4.0"
+
 
 
 [libraries]
@@ -130,6 +133,10 @@ androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profi
 # Google Play
 google-play-review = { module = "com.google.android.play:review-ktx", version.ref = "google-play-review" }
 google-play-app-update = { module = "com.google.android.play:app-update-ktx", version.ref = "google-play-app-update" }
+
+# Image Loading
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 
 # Build Logic Dependencies
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "android-gradle-plugin" }

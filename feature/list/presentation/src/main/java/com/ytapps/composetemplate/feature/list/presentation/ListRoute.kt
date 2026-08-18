@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
@@ -14,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ytapps.composetemplate.core.navigation.INavigationManager
+import com.ytapps.composetemplate.core.ui.components.AppAsyncImage
 import com.ytapps.composetemplate.core.ui.components.AppEmptyState
 import com.ytapps.composetemplate.core.ui.components.AppListItem
 import com.ytapps.composetemplate.core.ui.components.AppTopBar
@@ -75,6 +77,13 @@ internal fun ListScreenContent(
                 AppListItem(
                     title = item.title,
                     subtitle = item.subtitle,
+                    leadingContent = {
+                        AppAsyncImage(
+                            model = item.imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp),
+                        )
+                    },
                     onClick = { onItemClick(item.id) },
                 )
             }
