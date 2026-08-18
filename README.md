@@ -1,209 +1,188 @@
 <br/>
 <p align="center">
-  <h3 align="center">ComposeTemplate</h3>
-
+  <h1 align="center">ComposeTemplate</h1>
   <p align="center">
-    ComposeTemplate is a Jetpack Compose template application that follows Clean Architecture and modularization best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
+    A production-grade Jetpack Compose starter built on Clean Architecture, feature modularization,<br/>
+    and Gradle convention plugins — with a one-command path to your own app.
     <br/>
     <br/>
     <a href="https://github.com/mustafayigitt/ComposeTemplate/issues">Report Bug</a>
+    ·
     <a href="https://github.com/mustafayigitt/ComposeTemplate/issues">Request Feature</a>
   </p>
 </p>
 
-![Contributors](https://img.shields.io/github/contributors/mustafayigitt/ComposeTemplate?color=dark-green)
-![Stargazers](https://img.shields.io/github/stars/mustafayigitt/ComposeTemplate?style=social) ![Issues](https://img.shields.io/github/issues/mustafayigitt/ComposeTemplate)
-![License](https://img.shields.io/github/license/mustafayigitt/ComposeTemplate)
+<p align="center">
+  <img alt="Contributors" src="https://img.shields.io/github/contributors/mustafayigitt/ComposeTemplate?color=dark-green">
+  <img alt="Stargazers" src="https://img.shields.io/github/stars/mustafayigitt/ComposeTemplate?style=social">
+  <img alt="Issues" src="https://img.shields.io/github/issues/mustafayigitt/ComposeTemplate">
+  <img alt="License" src="https://img.shields.io/github/license/mustafayigitt/ComposeTemplate">
+</p>
 
-## About The Project
+```mermaid
+flowchart LR
+    subgraph App["app"]
+        Nav["AppNavigation"]
+    end
 
-![Screen Shot](screenshot/compose-template-initializer-plugin.png)
+    subgraph Feature["feature/*  (auth · detail · home · list · profile · search · splash · onboarding)"]
+        direction TB
+        Pres["presentation\nViewModel · UiState/Event · Compose UI"]
+        Dom["domain\nUse Cases · Domain Models"]
+        Data["data\nRepositories · DTOs · Retrofit"]
+        FNav["navigation\nRoutes · ScreenProvider"]
+        Pres --> Dom
+        Data --> Dom
+    end
 
-ComposeTemplate is a Jetpack Compose template application that follows Clean Architecture and modularization best practices. It simplifies the process of setting up a well-structured Compose application by providing a template with a predefined folder structure. ✨
+    subgraph Core["core/*"]
+        direction TB
+        UI["ui\nBaseViewModel · Theme · Components"]
+        Navigation["navigation\nNavigationManager · ScreenRegistry"]
+        Network["network\nRetrofit · OkHttp"]
+        DB["database & data\nRoom · DataStore"]
+        Secrets["secrets & security\nNDK obfuscation · integrity checks"]
+        Common["common\nResult · Dispatchers"]
+    end
+
+    Nav --> Navigation
+    Nav --> FNav
+    FNav --> Navigation
+    Pres --> UI
+    Pres --> Navigation
+    Data --> Network
+    Data --> DB
+    Data --> Secrets
+    Dom --> Common
+```
+
+*Dependencies flow inward only: `data → domain ← presentation`, and every `feature/*` module depends on `core/*` — never the other way around.*
+
+## About
+
+ComposeTemplate is not a sample app — it's a template *generator*. Clone it, run one Gradle task, and get a fresh Android project with your own package name and app name, fully wired with Clean Architecture, Hilt DI, feature-based Navigation3 routing, secret hardening, static analysis, and CI, ready to build on from day one.
+
+Everything in the repo doubles as a working reference: eight example features spanning three complexity tiers (minimal → medium → full) show exactly how much boilerplate a new screen needs, and a Kotlin Gradle plugin (`scaffoldFeature`) generates that boilerplate for you.
 
 ## Built With
 
-| [Kotlin](https://github.com/JetBrains/kotlin) | Modern programming language for Android |
-| [Modern Architecture](https://developer.android.com/topic/architecture) | UDF Architecture pattern (Clean Architecture) |
-| [Jetpack Compose](https://developer.android.com/jetpack/compose) | Modern UI toolkit |
-| [Material 3](https://m3.material.io/) | Material Design 3 components |
-| [Navigation3](https://developer.android.com/jetpack/androidx/releases/navigation) | Type-safe navigation library |
-| [Detekt](https://detekt.dev/) | Static code analysis for Kotlin |
-| [Ktlint](https://pinterest.github.io/ktlint/) | Kotlin linter with built-in formatter |
-| [Macrobenchmark](https://developer.android.com/topic/performance/benchmarking/macrobenchmark-overview) | Performance measurement library |
-| [Baseline Profiles](https://developer.android.com/topic/performance/baselineprofiles/overview) | App startup and runtime performance optimization |
-| [Retrofit](https://github.com/square/retrofit) | HTTP client for Android |
-| [Hilt](https://developer.android.com/training/dependency-injection/hilt-android) | Dependency injection framework |
-| [MockK](https://github.com/mockk/mockk) | Mocking library for Kotlin |
-| [Truth](https://github.com/google/truth) | Fluent assertions for Java and Android |
+| | |
+|---|---|
+| [Kotlin](https://kotlinlang.org/) 2.0.21 | Language |
+| [Jetpack Compose](https://developer.android.com/jetpack/compose) | UI toolkit (BOM `2026.05.01`) |
+| [Material 3](https://m3.material.io/) | Design system |
+| [Navigation3](https://developer.android.com/jetpack/androidx/releases/navigation) | Type-safe, back-stack-driven navigation |
+| [Hilt](https://developer.android.com/training/dependency-injection/hilt-android) | Dependency injection |
+| [Retrofit](https://github.com/square/retrofit) + OkHttp | Networking |
+| [Room](https://developer.android.com/jetpack/androidx/releases/room) + [DataStore](https://developer.android.com/topic/libraries/architecture/datastore) | Persistence |
+| [Coil](https://coil-kt.github.io/coil/) | Async image loading (`AppAsyncImage` in `core:ui`) |
+| [Timber](https://github.com/JakeWharton/timber) | Logging / analytics sink |
+| [Macrobenchmark & Baseline Profiles](https://developer.android.com/topic/performance/baselineprofiles/overview) | Startup performance |
+| [Detekt](https://detekt.dev/) + [Ktlint](https://pinterest.github.io/ktlint/) | Static analysis & formatting |
+| [MockK](https://github.com/mockk/mockk) + [Truth](https://github.com/google/truth) | Testing |
+| Android NDK / CMake | Native secret obfuscation |
+
+## Architecture
+
+Clean Architecture with unidirectional data flow, enforced at the module boundary rather than by convention. Every feature is split into four independent Gradle modules, each backed by its own convention plugin:
+
+```
+feature/{name}/
+├── data/           # Repositories, DTOs, Retrofit services  → composetemplate.feature.data
+├── domain/         # Use cases, domain models, repo contracts → composetemplate.feature.domain
+├── navigation/     # INavigationItem routes, nav DI bindings  → composetemplate.feature.navigation
+└── presentation/   # ViewModel, UiState/Event, Composables    → composetemplate.feature.presentation
+```
+
+Dependencies only point inward (`data → domain → presentation`); `core:*` modules never depend on `feature:*`. Every ViewModel extends `BaseViewModel<UiState, Event>` from `core:ui` — a single `MutableStateFlow<UiState>` plus a `Channel`-backed `Flow<Event>` for one-shot effects (navigation, snackbars).
+
+Navigation is handled by `core:navigation`, built on **Navigation3** with `@Serializable` type-safe routes:
+- `INavigationManager` exposes the back stack as a `StateFlow<List<INavigationItem>>` with `navigate`, `navigateBack`, `navigateOver`, `navigateToTop`, and tab-aware `selectTab`.
+- Each feature's `presentation` module contributes an `IScreenProvider` via Hilt `@IntoSet` multibinding; `ScreenRegistry` walks the set to resolve a route to a composable.
+- Bottom-bar tabs register themselves via `@IntoMap @StringKey("n")` multibindings — no central tab list to maintain.
+
+### Example features
+
+| Feature | Tier | Demonstrates |
+|---|---|---|
+| `auth` | Full | API service, token refresh (`ITokenRefresher`), tests at every layer |
+| `splash` | Full | Repository-driven start-destination logic, tests at every layer |
+| `profile` | Medium | DataStore-backed preferences, multiple use cases, live theme/language switching |
+| `onboarding` | Medium | Pager UI, repository, pass-through use case |
+| `home` / `list` / `search` | Minimal | Bottom-bar tabs, filterable lists |
+| `detail` | Minimal | Parameterized route, ID extraction in `ScreenProvider` |
 
 ## Project Structure
 
-The project follows Clean Architecture principles with clear separation of concerns and uses Convention Plugins for build configuration. The project is also modularized by feature.
-
 ```
 ComposeTemplate/
-├── app/                    # Main application module
-├── baselineprofile/        # Baseline Profile generator module
-├── benchmark/              # Macrobenchmark module
-├── build-logic/            # Convention plugins
-│   └── convention/
-│       └── src/main/kotlin/.../convention/
-│           ├── AndroidApplicationConventionPlugin.kt
-│           ├── BaselineProfileGeneratorConventionPlugin.kt
-│           ├── AndroidComposeConventionPlugin.kt
-│           ├── AndroidHiltConventionPlugin.kt
-│           ├── AndroidLibraryConventionPlugin.kt
-│           ├── AndroidLibraryNativeConventionPlugin.kt
-│           ├── FeatureDataConventionPlugin.kt
-│           ├── FeatureDomainConventionPlugin.kt
-│           ├── FeatureNavigationConventionPlugin.kt
-│           ├── FeaturePresentationConventionPlugin.kt
-│           ├── StaticAnalysisConventionPlugin.kt
-│           ├── TestConventionPlugin.kt
-│           ├── ValidateSecretsPlugin.kt
-│           ├── ScaffoldFeaturePlugin.kt
-│           ├── CreateNewAppPlugin.kt
-│           └── ProjectExtensions.kt
+├── app/                     # Composition root, AppNavigation
+├── build-logic/             # Convention plugins (see below)
+├── benchmark/                # Macrobenchmark module (StartupBenchmark)
+├── baselineprofile/          # Baseline Profile generator module
 ├── core/
-│   ├── analytics/          # Analytics contracts and Timber tracker
-│   ├── common/             # Shared utilities (Result, Dispatchers)
-│   ├── config/             # Local config and force-update contract
-│   ├── data/               # DataStore-based PreferencesManager
-│   ├── database/           # Room database foundation
-│   ├── google-play/        # In-app review and update helpers
-│   ├── navigation/         # NavigationManager, ScreenRegistry
-│   ├── network/            # Retrofit, OkHttp, BaseRepository
-│   ├── permission/         # Runtime permission helpers
-│   ├── secrets/            # Secret management and native obfuscation
-│   ├── security/           # Runtime integrity and hardening signals
-│   └── ui/                 # Theme, BaseViewModel, shared components
+│   ├── common/               # Result<T>, dispatchers, shared contracts
+│   ├── secrets/               # NDK-backed secret storage (CMake, native-lib.cpp)
+│   ├── security/              # Runtime integrity: root/emulator/debugger/hook signals
+│   ├── data/                  # DataStore PreferencesManager
+│   ├── database/              # Room database foundation
+│   ├── network/               # Retrofit/OkHttp, BaseRepository, AuthInterceptor
+│   ├── navigation/             # NavigationManager, ScreenRegistry
+│   ├── ui/                    # Theme, BaseViewModel, shared components
+│   ├── analytics/              # IAnalyticsManager + Timber tracker
+│   ├── config/                 # Remote/local config, force-update contract
+│   ├── permission/             # Runtime permission helpers
+│   └── google-play/            # In-app review & update
 ├── feature/
-│   ├── auth/               # Login flow and token refresh example
-│   ├── detail/             # Typed route argument example
-│   ├── home/               # Home tab (bottom bar)
-│   ├── list/               # List tab (bottom bar)
-│   ├── profile/            # Profile tab (bottom bar)
-│   ├── search/             # Search tab (bottom bar)
-│   └── splash/             # Splash + start destination
-│   └── {feature}/
-│       ├── data/           # Repository, DTOs, API services
-│       ├── domain/         # Use cases, domain models
-│       ├── navigation/     # Routes, DI modules
-│       └── presentation/   # ViewModels, Composables
-└── gradle/
-    └── libs.versions.toml  # Version catalog
+│   └── {auth,detail,home,list,profile,search,splash,onboarding}/
+│       └── {data,domain,navigation,presentation}/
+└── gradle/libs.versions.toml  # Version catalog
 ```
 
-## Configuration Files
+## Build System
 
-- **`gradle.properties`**: Project-wide Gradle settings, including Compose Metrics toggles.
-- **`secrets.properties`**: API keys, Base URLs, and signing credentials (git-ignored).
-- **`local.properties`**: Machine-specific paths like SDK location (git-ignored).
+All build configuration lives behind convention plugins in `build-logic/convention/`, so module `build.gradle.kts` files stay declarative. Full details: [`build-logic/README.md`](build-logic/README.md).
 
-## Build Configuration
-
-This project uses modern Gradle build configuration with **Convention Plugins** and **Version Catalog** for maintainable and scalable build logic.
-
-### Convention Plugins
-
-Located in `build-logic/convention/`, these plugins encapsulate common build configuration:
-
-- **`composetemplate.android.application`**: Base Android app configuration (SDK versions, Kotlin setup)
-- **`composetemplate.android.application.compose`**: Jetpack Compose setup with metrics and stability reports support
-- **`composetemplate.android.hilt`**: Hilt dependency injection configuration
-- **`composetemplate.android.library`**: Android library module configuration
-- **`composetemplate.android.library.compose`**: Compose setup for Android library modules
-- **`composetemplate.android.room`**: Room and KSP setup with schema export support
-- **`composetemplate.test`**: Common testing dependencies (JUnit, Truth, MockK, Espresso)
-- **`composetemplate.feature.domain`**: Domain module dependencies (`:core:common`) and test/Hilt setup
-- **`composetemplate.feature.data`**: Data module dependencies (`:core:common`, `:core:data`, `:core:database`, `:core:network`, `:core:secrets`)
-- **`composetemplate.feature.navigation`**: Navigation module dependencies (`:core:common`, `:core:navigation`, Compose icons)
-- **`composetemplate.feature.presentation`**: Presentation module dependencies (`:core:common`, `:core:ui`, `:core:navigation`, Compose, Hilt, test setup)
-- **`composetemplate.android.library.native`**: CMake/NDK native library support for secret obfuscation
-- **`composetemplate.validate.secrets`**: Validates `secrets.properties` presence and content
-- **`composetemplate.scaffold.feature`**: Auto-generates a new feature module with all 4 sub-modules
-- **`composetemplate.create.new.app`**: Creates a new app from this template with custom package name
-- **`composetemplate.static.analysis`**: Centralized Detekt and Ktlint configuration for all modules
-- **`composetemplate.baseline.profile.generator`**: Baseline Profile generator module setup
-
-### Version Catalog
-
-All dependencies and versions are managed in `gradle/libs.versions.toml`.
-
-For detailed build configuration documentation, see [build-logic/README.md](build-logic/README.md).
-
-## Key Features
-
-### Compose Metrics & Stability Reports
-- Generate detailed reports on composable functions (restartable, skippable).
-- Enable via `gradle.properties`:
-  ```properties
-  composetemplate.composeCompilerMetricsEnabled=true
-  composetemplate.composeCompilerReportsEnabled=true
-  ```
-
-### Benchmarking
-- Dedicated `:benchmark` module using Jetpack Macrobenchmark.
-- Includes `StartupBenchmark` to measure app launch performance with baseline profiles applied.
-- Run benchmarks after generating profiles: `./gradlew :benchmark:connectedBenchmarkAndroidTest`.
-- ⚠ Baseline profiles must be generated before running benchmarks (`BaselineProfileMode.Require`).
-
-### Baseline Profiles
-- Dedicated `:baselineprofile` module using `BaselineProfileRule`.
-- Generates startup and critical user journey profiles for AOT compilation.
-- Profiles are automatically packaged into release builds via the `androidx.baselineprofile` Gradle plugin.
-- Run profile generation: `./gradlew :baselineprofile:connectedBenchmarkAndroidTest`.
-
-### Secret Management
-- **NDK Secret Obfuscation**: API keys and base URLs are obfuscated in native code when `composetemplate.useNativeSecrets=true`.
-- **Build-Time Validation**: `validateSecrets` blocks missing values, placeholders, weak masks, invalid signature hashes, and invalid Retrofit base URLs.
-- **Runtime Integrity Checks**: `:core:security` reports signature, package, installer, emulator, debugger, root, and hooking signals.
-- **MITM Protection**: Release builds use cleartext-off network config and optional OkHttp certificate pinning.
-- **Artifact Scanning**: `scanApkForSecrets` checks APK/AAB outputs for raw configured secrets.
-
-### Static Analysis
-- **Detekt Integration**: Custom rule sets optimized for Android, Compose, and Hilt.
-- **Ktlint Integration**: Automated Kotlin linting and formatting.
-
-### Navigation System
-- **Navigation3 Integration**: Uses the latest Navigation3 library with type-safe navigation.
-- **Custom NavigationManager**: Flexible navigation management with back stack handling.
-
-### Network Layer
-- **Retrofit Integration**: Configured with Gson converter.
-- **BaseRepository**: Safe API call wrapper returning `Result<T>` (Success/Error/Loading).
+| Plugin ID | Purpose |
+|---|---|
+| `composetemplate.android.application` | Base app module config (SDK versions, Kotlin) |
+| `composetemplate.android.application.compose` / `.android.library.compose` | Compose setup + metrics/stability reports |
+| `composetemplate.android.library` | Base library module config |
+| `composetemplate.android.library.native` | CMake/NDK setup for secret obfuscation |
+| `composetemplate.android.hilt` | Hilt + KSP wiring |
+| `composetemplate.android.room` | Room + KSP, schema export |
+| `composetemplate.feature.data` / `.domain` / `.navigation` / `.presentation` | Auto-inject the correct `core:*` deps per layer |
+| `composetemplate.test` | JUnit, Truth, MockK, Espresso |
+| `composetemplate.static.analysis` | Centralized Detekt + Ktlint config |
+| `composetemplate.baseline.profile.generator` | Baseline Profile module setup |
+| `composetemplate.validate.secrets` | `validateSecrets` / `scanApkForSecrets` / `hardeningReport` tasks |
+| `composetemplate.create.new.app` | `create-new-app` task (see Getting Started) |
+| `composetemplate.scaffold.feature` | `scaffoldFeature` task (see Getting Started) |
 
 ## Getting Started
 
 ### Prerequisites
 
 - Android Studio Ladybug (2024.2.1) or later
-- JDK 17 or later
-- Android SDK with API level 23 (Android 6.0) or higher
-- Gradle 9.5.1 or later
+- JDK 17+ (the Gradle daemon toolchain targets JDK 21 — `foojay-resolver` provisions it automatically)
+- Android SDK, API 23+ (compiles against API 37)
+- Gradle 9.5.1 (bundled via the wrapper)
 
-### Installation
-
-1. **Clone the repository**
-
-```sh
-git clone https://github.com/mustafayigitt/ComposeTemplate.git
-cd ComposeTemplate
-```
-
-2. **Create a new app from the template**
+### 1. Clone and generate your app
 
 ```bash
+git clone https://github.com/mustafayigitt/ComposeTemplate.git
+cd ComposeTemplate
+
 ./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -q --console=plain
 cd ../MyNewApp
 ```
 
-The initializer rewrites package/application identifiers and intentionally does not copy `local.properties`, `secrets.properties`, `.git`, or build outputs.
+Run without `-Pargs` for an interactive prompt instead. The task copies the template to a sibling directory, rewrites the package name and app name across every `kt`/`kts`/`xml`/`properties` file, moves source directories to match the new package, then removes itself (`create-new-app` task, `CreateNewAppPlugin.kt`, and its plugin registration) from the generated project. `.git`, `.gradle`, `.idea`, `local.properties`, `secrets.properties`, and build outputs are never copied.
 
-3. **Configure local secrets in the generated app**
+### 2. Configure secrets
 
-Create a `secrets.properties` in the generated app root:
+Create `secrets.properties` in the generated project root:
 
 ```properties
 API_KEY_DEBUG="your_debug_key"
@@ -221,43 +200,56 @@ CERTIFICATE_PINNING_ENABLED=false
 CERTIFICATE_PINS=""
 ```
 
-See `SECRET_MANAGEMENT.md` for the threat model and release checklist.
+```bash
+./gradlew validateSecrets
+```
 
-Use `./gradlew validateSecrets` to verify the file before building.
+See [`SECRET_MANAGEMENT.md`](SECRET_MANAGEMENT.md) for the full threat model and release checklist.
 
-### Feature Scaffolding
-
-To add a new feature with all 4 layers (data, domain, navigation, presentation) automatically:
+### 3. Scaffold a feature
 
 ```bash
-./gradlew scaffoldFeature -PfeatureName=settings
+./gradlew scaffoldFeature -PfeatureName=settings -PwithDatabase=true
 ```
-This will create the modules, add them to `settings.gradle.kts`, and inject them as dependencies in `:app`.
 
-For more details, see [GUIDE.md](GUIDE.md).
+Generates `feature/settings/{data,domain,navigation,presentation}` with a route, use case, `ViewModel`, `UiState`/`Event`, Compose screen, `ScreenProvider`, Hilt modules, and localized strings — then wires the new modules into `settings.gradle.kts` and `app/build.gradle.kts` automatically. Add `-PwithDatabase=true` to also scaffold a Room `Entity`/`Dao`. See [`GUIDE.md`](GUIDE.md) for the manual wiring steps and architecture conventions.
 
-### Architecture
+### 4. Build and verify
 
-This project follows **Clean Architecture** principles:
-
-- **Data Layer**: API services, Repositories, Data Models.
-- **Domain Layer**: Use Cases, Domain Models, Repository Interfaces.
-- **Presentation Layer**: ViewModels, UI States, Composable Screens.
-- **Core Layer**: Shared utilities, Native layer, Base classes.
-
-## Testing
-
-```sh
+```bash
 # CI-equivalent local checks
 ./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug :app:assembleRelease
 
+# Baseline profile generation (run before benchmarking)
+./gradlew :baselineprofile:connectedBenchmarkAndroidTest
+
 # Macrobenchmark
 ./gradlew :benchmark:connectedBenchmarkAndroidTest
-
-# Baseline Profile generation
-./gradlew :baselineprofile:connectedCheck
 ```
+
+## Key Capabilities
+
+**Secret hardening** — API keys and base URLs can be obfuscated into native code (`composetemplate.useNativeSecrets=true`) instead of `BuildConfig`. `validateSecrets` fails the build on missing values, placeholders, weak XOR masks, or malformed URLs/signature hashes; `scanApkForSecrets` greps built APK/AAB output for raw secret leakage; `hardeningReport` summarizes release-readiness.
+
+**Runtime integrity** — `core:security` surfaces signature, installer, emulator, debugger, root, and hook-detection signals as a `SecurityReport`, so the app can react to a compromised device at runtime.
+
+**Compose build insights** — enable compiler metrics/stability reports via `gradle.properties`:
+```properties
+composetemplate.composeCompilerMetricsEnabled=true
+composetemplate.composeCompilerReportsEnabled=true
+```
+
+**CI** (`.github/workflows/ci.yml`) — four jobs on every PR to `main`/`develop`: lint (`ktlintCheck` + `detekt`), unit tests, debug/release assembly, and a template smoke test that runs `scaffoldFeature` and `create-new-app` end-to-end to catch regressions in the generator itself.
+
+## Documentation
+
+- [`GUIDE.md`](GUIDE.md) — adding features, navigation registration, architecture conventions
+- [`build-logic/README.md`](build-logic/README.md) — convention plugin internals
+- [`SECRET_MANAGEMENT.md`](SECRET_MANAGEMENT.md) — secret handling threat model and release checklist
+- [`AGENTS.md`](AGENTS.md) — conventions for AI coding agents working in this repo
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — branching, local verification, code style
+- [`SECURITY.md`](SECURITY.md) — how to report a vulnerability
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+Licensed under the [Apache License 2.0](LICENSE).
