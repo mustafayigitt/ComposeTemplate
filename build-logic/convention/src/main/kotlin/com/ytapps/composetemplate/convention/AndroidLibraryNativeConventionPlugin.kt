@@ -1,6 +1,7 @@
 package com.ytapps.composetemplate.convention
 
 import com.android.build.api.dsl.LibraryExtension
+import com.android.build.api.variant.LibraryAndroidComponentsExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
@@ -123,6 +124,27 @@ class AndroidLibraryNativeConventionPlugin : Plugin<Project> {
                     buildConfigField("boolean", "NATIVE_RUNTIME_CHECKS_ENABLED", "$nativeRuntimeChecksEnabled")
                     buildConfigField("boolean", "CERTIFICATE_PINNING_ENABLED", "$certificatePinningEnabled")
                     buildConfigField("String", "CERTIFICATE_PINS", certificatePins.toBuildConfigString())
+                }
+            }
+
+            if (useNativeSecrets) {
+                // `namespace` is only guaranteed to be set once the consuming module's own
+                // `android {}` block has run, so this must be deferred past that point - reading
+                // it eagerly above would see null. `afterEvaluate` is itself too late here since
+                // AGP finalizes external native build args in its own earlier afterEvaluate;
+                // `finalizeDsl` is the documented hook for mutating DSL after it's fully user
+                // configured but before AGP locks it in for variant creation.
+                extensions.configure<LibraryAndroidComponentsExtension> {
+                    finalizeDsl { libraryExtension ->
+                        val namespace =
+                            libraryExtension.namespace
+                                ?: error("android.namespace must be set before applying composetemplate.android.library.native")
+                        val jniClassPath = "$namespace.SecretManager".replace(".", "/")
+
+                        libraryExtension.defaultConfig.externalNativeBuild.cmake.arguments(
+                            "-DJNI_CLASS_PATH=$jniClassPath",
+                        )
+                    }
                 }
             }
         }

@@ -172,10 +172,19 @@ bool isSignatureValid(JNIEnv* env, jobject context) {
     return false;
 }
 
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_ytapps_composetemplate_core_secrets_SecretManager_getApiKeyNative(
+/*
+ * These are deliberately plain (non JNI-name-mangled) functions bound to their
+ * Kotlin counterparts via JNI_OnLoad/RegisterNatives below, instead of relying on
+ * the Java_<package>_<Class>_<method> naming convention. The convention would
+ * hardcode this template's package name into the exported symbol, which breaks
+ * the moment `create-new-app` rebrands the app to a different package - the JVM
+ * would look for a symbol that no longer exists. Dynamic registration reads the
+ * actual package from JNI_CLASS_PATH (injected by CMake from the Gradle
+ * `namespace`, see CMakeLists.txt), so it stays correct for any rebrand.
+ */
+static jstring nativeGetApiKey(
         JNIEnv* env,
-        jobject thiz,
+        jobject /* thiz */,
         jobject context,
         jboolean isDebug,
         jstring runtime_mask) {
@@ -198,10 +207,9 @@ Java_com_ytapps_composetemplate_core_secrets_SecretManager_getApiKeyNative(
     }
 }
 
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_ytapps_composetemplate_core_secrets_SecretManager_getBaseUrlNative(
+static jstring nativeGetBaseUrl(
         JNIEnv* env,
-        jobject thiz,
+        jobject /* thiz */,
         jobject context,
         jboolean isDebug,
         jstring runtime_mask) {
@@ -221,4 +229,36 @@ Java_com_ytapps_composetemplate_core_secrets_SecretManager_getBaseUrlNative(
     } else {
         return env->NewStringUTF(decrypt(BASE_URL_RELEASE, BASE_URL_RELEASE_LEN, sRuntimeMask).c_str());
     }
+}
+
+extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* /* reserved */) {
+    JNIEnv* env;
+    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        return JNI_ERR;
+    }
+
+    jclass secretManagerClass = env->FindClass(JNI_CLASS_PATH);
+    if (secretManagerClass == nullptr) {
+        LOGE("JNI_OnLoad: could not find class %s - check that JNI_CLASS_PATH matches the "
+             "SecretManager package (see core/secrets/build.gradle.kts `namespace`).", JNI_CLASS_PATH);
+        return JNI_ERR;
+    }
+
+    static const JNINativeMethod methods[] = {
+            {"getApiKeyNative",
+             "(Landroid/content/Context;ZLjava/lang/String;)Ljava/lang/String;",
+             reinterpret_cast<void*>(nativeGetApiKey)},
+            {"getBaseUrlNative",
+             "(Landroid/content/Context;ZLjava/lang/String;)Ljava/lang/String;",
+             reinterpret_cast<void*>(nativeGetBaseUrl)},
+    };
+
+    if (env->RegisterNatives(secretManagerClass, methods, 2) != JNI_OK) {
+        env->DeleteLocalRef(secretManagerClass);
+        LOGE("JNI_OnLoad: RegisterNatives failed for %s", JNI_CLASS_PATH);
+        return JNI_ERR;
+    }
+
+    env->DeleteLocalRef(secretManagerClass);
+    return JNI_VERSION_1_6;
 }

@@ -17,7 +17,8 @@ target_include_directories(native-lib PRIVATE ${GENERATED_SECRETS_PATH})
 target_compile_definitions(native-lib PRIVATE
         CM_PART="${CM_PART}"
         K_PART="${K_PART}"
-        NATIVE_RUNTIME_CHECKS_ENABLED=${NATIVE_RUNTIME_CHECKS_ENABLED})
+        NATIVE_RUNTIME_CHECKS_ENABLED=${NATIVE_RUNTIME_CHECKS_ENABLED}
+        JNI_CLASS_PATH="${JNI_CLASS_PATH}")
 
 target_compile_options(native-lib PRIVATE
         -fvisibility=hidden
