@@ -1,0 +1,75 @@
+site_name: ComposeTemplate
+site_description: Production-grade Jetpack Compose template generator
+site_url: https://mustafayigitt.github.io/ComposeTemplate/
+repo_url: https://github.com/mustafayigitt/ComposeTemplate
+repo_name: mustafayigitt/ComposeTemplate
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Overview: index.md
+  - Start Here:
+      - Getting Started: getting-started.md
+      - Project Philosophy: project-philosophy.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Feature Modularization: architecture/feature-modularization.md
+      - Clean Architecture: architecture/clean-architecture.md
+      - Navigation Architecture: architecture/navigation-architecture.md
+      - UI State Management: architecture/ui-state-management.md
+      - Data Layer: architecture/data-layer.md
+      - Authentication and Token Flow: architecture/authentication-token-flow.md
+  - Security:
+      - Secret Management: security/secret-management.md
+      - Runtime Security Signals: security/runtime-security-signals.md
+      - Certificate Pinning: security/certificate-pinning.md
+      - Release Hardening: security/release-hardening.md
+  - Build System:
+      - Gradle Convention Plugins: build-system/gradle-convention-plugins.md
+      - Version Catalog: build-system/version-catalog.md
+      - Static Analysis: build-system/static-analysis.md
+      - CI Pipeline: build-system/ci-pipeline.md
+  - Template Tools:
+      - Create New App: template-tools/create-new-app.md
+      - Scaffold Feature: template-tools/scaffold-feature.md
+      - Validate Secrets: template-tools/validate-secrets.md
+      - APK/AAB Secret Scanning: template-tools/apk-aab-secret-scanning.md
+  - Quality:
+      - Testing Strategy: quality/testing-strategy.md
+      - Performance and Baseline Profiles: quality/performance-baseline-profiles.md
+      - Release Readiness Checklist: quality/release-readiness-checklist.md
+  - Contributing:
+      - Adding a New Feature: contributing/adding-a-new-feature.md
+      - Extending ComposeTemplate: contributing/extending-composetemplate.md
+      - Contribution Guide: contributing/contribution-guide.md
