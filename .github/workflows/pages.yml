@@ -22,17 +22,36 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
       - name: Install MkDocs Material
         run: pip install mkdocs-material
+
       - name: Build site
-        run: mkdocs build --strict
-      - uses: actions/upload-pages-artifact@v3
+        run: |
+          mkdocs build --strict --verbose
+          test -f site/index.html
+
+      - name: Verify site output
+        run: |
+          pwd
+          ls -la
+          ls -la site
+          find site -maxdepth 2 -type f | sort | head -100
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: ./site
 
   deploy:
     environment:
@@ -41,5 +60,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - id: deployment
+      - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
