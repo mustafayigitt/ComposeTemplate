@@ -69,6 +69,35 @@ nav:
       - Testing Strategy: quality/testing-strategy.md
       - Performance and Baseline Profiles: quality/performance-baseline-profiles.md
       - Release Readiness Checklist: quality/release-readiness-checklist.md
+  - Tech Blog Series:
+      - Overview: tech-blog/index.md
+      - Architecture:
+          - Building a Production-Grade Jetpack Compose Template Generator: tech-blog/architecture/template-generator.md
+          - Feature Modularization with Clean Architecture in Android: tech-blog/architecture/feature-modularization-clean-architecture.md
+          - Navigation3 with Feature-Owned Screen Registration: tech-blog/architecture/navigation3-feature-owned-screen-registration.md
+          - UI State and One-Shot Events in Jetpack Compose: tech-blog/architecture/ui-state-one-shot-events.md
+      - Build System:
+          - Gradle Convention Plugins for Scalable Android Projects: tech-blog/build-system/gradle-convention-plugins-scalable-android.md
+          - Version Catalog and Dependency Governance in Android: tech-blog/build-system/version-catalog-dependency-governance.md
+          - KSP, Hilt and Build Logic Integration: tech-blog/build-system/ksp-hilt-build-logic.md
+      - Template Engineering:
+          - Building an Android Template Generator with Gradle: tech-blog/template-engineering/android-template-generator-gradle.md
+          - Feature Scaffolding for Clean Architecture: tech-blog/template-engineering/feature-scaffolding-clean-architecture.md
+          - CI for Android Template Repositories: tech-blog/template-engineering/ci-android-template-repositories.md
+      - Security:
+          - Native Secret Obfuscation with NDK, CMake and RegisterNatives: tech-blog/security/native-secret-obfuscation-ndk-cmake-registernatives.md
+          - Runtime Integrity Signals on Android: tech-blog/security/runtime-integrity-signals.md
+          - Certificate Pinning Security vs Operational Risk: tech-blog/security/certificate-pinning-security-operational-risk.md
+          - Secret Validation and APK/AAB Secret Scanning: tech-blog/security/secret-validation-apk-aab-secret-scanning.md
+      - Performance:
+          - Baseline Profiles for Faster Android Startup: tech-blog/performance/baseline-profiles-faster-android-startup.md
+          - Macrobenchmarking Android Apps the Right Way: tech-blog/performance/macrobenchmarking-android-apps.md
+          - Measuring Generated Templates Not Just Apps: tech-blog/performance/measuring-generated-templates.md
+      - Quality and Developer Experience:
+          - Static Analysis with Ktlint and Detekt: tech-blog/quality-dx/static-analysis-ktlint-detekt.md
+          - Testing Stack JUnit MockK Truth and Coroutine Tests: tech-blog/quality-dx/testing-stack-junit-mockk-truth-coroutines.md
+          - Docs as Code with MkDocs and GitHub Pages: tech-blog/quality-dx/docs-as-code-mkdocs-github-pages.md
+          - Retrofit OkHttp and Network Layer Design: tech-blog/quality-dx/retrofit-okhttp-network-layer.md
   - Contributing:
       - Adding a New Feature: contributing/adding-a-new-feature.md
       - Extending ComposeTemplate: contributing/extending-composetemplate.md
