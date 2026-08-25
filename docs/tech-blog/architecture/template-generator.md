@@ -1,46 +1,79 @@
 # Building a Production-Grade Jetpack Compose Template Generator
 
-Most Android starter projects begin as sample apps. They demonstrate a stack, a folder structure, or a few architectural choices. That is useful, but it does not solve the repetitive work that every new production project needs: package renaming, module wiring, build configuration, CI, feature scaffolding, release hardening, and documentation.
+## Who this article is for
 
-ComposeTemplate approaches this differently. It is designed as a **template generator**, not just a sample application.
+This article is for Android developers and platform engineers who want to build reusable project foundations instead of repeatedly copying starter apps.
 
-## The problem with sample apps
+## What you will learn
 
-A sample app usually answers one question:
+- Why a template generator is different from a sample app
+- What must be automated for a generated Android app to be trustworthy
+- How ComposeTemplate thinks about package rewrite, cleanup, architecture, and CI
+- Common mistakes when building Android templates
 
-> How could this be implemented?
+## Sample app vs template generator
 
-A production starter needs to answer a different question:
+A sample app demonstrates an implementation. A template generator produces a new project that should be independently buildable, maintainable, and free of template-only baggage.
 
-> How can I generate a real project from this structure and continue building without carrying template-specific baggage?
+That difference matters. A sample app can leave manual rename instructions in a README. A generator must automate the rename. A sample app can keep demonstration code. A generator must produce a clean baseline developers can own.
 
-A sample app can tolerate manual setup. A generator cannot. A generator must be repeatable, predictable, and testable.
+## The real problem
 
-## What ComposeTemplate generates
+Creating a new Android app is not just creating `MainActivity`.
 
-ComposeTemplate gives a new Android project a ready foundation:
+A production-ready starter usually needs:
 
-- Jetpack Compose UI
-- Clean Architecture
-- Feature-based multi-module structure
-- Hilt dependency injection
-- Navigation3 routing
-- Retrofit/OkHttp networking
-- Room and DataStore foundations
-- Runtime and build-time security guardrails
-- Static analysis
-- CI
-- Baseline Profile and Macrobenchmark modules
-- Developer documentation
+- package and namespace setup,
+- application name replacement,
+- Gradle module wiring,
+- convention plugins,
+- CI workflows,
+- local secret exclusions,
+- signing placeholders,
+- architecture examples,
+- test setup,
+- documentation,
+- feature scaffolding.
+
+Manual clone-and-rename flows are fragile because package names and app names appear in Kotlin, XML, Gradle, resources, manifests, and sometimes native code.
+
+## ComposeTemplate approach
+
+ComposeTemplate is designed as a generator-backed template. The main generation flow is:
 
 ```bash
 ./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -q --console=plain
 ```
 
-## Why generation matters
+The generator copies the template, rewrites project identifiers, moves source directories, excludes local-only files, and removes generator-specific build logic from the generated output.
 
-Renaming an Android project manually is fragile. Package names appear in Kotlin, XML, Gradle files, manifests, resources, and sometimes native bindings. ComposeTemplate automates this process and removes template-specific generator code from the generated app.
+## Why cleanup matters
 
-## Takeaway
+Generated apps should not keep template-only internals unless they are useful to the app. If a generated project still contains the generator that created it, developers inherit maintenance burden they did not ask for.
 
-A production-grade template is not just a folder structure. It is a system made of architecture, build logic, generators, tests, CI, security guardrails, and documentation.
+## Template quality checklist
+
+- [ ] Generated app builds without manual package fixes.
+- [ ] Local files such as `local.properties` and `secrets.properties` are not copied.
+- [ ] Template-only tasks are removed from generated output.
+- [ ] Native bindings survive package rename.
+- [ ] CI validates generated output, not just the template source.
+- [ ] Documentation explains what was generated and why.
+
+## Common mistakes
+
+### Treating README steps as automation
+
+If a step is required every time, automate it.
+
+### Forgetting native and resource references
+
+Package names can appear outside Kotlin files.
+
+### Not testing the generated app
+
+The generated app is the product. CI should prove it works.
+
+## Summary
+
+A production-grade template is a system: architecture, build logic, generator tasks, quality gates, security guardrails, performance tooling, and documentation. ComposeTemplate treats generation as a first-class engineering problem, not a copy-paste convenience.

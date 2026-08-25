@@ -1,14 +1,17 @@
 # Tech Blog Series
 
-Developer-oriented technical articles explaining the architecture, tooling, security, performance, and developer-experience decisions behind ComposeTemplate.
+The ComposeTemplate Tech Blog Series teaches the technologies and engineering decisions behind the template. These articles are written as developer learning resources, not feature lists.
 
-## Architecture and Build System
+## Architecture
 
 - [Building a Production-Grade Jetpack Compose Template Generator](architecture/template-generator.md)
 - [Feature Modularization with Clean Architecture in Android](architecture/feature-modularization-clean-architecture.md)
-- [Gradle Convention Plugins for Scalable Android Projects](build-system/gradle-convention-plugins-scalable-android.md)
 - [Navigation3 with Feature-Owned Screen Registration](architecture/navigation3-feature-owned-screen-registration.md)
 - [UI State and One-Shot Events in Jetpack Compose](architecture/ui-state-one-shot-events.md)
+
+## Build System
+
+- [Gradle Convention Plugins for Scalable Android Projects](build-system/gradle-convention-plugins-scalable-android.md)
 - [Version Catalog and Dependency Governance in Android](build-system/version-catalog-dependency-governance.md)
 - [KSP, Hilt and Build Logic Integration](build-system/ksp-hilt-build-logic.md)
 
