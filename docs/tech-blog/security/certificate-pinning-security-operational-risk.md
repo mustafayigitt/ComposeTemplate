@@ -2,58 +2,49 @@
 
 ## Who this article is for
 
-This article is for Android developers responsible for network security, OkHttp configuration, or mobile release operations.
+This article is for Android developers configuring network security or operating mobile releases.
 
 ## What you will learn
 
 - What certificate pinning protects against
-- Why SPKI pins are preferred
-- Why pinning can break production apps
-- How to plan rotation and recovery
+- Why SPKI pinning is preferred
+- Why backup pins matter
+- How pinning can break production apps
+- How ComposeTemplate frames pinning as optional hardening
 
 ## The problem
 
-HTTPS trusts certificate authorities in the platform trust store. In some environments, that trust can be modified or abused. Certificate pinning narrows trust by requiring the server certificate chain to match known public key hashes.
+HTTPS trusts certificate authorities in the platform trust store. In some environments, that trust can be modified. Certificate pinning narrows trust by requiring the server chain to match expected public key hashes.
 
-## What pinning protects against
+## What pinning does and does not solve
 
-Pinning can make some man-in-the-middle attacks harder, especially when a malicious or user-installed CA is involved.
-
-It does not protect against compromised app code, runtime hooks, stolen tokens, backend authorization flaws, or malicious servers that legitimately own the pinned key.
+Pinning can make certain man-in-the-middle attacks harder. It does not protect against compromised app code, runtime hooks, stolen tokens, backend authorization bugs, or a malicious server with the legitimate pinned key.
 
 ## SPKI pinning
 
-Pin the Subject Public Key Info hash rather than an entire certificate. Certificates rotate more often than public keys. SPKI pinning gives better operational flexibility.
+Pin the Subject Public Key Info hash rather than the entire certificate. Certificates rotate more often than keys. SPKI pinning is more operationally flexible.
 
-## Backup pins
+## Backup pins and rotation
 
-Always keep at least one backup pin. Without a backup, certificate rotation can brick network access for existing app versions.
+Always ship a backup pin. Without one, certificate rotation can break all existing clients. Mobile apps update slowly, so pinning mistakes can cause long-lived outages.
 
-## ComposeTemplate approach
+## OkHttp mental model
 
-ComposeTemplate treats certificate pinning as a configurable hardening layer. That is important because pinning should not be enabled casually. It needs release planning.
+OkHttp certificate pinning is enforced when a TLS connection is established. If the server chain does not match configured pins, the request fails before application-level handling.
 
 ## Operational risks
 
-Pinning failure is an availability issue. If pins are wrong, the app cannot connect. Mobile clients are slow to update, so bad pins can remain in the wild.
-
-## Common mistakes
-
-- Pinning without backup pins.
-- Pinning leaf certificates instead of SPKI.
-- Forgetting staging vs production hosts.
-- Using broad wildcard assumptions.
-- No emergency rotation plan.
+Pinning is both a security and availability feature. Wrong pins block traffic. Emergency release plans, monitoring, and staged rollout are essential.
 
 ## Production checklist
 
 - [ ] SPKI pins are used.
-- [ ] Current and backup pins exist.
-- [ ] Rotation process is documented.
+- [ ] Current and backup pins are configured.
+- [ ] Rotation procedure is documented.
 - [ ] Staging and production hosts are separated.
-- [ ] Monitoring exists for pinning failures.
-- [ ] Emergency release plan exists.
+- [ ] Monitoring catches pinning failures.
+- [ ] Emergency plan exists.
 
 ## Summary
 
-Certificate pinning is a useful hardening tool, but it is also operationally dangerous. ComposeTemplate frames it as an optional security layer that requires rotation discipline.
+Certificate pinning is useful, but dangerous when operated casually. ComposeTemplate treats it as optional hardening that must be paired with rotation discipline.
