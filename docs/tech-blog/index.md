@@ -1,6 +1,8 @@
 # Tech Blog Series
 
-The ComposeTemplate Tech Blog Series teaches the technologies and engineering decisions behind the template. These articles are written as developer learning resources, not feature lists.
+The ComposeTemplate Tech Blog Series is a collection of deep-dive articles for Android developers. Each article is intended to teach the technology, explain the engineering trade-offs, and show how the idea maps back to ComposeTemplate.
+
+The goal is not to say "ComposeTemplate uses X". The goal is to explain what X is, why it exists, how it works, where it fails, and how to apply it in a production Android project.
 
 ## Architecture
 
