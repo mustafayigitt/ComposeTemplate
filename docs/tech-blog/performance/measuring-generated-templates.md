@@ -1,20 +1,73 @@
 # Measuring Generated Templates, Not Just Apps
 
-Template performance matters because generated apps inherit the template’s defaults.
+## Who this article is for
 
-## Problem
+This article is for template maintainers and platform teams who want generated apps to inherit good performance defaults.
 
-A template can look clean but generate apps with slow startup, unnecessary dependencies, or poorly configured performance tooling.
+## What you will learn
+
+- Why template performance matters
+- Why measuring only the source app is incomplete
+- How generated app validation can evolve
+- How Baseline Profiles and Macrobenchmark fit template quality
+
+## The problem
+
+A template can build successfully and still generate apps with poor startup behavior, unnecessary dependencies, or broken performance tooling.
+
+If users generate apps from the template, the generated output is the real product.
+
+## Smoke testing vs performance testing
+
+A smoke test asks:
+
+```text
+Does the generated app build?
+```
+
+A performance test asks:
+
+```text
+Does the generated app start and behave well?
+```
+
+Both matter.
 
 ## ComposeTemplate approach
 
-ComposeTemplate includes performance modules from the beginning:
+ComposeTemplate includes:
 
 - `baselineprofile`
 - `benchmark`
+- generator smoke tests
+- scaffold smoke tests
 
-This makes generated apps performance-aware on day one.
+This creates a foundation for future generated-app performance validation.
 
-## Takeaway
+## What mature template performance could include
 
-For template repositories, performance should be measured where users experience it: in the generated app.
+- Generate app in CI.
+- Build release variant.
+- Run startup Macrobenchmark.
+- Generate Baseline Profile for generated package.
+- Store performance reports as artifacts.
+- Track regressions over time.
+
+## Common mistakes
+
+- Measuring only the template app.
+- Ignoring generated package names in benchmark setup.
+- Treating smoke tests as performance tests.
+- Adding heavy startup dependencies to the template.
+
+## Production checklist
+
+- [ ] Template app has benchmark coverage.
+- [ ] Generated app builds in CI.
+- [ ] Generated app can run performance tests.
+- [ ] Baseline profile paths survive package rename.
+- [ ] Startup regressions are tracked over time.
+
+## Summary
+
+Template performance should be measured where users experience it: generated apps. ComposeTemplate includes the foundations needed to make this possible.

@@ -1,21 +1,72 @@
 # Building an Android Template Generator with Gradle
 
-A template generator must do more than copy files. It must produce a clean, independent project that no longer depends on the original template repository.
+## Who this article is for
 
-## Problem
+This article is for Android developers who want to build project generators, internal app templates, or reusable mobile platform foundations.
 
-Manual clone-and-rename flows are fragile. Package names appear in Kotlin, XML, Gradle, properties, resources, manifests, and native code.
+## What you will learn
+
+- Why clone-and-rename is fragile
+- What a generator must rewrite
+- Why generated apps should remove generator code
+- How CI should validate generated output
+
+## The problem with manual rename
+
+Android project identity is scattered across many places:
+
+- package declarations,
+- namespace and applicationId,
+- manifest values,
+- XML resources,
+- Gradle scripts,
+- source directory paths,
+- native/JNI bindings,
+- documentation.
+
+Manual rename instructions are easy to get wrong. A template generator should perform these changes deterministically.
+
+## Generator responsibilities
+
+A reliable generator should:
+
+1. copy the template,
+2. rewrite package and app names,
+3. move source directories,
+4. exclude local-only files,
+5. remove template-only tools,
+6. verify the generated project can build.
 
 ## ComposeTemplate approach
 
-`CreateNewAppPlugin` automates project generation:
+ComposeTemplate implements generation through a Gradle task exposed by `CreateNewAppPlugin`.
 
-- copies the template to a sibling directory,
-- rewrites package name and app name,
-- moves source directories,
-- removes template-specific generator code,
-- excludes `.git`, `.gradle`, `.idea`, `local.properties`, `secrets.properties`, and build outputs.
+```bash
+./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -q --console=plain
+```
 
-## Takeaway
+It excludes files such as `.git`, `.gradle`, `.idea`, `local.properties`, and `secrets.properties` so personal or local state does not leak into generated apps.
 
-A reliable template generator is a product feature, not a convenience script.
+## Native package rename issue
+
+JNI methods often depend on package-derived names. ComposeTemplate avoids fragile convention-based JNI names by using `RegisterNatives`, allowing generated package names to keep working.
+
+## Common mistakes
+
+- Copying local secret files.
+- Leaving generator plugins inside generated apps.
+- Rewriting Kotlin files but not XML or Gradle files.
+- Not testing the generated app in CI.
+
+## Production checklist
+
+- [ ] Generated app builds from a clean checkout.
+- [ ] Package name and source paths match.
+- [ ] Local files are excluded.
+- [ ] Template-only generator code is removed.
+- [ ] Native bindings survive rename.
+- [ ] CI runs create-new-app smoke tests.
+
+## Summary
+
+A template generator is a build tool, not a script. ComposeTemplate uses Gradle to make app generation repeatable, reviewable, and testable.
