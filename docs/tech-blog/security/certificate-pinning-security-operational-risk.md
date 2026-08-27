@@ -2,49 +2,55 @@
 
 ## Who this article is for
 
-This article is for Android developers configuring network security or operating mobile releases.
+This article is for Android developers deciding whether to enable certificate pinning.
 
 ## What you will learn
 
-- What certificate pinning protects against
-- Why SPKI pinning is preferred
-- Why backup pins matter
-- How pinning can break production apps
-- How ComposeTemplate frames pinning as optional hardening
+- what certificate pinning protects against
+- why SPKI pins are preferred
+- why backup pins are mandatory
+- how pinning can break production apps
 
 ## The problem
 
-HTTPS trusts certificate authorities in the platform trust store. In some environments, that trust can be modified. Certificate pinning narrows trust by requiring the server chain to match expected public key hashes.
+Certificate pinning can make certain interception attacks harder, but it also creates a failure mode where valid production networking breaks after certificate or infrastructure changes.
 
-## What pinning does and does not solve
+Mobile clients update slowly, so a bad pin can stay deployed.
 
-Pinning can make certain man-in-the-middle attacks harder. It does not protect against compromised app code, runtime hooks, stolen tokens, backend authorization bugs, or a malicious server with the legitimate pinned key.
+## Why this matters for Android projects
 
-## SPKI pinning
+Network security is both a security problem and an operations problem. Strong client-side restrictions can backfire if there is no rotation plan.
 
-Pin the Subject Public Key Info hash rather than the entire certificate. Certificates rotate more often than keys. SPKI pinning is more operationally flexible.
+## ComposeTemplate's approach
 
-## Backup pins and rotation
+ComposeTemplate exposes pinning configuration through secret/config values and validates pin format when enabled.
 
-Always ship a backup pin. Without one, certificate rotation can break all existing clients. Mobile apps update slowly, so pinning mistakes can cause long-lived outages.
+`validateSecrets` requires at least primary and backup pins when certificate pinning is enabled.
 
-## OkHttp mental model
+## SPKI and backup pins
 
-OkHttp certificate pinning is enforced when a TLS connection is established. If the server chain does not match configured pins, the request fails before application-level handling.
+Prefer SPKI public key pins. Always configure at least two pins:
 
-## Operational risks
+- active pin
+- backup pin
 
-Pinning is both a security and availability feature. Wrong pins block traffic. Emergency release plans, monitoring, and staged rollout are essential.
+The backup pin is your recovery path.
+
+## Design trade-offs
+
+Pinning can reduce some MITM risk, but it increases operational responsibility. If your backend, CDN, or certificate management changes, app networking can fail.
 
 ## Production checklist
 
-- [ ] SPKI pins are used.
-- [ ] Current and backup pins are configured.
-- [ ] Rotation procedure is documented.
-- [ ] Staging and production hosts are separated.
-- [ ] Monitoring catches pinning failures.
-- [ ] Emergency plan exists.
+- [ ] pinning decision is intentional
+- [ ] SPKI pins are used
+- [ ] primary and backup pins exist
+- [ ] rotation plan is documented
+- [ ] emergency recovery path exists
+- [ ] backend authorization remains the real security boundary
 
-## Summary
+## Takeaways
 
-Certificate pinning is useful, but dangerous when operated casually. ComposeTemplate treats it as optional hardening that must be paired with rotation discipline.
+- Pinning is powerful but risky.
+- Backup pins are not optional.
+- Pinning does not replace backend authorization.

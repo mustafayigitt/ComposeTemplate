@@ -2,74 +2,68 @@
 
 ## Who this article is for
 
-This article is for Android developers using Hilt, annotation processing, and multiple Gradle modules.
+This article is for Android developers using Hilt and KSP across many Gradle modules.
 
 ## What you will learn
 
-- What KSP does
-- Why DI setup should be centralized
-- How Hilt multibinding supports modular architecture
-- Why build logic matters for generated code tools
+- why dependency injection setup drifts in multi-module projects
+- why KSP compatibility matters
+- how convention plugins reduce repeated Hilt setup
+- how generated features benefit from centralized DI conventions
 
-## What KSP is
+## The problem
 
-KSP stands for Kotlin Symbol Processing. It lets libraries inspect Kotlin symbols and generate code during compilation.
+Hilt setup is repetitive. Each module may need plugins, compiler configuration, dependencies, generated sources, and test dependencies.
 
-Many Android libraries use code generation. Hilt uses generated components and factories. Room uses generated database and DAO implementations.
+If every module does this manually, some modules eventually miss KSP, use incompatible versions, or configure DI differently.
 
-Because generated code participates in compilation, KSP setup must be correct in every module that needs it.
+## Why this matters for Android projects
 
-## The problem in multi-module projects
+Dependency injection touches nearly every layer: app, core modules, feature data, feature presentation, navigation registration, repositories, use cases, and ViewModels.
 
-Without convention plugins, each module repeats:
+Inconsistent DI setup becomes a build problem and an architecture problem.
 
-- Hilt plugin application,
-- KSP plugin application,
-- compiler dependency setup,
-- generated source configuration,
-- test dependency setup.
+## KSP and Hilt
 
-One missing line can break the module or produce confusing errors.
+Hilt uses annotation processing/code generation. ComposeTemplate uses KSP wiring through build logic so modules get consistent compiler setup.
 
-## ComposeTemplate approach
+KSP must stay compatible with the Kotlin version. This compatibility is governed through the version catalog.
 
-ComposeTemplate centralizes Hilt and KSP setup through convention plugins. Feature modules apply layer-specific plugins, and the build logic decides which dependencies and processors are needed.
+## ComposeTemplate's approach
 
-This keeps module build files short and consistent.
+ComposeTemplate centralizes Hilt and KSP setup in:
 
-## Hilt multibinding
-
-Multibinding allows multiple modules to contribute implementations into a set or map.
-
-That is useful for modular features:
-
-```kotlin
-@Binds
-@IntoSet
-abstract fun bindProvider(provider: FeatureScreenProvider): ScreenProvider
+```text
+composetemplate.android.hilt
 ```
 
-The app can receive `Set<ScreenProvider>` without manually knowing each feature provider.
+Feature layer plugins can apply or depend on the correct setup for their role.
 
-## Why this matters for templates
+This keeps feature module build files focused on role and explicit inter-module dependencies.
 
-Generated features should be wired the same way as hand-written features. Centralized build logic ensures scaffolded modules get the same Hilt/KSP setup as existing modules.
+## Generated features
 
-## Common mistakes
+`scaffoldFeature` creates Hilt-ready presentation code, including ViewModel and screen-provider bindings.
 
-- Applying Hilt plugin but forgetting compiler dependency.
-- Updating Kotlin without matching KSP.
-- Creating feature modules that bypass convention plugins.
-- Using DI as a service locator instead of dependency wiring.
+Because generated modules use the same convention plugins, generated DI setup is consistent with existing features.
+
+## Design trade-offs
+
+Centralized DI build logic reduces boilerplate but requires maintainers to understand build-logic code. If a convention plugin hides too much, developers may struggle to debug generated code.
+
+Documentation should clearly map plugins to responsibilities.
 
 ## Production checklist
 
-- [ ] Hilt setup is centralized.
-- [ ] KSP version matches Kotlin.
-- [ ] Generated feature modules apply the same conventions.
-- [ ] Multibinding is used for feature registration where appropriate.
-- [ ] CI compiles scaffolded features.
+- [ ] Hilt setup is centralized
+- [ ] KSP version matches Kotlin compatibility requirements
+- [ ] generated features include required DI bindings
+- [ ] screen providers are multibound correctly
+- [ ] ViewModels use constructor injection
+- [ ] CI compiles generated feature modules
 
-## Summary
+## Takeaways
 
-KSP and Hilt are not just library choices. In a modular project, they are part of the build architecture. ComposeTemplate centralizes their setup to keep feature modules reliable and generator-friendly.
+- DI consistency is a build-system concern.
+- KSP/Kotlin compatibility must be governed centrally.
+- Generated features should receive correct DI setup automatically.

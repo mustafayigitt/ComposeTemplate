@@ -2,73 +2,74 @@
 
 ## Who this article is for
 
-This article is for teams that repeatedly create similar feature modules and want to reduce boilerplate without weakening architecture.
+This article is for Android developers who want to generate feature boilerplate without weakening architecture.
 
 ## What you will learn
 
-- What feature scaffolding should generate
-- How scaffolding supports Clean Architecture
-- Why generated code should be treated as a starting point
-- Common scaffold-generator mistakes
+- why feature scaffolding matters in modular projects
+- what ComposeTemplate generates
+- how scaffolding supports Clean Architecture
+- why generated code is a starting point, not final product code
 
 ## The problem
 
-Adding a feature in a modular Clean Architecture project is repetitive. A developer may need to create:
+Creating a feature in a modular Clean Architecture project requires many repeated steps: modules, Gradle plugins, package directories, route classes, UI state, ViewModel, screen provider, Hilt binding, app wiring, and optional persistence files.
 
-- `data`, `domain`, `navigation`, and `presentation` modules,
-- Gradle files,
-- settings entries,
-- route objects,
-- screen providers,
-- ViewModels,
-- state and event models,
-- Hilt modules,
-- optional database classes.
+Manual setup is slow and easy to get wrong.
 
-Manual work is slow and error-prone.
+## Why this matters for Android projects
 
-## ComposeTemplate approach
+When feature creation is inconsistent, architecture erodes. Developers copy from random modules, forget bindings, or skip tests.
+
+A scaffold keeps the first commit of a feature aligned with project conventions.
+
+## ComposeTemplate's approach
 
 ComposeTemplate provides:
 
 ```bash
 ./gradlew scaffoldFeature -PfeatureName=settings
+```
+
+With database starter files:
+
+```bash
 ./gradlew scaffoldFeature -PfeatureName=settings -PwithDatabase=true
 ```
 
-The generated feature follows the same module structure used by existing features:
+The task creates:
 
 ```text
 feature/settings/
-├── data/
-├── domain/
-├── navigation/
-└── presentation/
+├── data
+├── domain
+├── navigation
+└── presentation
 ```
 
-## Why scaffolding helps
+## Generated pieces
 
-Scaffolding makes the intended architecture the easiest path. Instead of asking developers to remember every convention, the generator creates a consistent baseline.
+The scaffold includes route, use case, `UiState`, `Event`, ViewModel, screen, screen provider, Hilt module, string resources, Gradle files, and optional Room entity/DAO.
 
-## Generated code is not final code
+It also updates `settings.gradle.kts` and `app/build.gradle.kts`.
 
-Scaffolded code should compile and demonstrate the pattern. Developers should still adapt it to actual domain behavior, UI requirements, validation rules, and data sources.
+## Design trade-offs
 
-## Common mistakes
+Generated code is intentionally minimal. It should compile, show the correct structure, and give developers a safe starting point.
 
-- Generating too much business logic.
-- Generating code that does not compile.
-- Forgetting settings or app module wiring.
-- Creating scaffolds that differ from real project conventions.
+It should not pretend to understand feature-specific business logic.
 
 ## Production checklist
 
-- [ ] Scaffolded feature compiles.
-- [ ] Generated modules follow architecture boundaries.
-- [ ] Optional database scaffold is valid.
-- [ ] CI tests scaffold output.
-- [ ] Generated code is documented as a starting point.
+- [ ] scaffold creates all required modules
+- [ ] generated modules use convention plugins
+- [ ] app/settings wiring is updated
+- [ ] generated feature compiles
+- [ ] placeholder behavior is replaced
+- [ ] tests are added after real behavior is implemented
 
-## Summary
+## Takeaways
 
-Feature scaffolding improves developer experience by turning architecture conventions into executable tooling. ComposeTemplate uses scaffolding to make correct feature creation faster and less error-prone.
+- Scaffolding protects architecture at feature creation time.
+- Generated code should be minimal and correct.
+- CI should compile scaffolded output.
