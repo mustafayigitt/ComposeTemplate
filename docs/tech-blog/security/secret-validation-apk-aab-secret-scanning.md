@@ -2,76 +2,75 @@
 
 ## Who this article is for
 
-This article is for Android developers, release engineers, and DevSecOps teams who want guardrails against accidental secret leakage.
+This article is for Android developers who want release guardrails around client-side configuration and secret handling.
 
 ## What you will learn
 
-- Why release mistakes are common
-- What secret validation should catch
-- What artifact scanning can and cannot prove
-- How ComposeTemplate uses validation and scanning as release guardrails
+- why client-side secret validation matters
+- what `validateSecrets` checks
+- why artifact scanning is different from source validation
+- what these tools can and cannot guarantee
 
 ## The problem
 
-Many mobile security issues come from configuration mistakes:
+Mobile releases can fail because of configuration mistakes: placeholder keys, invalid URLs, missing release signing, weak masks, or raw values packaged into artifacts.
 
-- placeholder API keys,
-- debug endpoints,
-- malformed URLs,
-- weak masks,
-- wrong signature hashes,
-- raw values visible in APK/AAB output.
+These mistakes are preventable if the build fails early.
 
-These mistakes are preventable with build-time checks.
+## Why this matters for Android projects
 
-## Validation vs scanning
+A mobile release is hard to roll back. Once an APK/AAB is shipped, bad configuration can remain on user devices for a long time.
 
-Validation happens before or during build. It checks whether configuration values are present, well-formed, and not obvious placeholders.
+Guardrails should run before release artifacts are distributed.
 
-Artifact scanning happens after build. It inspects generated outputs for known raw values or suspicious strings.
+## ComposeTemplate's approach
 
-Both are useful. Neither proves the app is secure.
+ComposeTemplate provides three related tasks:
 
-## ComposeTemplate approach
+| Task | Purpose |
+|---|---|
+| `validateSecrets` | validates configuration before build |
+| `scanApkForSecrets` | scans generated artifacts for raw values |
+| `hardeningReport` | summarizes hardening configuration |
 
-ComposeTemplate provides tasks such as:
+## Validation walkthrough
 
-- `validateSecrets`
-- `scanApkForSecrets`
-- `hardeningReport`
+`validateSecrets` checks required values such as API keys, base URLs, XOR mask, and expected signature hash.
 
-The goal is to fail early when release configuration looks unsafe.
+It also validates:
 
-## What validation catches
+- placeholder values
+- base URL shape and trailing slash
+- HTTPS for release base URLs
+- XOR mask length and safe characters
+- SHA-256 signature hash format
+- certificate pin format when pinning is enabled
+- release signing keys for release builds
 
-- Missing required properties
-- Placeholder values
-- Malformed base URLs
-- Weak XOR masks
-- Invalid signature hash format
-- Inconsistent certificate pinning configuration
+## Artifact scanning
 
-## What scanning catches
-
-- Raw API keys
-- Base URLs
-- Internal endpoints
-- Placeholder strings
-- Debug metadata
-- Known secret values in final artifacts
+`scanApkForSecrets` looks at built APK/AAB outputs and searches for configured raw values. This catches cases where source configuration looked valid but the final artifact still exposes a value plainly.
 
 ## Limitations
 
-A scan only finds what it knows to look for. It cannot prove that no sensitive value exists. It also does not protect runtime memory or backend authorization.
+A clean scan does not prove a client-side value is unrecoverable. It only reduces obvious leakage. Native obfuscation, validation, and scanning increase cost; backend authorization remains essential.
+
+## Design trade-offs
+
+Strict validation can block local builds until configuration is correct. This is intentional for a template focused on release safety.
 
 ## Production checklist
 
-- [ ] Release builds run secret validation.
-- [ ] APK/AAB artifacts are scanned.
-- [ ] Placeholder values fail the build.
-- [ ] Reports are reviewable in CI.
-- [ ] Real backend secrets are never stored in the client.
+- [ ] `validateSecrets` runs before builds
+- [ ] release signing is validated for release tasks
+- [ ] base URLs are valid and release uses HTTPS
+- [ ] certificate pins are validated when enabled
+- [ ] release artifacts are scanned
+- [ ] scan failures block release
+- [ ] backend secrets are never shipped in the client
 
-## Summary
+## Takeaways
 
-Secret validation and artifact scanning are practical release guardrails. ComposeTemplate uses them to catch avoidable mistakes before they reach production.
+- Validation prevents known configuration mistakes.
+- Artifact scanning checks the output, not just source files.
+- These tools are guardrails, not absolute secrecy guarantees.

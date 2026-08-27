@@ -2,105 +2,89 @@
 
 ## Who this article is for
 
-This article is for Compose developers who want navigation to scale across feature modules without turning the app module into a central route registry.
+This article is for Compose developers designing navigation for modular Android apps.
 
 ## What you will learn
 
-- Why navigation is an architecture boundary
-- How route-as-data thinking works
-- Why centralized graphs become painful
-- How feature-owned screen registration works
-- How Hilt multibinding helps with modular discovery
+- why centralized navigation graphs become coupling points
+- how route ownership can live inside features
+- how `ScreenRegistry` and `IScreenProvider` work
+- how bottom-bar items are contributed without a central list
 
-## The problem with centralized navigation graphs
+## The problem
 
-Central navigation is easy at first. A single file maps every route to every screen. But in a modular project, it creates coupling:
+Centralized navigation graphs are convenient early. As features grow, the app module starts knowing every route, screen, tab, and parameter.
 
-- adding a screen requires app-level edits
-- removing a feature requires central cleanup
-- bottom-bar items become a shared list
-- feature teams coordinate through one graph
-- route definitions drift away from the feature that owns them
+That weakens feature ownership and makes generated features harder to plug in automatically.
 
-The app module gradually learns too much.
+## Why this matters for Android projects
 
-## Navigation as state and data
+Navigation is often the hidden dependency between features. If it is centralized, every feature change requires app-level edits.
 
-Navigation becomes easier to reason about when a destination is modeled as data, not just a string. A route can carry identity, arguments, serialization behavior, and back-stack state.
+A scalable template should let features own their own route identity and screen registration.
 
-Navigation3 encourages a state-oriented model where the back stack is a list of navigation items. This fits Compose because UI can be derived from state.
+## ComposeTemplate's approach
 
-## ComposeTemplate model
+ComposeTemplate uses:
 
-ComposeTemplate uses concepts such as:
+- `INavigationItem` for route-like objects
+- `IBottomBarItem` for tab items
+- `INavigationManager` for navigation operations
+- `NavigationManager` for `StateFlow`-backed back stack state
+- `IScreenProvider` for route-to-screen rendering
+- `ScreenRegistry` for resolving screens from providers
 
-- `INavigationItem` for route-like items
-- `INavigationManager` for back-stack operations
-- `ScreenRegistry` for resolving routes to screens
-- `IScreenProvider` for feature-owned rendering
-- bottom-bar item registration for tab ownership
+## Implementation walkthrough
 
-The key idea is:
-
-> Features contribute screens. The app resolves them.
-
-## ScreenProvider pattern
-
-Instead of a central `when(route)` block, each feature can contribute a provider:
+A feature navigation module defines a route:
 
 ```kotlin
-interface ScreenProvider {
-    fun canHandle(item: INavigationItem): Boolean
+@Serializable
+data object SettingsRoute : INavigationItem {
+    override val route = "route_settings"
+}
+```
 
+A feature presentation module contributes a screen provider:
+
+```kotlin
+class SettingsScreenProvider @Inject constructor() : IScreenProvider {
     @Composable
-    fun Render(item: INavigationItem)
+    override fun provideScreen(route: INavigationItem, navigationManager: INavigationManager): Boolean =
+        when (route) {
+            is SettingsRoute -> {
+                SettingsRoute()
+                true
+            }
+            else -> false
+        }
 }
 ```
 
-The registry receives all providers and asks which one can render the current route. This keeps route knowledge close to the feature.
+`ScreenRegistry` receives all providers through Hilt multibinding and asks each provider whether it can render the current route.
 
-## Hilt multibinding
+## Bottom-bar ownership
 
-Hilt multibinding allows modules to contribute implementations into a collection:
+Bottom-bar items are contributed by feature navigation modules through map multibinding. `NavigationManager` sorts them by key and exposes the final list.
 
-```kotlin
-@Module
-@InstallIn(SingletonComponent::class)
-abstract class AuthScreenModule {
-    @Binds
-    @IntoSet
-    abstract fun bindAuthScreenProvider(
-        provider: AuthScreenProvider,
-    ): ScreenProvider
-}
-```
+This avoids a central tab registry.
 
-The app can inject `Set<ScreenProvider>` without manually listing every feature.
+## Design trade-offs
 
-## Bottom-bar registration
+This architecture is more abstract than a simple graph in the app module. Developers must understand route objects, screen providers, Hilt multibinding, and back-stack state.
 
-Tabs can use the same idea. A feature contributes tab metadata through DI instead of editing a central list. This is especially useful for generated features because the scaffolder can follow the same contract.
-
-## Trade-offs
-
-This design has more indirection than a simple graph. Debugging may require following DI bindings and registry resolution. But it keeps feature ownership strong and makes modular growth easier.
-
-## Common mistakes
-
-- Treating routes as untyped strings
-- Letting the app module know every screen implementation
-- Mixing navigation effects into persistent UI state
-- Creating providers that handle too many unrelated routes
+The benefit is feature ownership and generator-friendly navigation.
 
 ## Production checklist
 
-- [ ] Routes are strongly modeled.
-- [ ] Feature modules own route definitions.
-- [ ] Screen providers are registered by feature modules.
-- [ ] App module orchestrates but does not know every screen.
-- [ ] Bottom-bar items are contributed by features.
-- [ ] Back-stack mutations are centralized behind a navigation manager.
+- [ ] routes are feature-owned
+- [ ] screen providers are registered via multibinding
+- [ ] app module does not manually map every route to every screen
+- [ ] bottom-bar items are contributed by features
+- [ ] generated features can join navigation without central registry edits
 
-## Summary
+## Takeaways
 
-Navigation is not just UI plumbing. In a modular Compose app, it is a feature boundary. ComposeTemplate uses feature-owned Navigation3 registration to keep navigation scalable and generator-friendly.
+- Navigation architecture affects modularity.
+- Feature-owned route registration reduces app-module coupling.
+- Screen providers make generated features easier to wire.
