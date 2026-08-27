@@ -2,58 +2,54 @@
 
 ## Who this article is for
 
-This article is for Android teams that want consistent style and quality checks without relying only on code review comments.
+This article is for Android developers who want consistent style and quality checks across multi-module projects.
 
 ## What you will learn
 
-- What Ktlint and Detekt solve
-- Why static analysis should be centralized
-- How CI turns quality rules into gates
-- Common mistakes in rule management
+- why static analysis drifts in modular projects
+- what Ktlint and Detekt each provide
+- why static analysis belongs in build logic
+- how generated code should meet the same quality bar
 
 ## The problem
 
-Without automation, teams spend review time on formatting, naming, complexity, and preventable code smells. Reviews become inconsistent because each reviewer has different preferences.
+As Android projects grow, formatting and static analysis rules often become inconsistent. Some modules apply checks, others skip them, and generated code may not follow the same rules as hand-written code.
 
-## Ktlint vs Detekt
+That creates avoidable review noise and quality drift.
 
-Ktlint focuses on Kotlin formatting and style consistency.
+## Why this matters for Android projects
 
-Detekt focuses on static analysis: complexity, potential bugs, maintainability issues, and project-specific rules.
+Static analysis is not only about style. It creates a shared baseline for maintainability. In a template repository, that baseline becomes the starting point for every generated app.
 
-They are complementary.
-
-## ComposeTemplate approach
+## ComposeTemplate's approach
 
 ComposeTemplate uses:
 
-```bash
-./gradlew ktlintCheck
-./gradlew detekt
-```
+- Ktlint for formatting/style checks
+- Detekt for static analysis
+- shared Detekt config under `config/detekt`
+- `composetemplate.static.analysis` convention plugin
+- CI lint job running both checks
 
-Static analysis is wired through convention plugins so new modules inherit the same quality gates.
+## Generated code quality
 
-## Why convention plugins matter
+Generated feature code must pass the same checks as normal source. If scaffold output violates a rule, the generator should be fixed rather than relying on suppressions.
 
-If static analysis is configured manually per module, new modules can forget to apply it. Centralized build logic makes quality checks part of the project platform.
+## Design trade-offs
 
-## Common mistakes
-
-- Adding too many strict rules at once.
-- Suppressing warnings without explanation.
-- Letting generated code trigger irrelevant checks.
-- Running checks locally but not in CI.
+Strict static analysis can feel slower early in development, but it prevents style drift and keeps code review focused on behavior.
 
 ## Production checklist
 
-- [ ] Ktlint runs in CI.
-- [ ] Detekt runs in CI.
-- [ ] Rules are documented.
-- [ ] Suppressions are justified.
-- [ ] New modules inherit checks automatically.
-- [ ] Generated code handling is defined.
+- [ ] Ktlint runs locally and in CI
+- [ ] Detekt runs locally and in CI
+- [ ] Detekt config is versioned
+- [ ] generated code passes checks
+- [ ] suppressions are narrow and justified
+- [ ] convention plugins apply analysis consistently
 
-## Summary
+## Takeaways
 
-Static analysis is not about perfection. It is about making quality consistent, automated, and reviewable across a growing Android codebase.
+- Static analysis is a project consistency tool.
+- Generated code should meet the same bar as hand-written code.
+- Centralized configuration avoids module-level drift.
