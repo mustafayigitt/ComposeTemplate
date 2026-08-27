@@ -1,8 +1,32 @@
 # Tech Blog Series
 
-The ComposeTemplate Tech Blog Series is a collection of deep-dive articles for Android developers. Each article is intended to teach the technology, explain the engineering trade-offs, and show how the idea maps back to ComposeTemplate.
+The ComposeTemplate Tech Blog Series is a collection of long-form Android engineering articles.
 
-The goal is not to say "ComposeTemplate uses X". The goal is to explain what X is, why it exists, how it works, where it fails, and how to apply it in a production Android project.
+These articles are not release notes and not short feature descriptions. Each article should teach the underlying engineering problem, explain common approaches, describe ComposeTemplate's implementation, and give readers a checklist they can apply to their own projects.
+
+## Editorial standard
+
+Every article should answer:
+
+1. What real Android problem does this solve?
+2. Why does it matter in production projects?
+3. What are the common approaches and trade-offs?
+4. How does ComposeTemplate implement it?
+5. Which repository files demonstrate the idea?
+6. What should a reader check in their own project?
+
+## Recommended publishing order
+
+1. [Building a Production-Grade Jetpack Compose Template Generator](architecture/template-generator.md)
+2. [Feature Modularization with Clean Architecture in Android](architecture/feature-modularization-clean-architecture.md)
+3. [Gradle Convention Plugins for Scalable Android Projects](build-system/gradle-convention-plugins-scalable-android.md)
+4. [Navigation3 with Feature-Owned Screen Registration](architecture/navigation3-feature-owned-screen-registration.md)
+5. [Native Secret Obfuscation with NDK, CMake and RegisterNatives](security/native-secret-obfuscation-ndk-cmake-registernatives.md)
+6. [Baseline Profiles for Faster Android Startup](performance/baseline-profiles-faster-android-startup.md)
+7. [Macrobenchmarking Android Apps the Right Way](performance/macrobenchmarking-android-apps.md)
+8. [CI for Android Template Repositories](template-engineering/ci-android-template-repositories.md)
+9. [Secret Validation and APK/AAB Secret Scanning](security/secret-validation-apk-aab-secret-scanning.md)
+10. [Docs-as-Code with MkDocs and GitHub Pages](quality-dx/docs-as-code-mkdocs-github-pages.md)
 
 ## Architecture
 

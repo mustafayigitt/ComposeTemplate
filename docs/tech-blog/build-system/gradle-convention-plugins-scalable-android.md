@@ -6,36 +6,49 @@ This article is for Android developers maintaining multi-module projects where G
 
 ## What you will learn
 
-- What convention plugins are
-- Why they are useful in multi-module Android projects
-- How they differ from custom tasks
-- How ComposeTemplate uses them to encode architecture
-- What mistakes to avoid
+- what convention plugins are
+- why they matter in multi-module Android projects
+- how they differ from generator tasks
+- how ComposeTemplate uses them to encode architecture
+- what mistakes to avoid when centralizing build logic
 
-## The problem: build configuration drift
+## The problem
 
-Every Android module needs configuration: plugin IDs, SDK versions, Kotlin options, Compose setup, Hilt setup, KSP processors, Room schemas, test dependencies, lint configuration, and static analysis.
+Every Android module needs build configuration: plugin IDs, SDK versions, Kotlin options, Compose setup, Hilt, KSP, Room, tests, static analysis, packaging, and dependency declarations.
 
-If each module configures those manually, drift appears:
+When every module repeats this manually, build configuration drifts.
 
-```kotlin
-plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
-}
+One module forgets Detekt. Another uses a different test stack. Another adds Compose to a domain module. Another misses KSP after a Hilt upgrade.
 
-android {
-    compileSdk = 37
-}
-```
+The build may still pass, but architectural consistency is gone.
 
-One module forgets test dependencies. Another uses different Compose options. Another misses Detekt. The build still works, but consistency is gone.
+## Why this matters for Android projects
 
-## What is a convention plugin?
+In a large Android project, Gradle is not only a build tool. It is part of the architecture.
 
-A convention plugin is a Gradle plugin that captures project-specific defaults.
+The build decides:
 
-Instead of repeating configuration, a module declares its role:
+- which modules can depend on which APIs
+- which compiler plugins run
+- which code is generated
+- which tests are available
+- which release checks are enforced
+
+If build logic is inconsistent, architecture becomes a social agreement instead of a constraint.
+
+## Common approaches
+
+### Repeat configuration in every module
+
+Simple at first, but hard to upgrade and easy to drift.
+
+### Shared Gradle script files
+
+Better than repetition, but less type-safe and harder to structure as reusable build code.
+
+### Convention plugins
+
+Convention plugins let modules declare their role:
 
 ```kotlin
 plugins {
@@ -43,76 +56,88 @@ plugins {
 }
 ```
 
-That plugin can apply Android/Kotlin plugins, configure Compose, add dependencies, wire Hilt, and apply test conventions.
+The plugin configures the expected defaults for that role.
 
-## Convention plugin vs custom task
-
-A convention plugin configures a module. A task performs an action.
-
-Examples:
-
-- `composetemplate.android.library` configures library modules
-- `composetemplate.feature.presentation` configures presentation modules
-- `create-new-app` generates a new project
-- `scaffoldFeature` generates feature modules
-
-Mixing these concepts makes build logic harder to reason about.
-
-## ComposeTemplate implementation
+## ComposeTemplate's approach
 
 ComposeTemplate keeps build logic under:
 
 ```text
-build-logic/convention/
+build-logic/convention
 ```
 
-The main build includes this build logic via `settings.gradle.kts`, making plugins available to app and library modules.
+The root build includes it through `settings.gradle.kts`:
 
-Important plugins include:
+```kotlin
+pluginManagement {
+    includeBuild("build-logic")
+}
+```
 
-- Android application/library conventions
-- Compose conventions
-- Hilt conventions
-- Room conventions
-- feature layer conventions
-- test conventions
-- static analysis conventions
-- native library conventions
-- baseline profile generator conventions
+This makes project-specific plugins available to app, core, and feature modules.
 
-## Build logic as architecture
+## Plugin taxonomy
 
-The plugin a module applies communicates its architectural role. A domain module should not accidentally receive UI dependencies. A data module should not need Compose. A presentation module should get lifecycle and Compose dependencies consistently.
+ComposeTemplate separates plugins by responsibility:
 
-This turns build logic into a guardrail.
+- Android application/library plugins
+- Compose plugins
+- Hilt plugin
+- Room plugin
+- test plugin
+- static analysis plugin
+- native library plugin
+- feature layer plugins
+- generator plugins
+- validation plugins
+- baseline profile plugin
 
-## Common mistakes
+This avoids one giant plugin that does too much.
 
-### One giant plugin
+## Feature layer plugins
 
-A single plugin that does everything becomes hard to understand. Prefer role-specific plugins.
+The feature plugins encode architecture:
 
-### Hidden surprising dependencies
+| Plugin | Module role |
+|---|---|
+| `composetemplate.feature.domain` | lean domain module |
+| `composetemplate.feature.data` | repository/data infrastructure module |
+| `composetemplate.feature.navigation` | route and navigation metadata module |
+| `composetemplate.feature.presentation` | ViewModel and Compose UI module |
 
-Convention plugins should reduce boilerplate, not make dependencies mysterious.
+Generated features use the same plugins as hand-written features, so scaffolding stays aligned with architecture.
 
-### Ignoring Gradle lifecycle
+## Convention plugin vs task
 
-Avoid unnecessary work during configuration. Build logic should be predictable and compatible with modern Gradle practices.
+A convention plugin configures a module. A task performs work.
 
-### Bypassing the version catalog
+Examples:
 
-Convention plugins should still use centralized dependency aliases.
+- `composetemplate.feature.presentation` configures a presentation module
+- `scaffoldFeature` generates modules
+- `create-new-app` generates a project
+- `validateSecrets` validates configuration
+
+Keeping this distinction clear makes the build easier to reason about.
+
+## Design trade-offs
+
+Convention plugins require Gradle knowledge and maintenance. They can also hide dependencies if poorly named or poorly documented.
+
+ComposeTemplate mitigates this with role-specific plugin names and documentation that maps plugins to module responsibilities.
 
 ## Production checklist
 
-- [ ] Repeated build setup is moved into convention plugins.
-- [ ] Module build files remain declarative.
-- [ ] Plugin names reflect module roles.
-- [ ] Feature layer plugins encode architecture boundaries.
-- [ ] Dependencies come from the version catalog.
-- [ ] CI validates generated modules and normal modules.
+- [ ] repeated module setup is centralized
+- [ ] plugin names reflect architectural roles
+- [ ] dependencies come from the version catalog
+- [ ] generated modules use the same plugins as existing modules
+- [ ] domain modules stay free of UI dependencies
+- [ ] CI validates generated modules
 
-## Summary
+## Takeaways
 
-Convention plugins are not just Gradle cleanup. In a large Android project, they are an architectural tool. ComposeTemplate uses them to keep module setup consistent, scalable, and generator-friendly.
+- Convention plugins are architecture tools, not only Gradle cleanup.
+- Role-specific plugins reduce configuration drift.
+- Generated code should use the same build conventions as hand-written code.
+- Build logic must stay documented because hidden build behavior becomes technical debt.
