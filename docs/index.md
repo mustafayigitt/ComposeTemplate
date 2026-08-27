@@ -4,6 +4,16 @@ ComposeTemplate is a production-grade Jetpack Compose template generator for sta
 
 It is not only a sample app. It is a working template that can generate a new project with your package name, app name, module graph, build conventions, and quality gates.
 
+## Start here
+
+If you are new to the project, follow this path:
+
+1. [Getting Started](getting-started.md)
+2. [Generate a New App](guides/generate-new-app.md)
+3. [Configure Secrets](security/secret-management.md)
+4. [Run Release Readiness Checks](guides/release-readiness.md)
+5. [Scaffold a Feature](guides/scaffold-feature.md)
+
 ## What ComposeTemplate provides
 
 ComposeTemplate brings together the foundations most Android projects eventually need:
@@ -60,38 +70,30 @@ Generate a new app:
 cd ../MyNewApp
 ```
 
-Create `secrets.properties`, then validate and build:
+Validate after configuring secrets:
 
 ```bash
 ./gradlew validateSecrets
 ./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug :app:assembleRelease
 ```
 
-## Documentation paths
-
-Start with these pages:
-
-1. [Getting Started](getting-started.md)
-2. [Project Philosophy](project-philosophy.md)
-3. [Generate a New App](guides/generate-new-app.md)
-4. [Architecture Overview](architecture/overview.md)
-5. [Convention Plugins](build-system/convention-plugins.md)
-6. [Secret Management](security/secret-management.md)
-7. [Release Readiness](guides/release-readiness.md)
-
-## How to read this documentation
-
-ComposeTemplate documentation is organized into four layers:
+## Documentation map
 
 | Area | Purpose |
 |---|---|
 | Guides | Complete concrete workflows |
-| Architecture | Explain design decisions and module boundaries |
-| Reference | Look up tasks, modules, plugins, and configuration |
-| Tech Blog | Read long-form engineering deep dives |
+| Architecture | Design decisions and module boundaries |
+| Build System | Convention plugins, version catalog, static analysis, CI |
+| Security | Secrets, runtime integrity, pinning, release hardening |
+| Template Tools | Generator and scaffold task references |
+| Quality | Testing, release readiness, performance foundations |
+| Reference | Task and module lookup |
+| Tech Blog | Long-form engineering deep dives |
 
-If you want to use the template quickly, start with Guides.
+## Recommended deep dives
 
-If you want to understand why the project is structured this way, read Architecture and Build System.
-
-If you want publishable engineering articles, read the Tech Blog series.
+- [Architecture Overview](architecture/overview.md)
+- [Feature Modularization](architecture/feature-modularization.md)
+- [Gradle Convention Plugins](build-system/gradle-convention-plugins.md)
+- [Secret Management](security/secret-management.md)
+- [Tech Blog Series](tech-blog/index.md)

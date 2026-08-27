@@ -1,63 +1,67 @@
 # Getting Started
 
-This page explains how to clone ComposeTemplate and generate your own Android application.
+This page is the short onboarding path for ComposeTemplate.
+
+If you want the detailed workflow, use [Generate a New App](guides/generate-new-app.md).
 
 ## Requirements
 
 - Android Studio Ladybug or newer
 - JDK 17+
 - Android SDK
-- Gradle wrapper
-- CMake / NDK support
 - Git
+- CMake / NDK support if native secret obfuscation is enabled
 
 Use the repository Gradle wrapper instead of a locally installed Gradle binary.
 
-## Clone
+## 1. Clone the template
 
 ```bash
 git clone https://github.com/mustafayigitt/ComposeTemplate.git
 cd ComposeTemplate
 ```
 
-## Generate a new app
+## 2. Generate your app
 
 ```bash
 ./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -q --console=plain
+cd ../MyNewApp
 ```
 
-The command creates a sibling project at `../MyNewApp`.
+The generated project is created as a sibling directory.
 
-## Configure secrets
+## 3. Configure secrets
 
-Create `secrets.properties` in the generated project root:
+Copy the example file and replace placeholder values:
 
-```properties
-API_KEY_DEBUG="your_debug_key"
-API_KEY_RELEASE="your_release_key"
-BASE_URL_DEBUG="https://api-debug.test.com/"
-BASE_URL_RELEASE="https://api.test.com/"
-STORE_FILE="release.keystore"
-KEY_ALIAS="your_key_alias"
-KEY_PASSWORD="your_key_password"
-STORE_PASSWORD="your_store_password"
-XOR_MASK="your_custom_mask_with_24_plus_chars"
-EXPECTED_SIGNATURE_HASH="your_release_sha256_hex_with_or_without_colons"
-NATIVE_RUNTIME_CHECKS_ENABLED=true
-CERTIFICATE_PINNING_ENABLED=false
-CERTIFICATE_PINS=""
+```bash
+cp secrets.properties.example secrets.properties
 ```
 
-## Validate and build
+Then review [Secret Management](security/secret-management.md) and [Validate Secrets](template-tools/validate-secrets.md).
+
+## 4. Validate the project
+
+Run the common local verification set:
 
 ```bash
 ./gradlew validateSecrets
 ./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug :app:assembleRelease
 ```
 
-## Scaffold a feature
+## 5. Optional: scaffold a feature
 
 ```bash
 ./gradlew scaffoldFeature -PfeatureName=settings
 ./gradlew scaffoldFeature -PfeatureName=settings -PwithDatabase=true
 ```
+
+For details, read [Scaffold a Feature](guides/scaffold-feature.md).
+
+## Next reading
+
+1. [Project Philosophy](project-philosophy.md)
+2. [Generate a New App](guides/generate-new-app.md)
+3. [Architecture Overview](architecture/overview.md)
+4. [Convention Plugins](build-system/gradle-convention-plugins.md)
+5. [Release Readiness](guides/release-readiness.md)
