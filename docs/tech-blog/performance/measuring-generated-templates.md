@@ -2,72 +2,56 @@
 
 ## Who this article is for
 
-This article is for template maintainers and platform teams who want generated apps to inherit good performance defaults.
+This article is for maintainers of Android templates and mobile platform foundations.
 
 ## What you will learn
 
-- Why template performance matters
-- Why measuring only the source app is incomplete
-- How generated app validation can evolve
-- How Baseline Profiles and Macrobenchmark fit template quality
+- why template performance matters
+- why generated apps should keep performance tooling
+- how Baseline Profiles and Macrobenchmark support template quality
+- what to measure after generation
 
 ## The problem
 
-A template can build successfully and still generate apps with poor startup behavior, unnecessary dependencies, or broken performance tooling.
+A template can include good performance tooling but still fail downstream if generated apps do not preserve it or if generation changes startup behavior.
 
-If users generate apps from the template, the generated output is the real product.
+Template maintainers must think about generated output quality, not only current app quality.
 
-## Smoke testing vs performance testing
+## Why this matters for Android projects
 
-A smoke test asks:
+Generated apps inherit architecture, dependencies, navigation, security checks, and startup work. If those foundations add overhead, every downstream app pays the cost.
 
-```text
-Does the generated app build?
-```
+## ComposeTemplate's approach
 
-A performance test asks:
+ComposeTemplate includes both `baselineprofile` and `benchmark` modules and wires ProfileInstaller into the app. Generated apps should retain the ability to profile and benchmark startup.
 
-```text
-Does the generated app start and behave well?
-```
+## What to measure
 
-Both matter.
+Measure:
 
-## ComposeTemplate approach
+- cold startup
+- first screen rendering
+- start destination logic
+- navigation to primary tabs
+- onboarding/auth flows when relevant
+- impact of security checks on startup
 
-ComposeTemplate includes:
+## Design trade-offs
 
-- `baselineprofile`
-- `benchmark`
-- generator smoke tests
-- scaffold smoke tests
+Keeping benchmark infrastructure in generated apps adds modules and device requirements. Removing it makes generated projects simpler but weakens performance visibility.
 
-This creates a foundation for future generated-app performance validation.
-
-## What mature template performance could include
-
-- Generate app in CI.
-- Build release variant.
-- Run startup Macrobenchmark.
-- Generate Baseline Profile for generated package.
-- Store performance reports as artifacts.
-- Track regressions over time.
-
-## Common mistakes
-
-- Measuring only the template app.
-- Ignoring generated package names in benchmark setup.
-- Treating smoke tests as performance tests.
-- Adding heavy startup dependencies to the template.
+For production templates, visibility is usually worth the cost.
 
 ## Production checklist
 
-- [ ] Template app has benchmark coverage.
-- [ ] Generated app builds in CI.
-- [ ] Generated app can run performance tests.
-- [ ] Baseline profile paths survive package rename.
-- [ ] Startup regressions are tracked over time.
+- [ ] generated apps retain performance modules or documented equivalents
+- [ ] startup is benchmarked after generation
+- [ ] Baseline Profile rules match generated navigation paths
+- [ ] benchmark build type remains release-like
+- [ ] performance regressions are reviewed before template releases
 
-## Summary
+## Takeaways
 
-Template performance should be measured where users experience it: generated apps. ComposeTemplate includes the foundations needed to make this possible.
+- Template performance is inherited by generated apps.
+- Generated output should be measured directly.
+- Performance tooling belongs in the foundation, not only in late-stage optimization.

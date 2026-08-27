@@ -2,100 +2,120 @@
 
 ## Who this article is for
 
-This article is for Compose developers building screens with ViewModels, flows, navigation events, loading states, and user actions.
+This article is for Compose developers who want predictable ViewModel state and one-time side-effect handling.
 
 ## What you will learn
 
-- Why render state and one-shot effects should be separate
-- How `StateFlow` and event flows play different roles
-- How this maps to Compose screens
-- Common mistakes that cause repeated navigation or stale snackbar messages
+- why durable UI state and one-shot events should be separated
+- how `StateFlow` fits Compose rendering
+- why channels are useful for events
+- how ComposeTemplate standardizes ViewModels with `BaseViewModel`
+- what mistakes to avoid in state/event handling
 
 ## The problem
 
-UI has two kinds of information.
+Compose screens recompose. Configuration can change. Flows can be collected again. If one-time actions are stored as durable state, they may run more than once.
 
-The first kind is durable state:
+Common symptoms include:
 
-- current email text,
-- loading flag,
-- list of items,
-- selected tab,
-- validation errors.
+- snackbar messages appearing again after rotation
+- navigation happening twice
+- events being lost or replayed unexpectedly
+- ViewModels exposing mutable state directly
+- UI code mutating state instead of rendering it
 
-The second kind is a one-time effect:
+## Why this matters for Android projects
 
-- navigate to another screen,
-- show a snackbar,
-- open a dialog once,
-- trigger a toast,
-- request focus.
+State management is one of the first places where small apps become hard to maintain. A production template should give every feature the same mental model for rendering state and emitting effects.
 
-If both are stored in one persistent state object, effects can repeat after recomposition, configuration change, or process recreation.
+## Common approaches
 
-## Mental model
+### Everything in one state object
 
-State describes what the UI should look like.
+Simple, but one-shot commands can be accidentally replayed.
 
-Events describe what should happen once.
+### Callback-heavy UI
+
+Can work for small screens, but behavior becomes scattered as flows grow.
+
+### State plus event stream
+
+Durable screen state is modeled separately from one-time effects. ComposeTemplate uses this approach.
+
+## ComposeTemplate's approach
+
+Every ViewModel extends:
+
+```kotlin
+BaseViewModel<UiState, Event>
+```
+
+The base class provides:
+
+- internal `MutableStateFlow<S>`
+- public `StateFlow<S>`
+- `Channel<E>`-backed event flow
+- `updateState { }`
+- `sendEvent(event)`
+
+## Implementation walkthrough
+
+A UI state describes what the screen renders:
 
 ```kotlin
 data class LoginUiState(
     val email: String = "",
     val password: String = "",
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
 )
+```
 
-sealed interface LoginEvent {
-    data object NavigateHome : LoginEvent
-    data class ShowMessage(val message: String) : LoginEvent
+The ViewModel updates state immutably:
+
+```kotlin
+fun onEmailChanged(email: String) {
+    updateState { it.copy(email = email) }
 }
 ```
 
-## ComposeTemplate approach
+An event describes a one-shot effect:
 
-ComposeTemplate uses a `BaseViewModel<UiState, Event>` pattern. The state is exposed as observable state for rendering. Events are emitted separately for one-time effects.
+```kotlin
+sealed interface ProfileEvent {
+    data object NavigateToLogin : ProfileEvent
+}
+```
 
-This gives every feature the same structure:
+The ViewModel emits it:
 
-- ViewModel owns state transitions.
-- Compose renders state.
-- Compose collects events in effect handlers.
-- Navigation is not stored as durable state.
+```kotlin
+sendEvent(ProfileEvent.NavigateToLogin)
+```
 
-## Lifecycle-aware collection
-
-State should be collected with lifecycle awareness:
+Compose screens collect state with lifecycle awareness:
 
 ```kotlin
 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 ```
 
-Events should be collected in a `LaunchedEffect` or a lifecycle-aware helper depending on the project conventions.
+## Design trade-offs
 
-## Common mistakes
+A separate event stream adds a small amount of ceremony, but it prevents a common class of recomposition and lifecycle bugs.
 
-### Storing navigation in state
-
-A flag like `shouldNavigate = true` can trigger navigation repeatedly unless it is reset carefully.
-
-### Using nullable message as an event
-
-`snackbarMessage: String?` often becomes stale state. Prefer one-shot events for transient messages.
-
-### Letting composables contain business decisions
-
-Composable functions should render and forward user actions. ViewModels should decide state transitions.
+For generated features, the pattern also creates consistency across the codebase.
 
 ## Production checklist
 
-- [ ] UI state is immutable.
-- [ ] One-shot effects are modeled separately.
-- [ ] State collection is lifecycle-aware.
-- [ ] Navigation is emitted as an event.
-- [ ] ViewModel tests verify state transitions and emitted effects.
+- [ ] screen state is immutable
+- [ ] one-shot effects are not stored as durable state
+- [ ] ViewModels expose read-only state
+- [ ] state changes use `updateState`
+- [ ] events use `sendEvent`
+- [ ] Composables use lifecycle-aware collection
+- [ ] ViewModel tests cover state transitions and events
 
-## Summary
+## Takeaways
 
-Compose state management becomes easier when durable state and transient effects are separated. ComposeTemplate standardizes this pattern so feature screens behave consistently and remain testable.
+- UI state should describe what to render.
+- Events should describe what should happen once.
+- A shared ViewModel base class keeps feature behavior consistent.

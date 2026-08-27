@@ -2,75 +2,81 @@
 
 ## Who this article is for
 
-This article is for Android developers writing unit tests for ViewModels, use cases, repositories, and coroutine-based code.
+This article is for Android developers testing multi-module Kotlin and Compose applications.
 
 ## What you will learn
 
-- What each testing library is responsible for
-- Why coroutine tests need special handling
-- When to use mocks vs fakes
-- How a convention plugin improves test consistency
+- why testing strategy follows architecture
+- where JUnit, MockK, Truth, and coroutine testing fit
+- how ViewModel and repository tests should be structured
+- why template repositories must test generated output
 
-## Testing stack roles
+## The problem
 
-ComposeTemplate standardizes common test tools:
+Tests become expensive when architecture is tightly coupled. If ViewModels know Retrofit, UI state exposes DTOs, or domain logic depends on Android framework classes, even simple tests require large setup.
 
-- JUnit for test structure,
-- MockK for mocks and verification,
-- Truth for readable assertions,
-- kotlinx-coroutines-test for coroutine execution control,
-- AndroidX test libraries for Android-related tests.
+## Why this matters for Android projects
 
-## Coroutine testing
+Good tests reinforce architecture. Domain tests should be small. ViewModel tests should verify state transitions. Repository tests should cover mapping and expected failures. Generator smoke tests should prove generated code compiles.
 
-Coroutine tests should use `runTest`:
+## ComposeTemplate's stack
+
+ComposeTemplate standardizes:
+
+- JUnit for test structure
+- MockK for mocks
+- Truth for assertions
+- kotlinx-coroutines-test for coroutine code
+- AndroidX test dependencies where needed
+
+These dependencies are centralized through convention plugins.
+
+## Coroutine tests
+
+Use `runTest` instead of `runBlocking`:
 
 ```kotlin
 @Test
-fun loadsData() = runTest {
+fun loadsProfileSuccessfully() = runTest {
     // test body
 }
 ```
 
-`runTest` provides a test scheduler and avoids many timing problems associated with real dispatchers.
+ViewModel tests that use `viewModelScope` should configure the main dispatcher during setup.
 
-ViewModel tests may need a main dispatcher rule when `viewModelScope` is involved.
+## What to test
 
-## MockK vs fakes
+### Domain
 
-Mocks are useful for verifying interactions. Fakes are useful when a dependency has meaningful behavior.
+Test use cases with fake repositories.
 
-Use mocks for small isolated collaborations. Use fakes when the test should exercise realistic state changes.
+### Data
 
-## Truth assertions
+Test repository mapping, success responses, empty bodies, HTTP errors, and IO failures.
 
-Truth makes assertions readable:
+### Presentation
 
-```kotlin
-assertThat(result).isEqualTo(expected)
-```
+Test initial state, user actions, loading state, success state, failure state, and one-shot events.
 
-Readable assertions make failures easier to understand.
+### Generator behavior
 
-## ComposeTemplate approach
+Test that generated features and generated apps compile and exclude local-only files.
 
-The test convention plugin applies common test dependencies so feature modules do not reinvent test setup.
+## Design trade-offs
 
-## Common mistakes
-
-- Using real dispatchers in unit tests.
-- Over-mocking domain logic.
-- Testing implementation details instead of behavior.
-- Forgetting to test one-shot events separately from state.
+Mock-heavy tests can become brittle. Prefer fakes for domain contracts when that produces clearer tests. Use mocks for interaction verification when needed.
 
 ## Production checklist
 
-- [ ] Coroutine tests use `runTest`.
-- [ ] Main dispatcher is controlled in ViewModel tests.
-- [ ] Assertions are readable.
-- [ ] Mocks and fakes are chosen intentionally.
-- [ ] Test dependencies are centralized.
+- [ ] domain tests avoid Android framework dependencies
+- [ ] coroutine tests use `runTest`
+- [ ] ViewModel tests configure main dispatcher when needed
+- [ ] repository tests cover success and expected errors
+- [ ] generated feature compile checks run in CI
+- [ ] generated app smoke checks run in CI
 
-## Summary
+## Takeaways
 
-A shared testing stack improves developer experience and review quality. ComposeTemplate standardizes test dependencies so feature tests are easier to write consistently.
+- Testing strategy should mirror architecture boundaries.
+- Coroutine tests need coroutine-aware tooling.
+- Template repositories must test generated output, not only current source.

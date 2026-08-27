@@ -6,50 +6,81 @@ This article is for Android developers designing a reusable network layer for mo
 
 ## What you will learn
 
-- What Retrofit and OkHttp each do
-- Why interceptors and authenticators are different
-- How token refresh should be centralized
-- Why safe logging and error mapping matter
+- what Retrofit and OkHttp each own
+- why network behavior should be centralized
+- how repository-level error mapping works
+- why token handling and logging need careful boundaries
 
-## Network layer responsibilities
+## The problem
 
-A production network layer handles request creation, serialization, authentication headers, refresh behavior, connectivity awareness, logging, certificate policy, and error mapping.
+Networking becomes inconsistent when each feature configures requests, errors, tokens, and logging independently.
 
-If each feature implements these independently, behavior becomes inconsistent.
+Common issues include:
+
+- duplicated Retrofit setup
+- inconsistent error messages
+- tokens injected from ViewModels
+- sensitive headers logged
+- DTOs leaking into UI state
+- every feature handling HTTP failures differently
+
+## Why this matters for Android projects
+
+Network behavior affects reliability, security, debugging, and user experience. A multi-module app needs a shared network foundation with feature-specific repository implementations on top.
 
 ## Retrofit vs OkHttp
 
-Retrofit defines API interfaces and adapts HTTP calls into Kotlin-friendly service methods. OkHttp executes requests and provides low-level hooks: interceptors, authenticators, connection configuration, logging, and certificate pinning.
+Retrofit defines API service interfaces and adapts HTTP calls into Kotlin-friendly methods.
 
-## Interceptor vs Authenticator
+OkHttp executes requests and owns low-level behavior such as interceptors, authentication hooks, connection configuration, logging, and certificate policies.
 
-An interceptor decorates outgoing requests. For example, `AuthInterceptor` can attach an access token.
+## ComposeTemplate's approach
 
-An authenticator reacts to authentication failures. For example, `TokenAuthenticator` can handle HTTP 401 by refreshing tokens and retrying once.
+ComposeTemplate centralizes shared network infrastructure in `core:network` and keeps feature-specific API calls inside feature data modules.
 
-Mixing these responsibilities can create retry loops or duplicate refresh logic.
+The auth feature demonstrates the pattern:
 
-## Error handling
+- `AuthService` defines API calls
+- `AuthRepository` calls the service
+- `BaseRepository.safeCall` maps expected failures
+- domain receives `Result<AuthModel>` instead of Retrofit responses
 
-A base repository can map expected failures like IO and HTTP errors into domain results. It should avoid catching everything, because broad catches hide programming errors.
+## Error mapping
+
+`BaseRepository.safeCall` maps successful responses and expected failures into explicit `Result` values. It handles HTTP status failures, empty bodies, `HttpException`, and `IOException`.
+
+It intentionally avoids catching generic `Exception` by default so programming mistakes are not silently hidden.
+
+## Token boundaries
+
+Token storage and refresh contracts should live behind abstractions. ViewModels should not read or write tokens directly.
+
+The auth feature exposes domain contracts while data implementations handle persistence and service calls.
 
 ## Safe logging
 
-HTTP body logging and auth headers are risky. Release builds should disable unsafe logging and redact sensitive headers such as `Authorization`, cookies, API keys, and auth tokens.
+Network logs are useful in development, but release builds should avoid body logging and redact sensitive values.
 
-## ComposeTemplate approach
+Treat authorization headers, cookies, API keys, and tokens as sensitive.
 
-ComposeTemplate centralizes this in `core:network` with Retrofit, OkHttp, `AuthInterceptor`, `TokenAuthenticator`, `BaseRepository`, `NetworkMonitor`, and redaction rules.
+## Design trade-offs
+
+A centralized network layer requires shared conventions and careful abstraction. Too little abstraction causes duplication; too much creates an inflexible platform layer.
+
+ComposeTemplate keeps shared concerns in `core:network` and feature behavior in feature data modules.
 
 ## Production checklist
 
-- [ ] Auth header injection is centralized.
-- [ ] Token refresh is handled by an authenticator-like component.
-- [ ] Refresh retry loops are prevented.
-- [ ] Sensitive headers are redacted.
-- [ ] Release logging is safe.
-- [ ] Network errors are mapped intentionally.
+- [ ] Retrofit service interfaces stay in data/infrastructure layers
+- [ ] ViewModels do not call Retrofit directly
+- [ ] expected network failures map to explicit results
+- [ ] broad exception swallowing is avoided
+- [ ] token storage is centralized behind contracts
+- [ ] release logging does not expose sensitive values
+- [ ] DTOs do not leak into UI state
 
-## Summary
+## Takeaways
 
-A good network layer is not just Retrofit setup. It is a boundary for authentication, errors, logging, connectivity, and security expectations.
+- A network layer is more than Retrofit setup.
+- Error mapping belongs at the data boundary.
+- Tokens and logging are security-sensitive architecture decisions.

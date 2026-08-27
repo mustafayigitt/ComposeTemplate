@@ -2,50 +2,37 @@
 
 ## Who this article is for
 
-This article is for Android developers who want to understand startup performance beyond generic advice like "do less work on startup".
+This article is for Android developers who want startup performance infrastructure from the beginning of a project.
 
 ## What you will learn
 
-- What ART, JIT, AOT, and profile-guided optimization mean
-- What a Baseline Profile actually contains
-- How Baseline Profiles help Compose apps
-- How Baseline Profiles relate to Macrobenchmark
-- How ComposeTemplate wires performance from the template level
+- what ART, JIT, AOT, and profile-guided optimization mean
+- what a Baseline Profile contains
+- why Compose apps benefit from startup profiles
+- how Baseline Profiles relate to Macrobenchmark
+- why template-generated apps should keep performance tooling
 
-## Why Android startup is expensive
+## The problem
 
-Cold startup is not just `MainActivity.onCreate`. Android may need to create a process, load dex files, initialize the Application, build DI graphs, load resources, create the first Activity, initialize Compose, resolve navigation, and render the first frame.
+Cold startup is not only `MainActivity.onCreate`. Android may create a process, load dex files, initialize the application, build dependency graphs, restore configuration, resolve navigation, create the first composition, and draw the first frame.
 
-Every framework and abstraction used during this path can add work. Hilt, Compose, navigation, logging, config, and security checks are useful, but they still contribute code paths.
+Modern app foundations such as Compose, Hilt, navigation, security checks, logging, and configuration are valuable, but they also add code paths to startup.
+
+## Why this matters for Android projects
+
+Startup performance affects user perception immediately. If a template includes architecture and infrastructure but no performance measurement, generated apps can inherit hidden startup cost.
 
 ## ART, JIT, and AOT
 
-Android Runtime executes app bytecode. Code can be interpreted, compiled just in time, or compiled ahead of time.
+Android Runtime can interpret code, compile just in time, or use ahead-of-time compiled code. Profile-guided optimization tells the runtime which methods/classes are important enough to optimize early.
 
-JIT compilation learns hot code while the app runs. That helps later, but users may pay the cost during early execution.
-
-AOT compilation can prepare code earlier, but compiling everything is expensive. Profile-guided optimization solves this by telling the runtime which paths matter most.
-
-## What a Baseline Profile is
-
-A Baseline Profile is a list of important classes and methods. It does not contain business logic. It is a performance hint.
-
-Conceptually:
+A Baseline Profile is the app's way of saying:
 
 ```text
-These startup and critical-flow methods are important.
-Optimize them before the user pays the runtime cost.
+These startup and critical-flow paths matter. Optimize them before users pay the runtime cost.
 ```
 
-For Compose apps, useful profile paths often include:
-
-- application startup
-- first screen navigation
-- first composition
-- theme and resource setup
-- common UI code
-
-## ComposeTemplate approach
+## ComposeTemplate's approach
 
 ComposeTemplate includes:
 
@@ -53,35 +40,54 @@ ComposeTemplate includes:
 - `benchmark` module
 - Baseline Profile Gradle plugin
 - ProfileInstaller dependency
-- convention plugin setup
+- benchmark build type
 
-Generation command:
+Generate profiles with:
 
 ```bash
 ./gradlew :baselineprofile:connectedBenchmarkAndroidTest
 ```
 
-## ProfileInstaller
+## What to profile
 
-ProfileInstaller helps ship and install profile rules so ART can use them. It is part of making startup optimization available in production-like environments.
+Good profile candidates include:
 
-## Common mistakes
+- cold startup
+- first screen render
+- navigation to primary destinations
+- theme setup
+- core UI components
+- critical business flows
 
-- Treating Baseline Profiles as a replacement for startup optimization
-- Generating a profile once and never updating it
-- Measuring debug builds
-- Confusing profile generation with performance validation
-- Profiling too many unstable flows
+## Relationship with Macrobenchmark
+
+Baseline Profiles are optimization inputs. Macrobenchmark is measurement.
+
+A strong workflow is:
+
+1. generate/update Baseline Profile rules
+2. run Macrobenchmark
+3. inspect metrics and traces
+4. optimize startup work
+5. repeat after significant navigation or startup changes
+
+## Design trade-offs
+
+Performance tooling adds modules and device requirements. Macrobenchmarks should run on physical devices and release-like builds, which is more work than a normal unit test.
+
+The payoff is early visibility into startup quality.
 
 ## Production checklist
 
-- [ ] Startup journey is profiled.
-- [ ] First critical screen is covered.
-- [ ] Profile is regenerated after navigation or dependency changes.
-- [ ] Macrobenchmark validates the impact.
-- [ ] Measurements use release-like builds.
-- [ ] Generated app behavior is considered for template repositories.
+- [ ] startup journey is profiled
+- [ ] first critical screen is covered
+- [ ] profile is regenerated after startup/navigation changes
+- [ ] Macrobenchmark validates the effect
+- [ ] measurements use release-like builds
+- [ ] generated apps keep performance infrastructure available
 
-## Summary
+## Takeaways
 
-Baseline Profiles help Android optimize important code paths before users experience runtime compilation cost. ComposeTemplate includes them because startup performance should be a project foundation, not a late-stage optimization task.
+- Baseline Profiles reduce runtime compilation cost on important paths.
+- They are not a substitute for removing unnecessary startup work.
+- Templates should include performance tooling before apps need emergency optimization.

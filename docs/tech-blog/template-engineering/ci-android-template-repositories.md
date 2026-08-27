@@ -1,71 +1,97 @@
-# CI for Android Template Repositories: Testing Generated Apps
+# CI for Android Template Repositories
 
 ## Who this article is for
 
-This article is for maintainers of Android templates, starter kits, and platform repositories.
+This article is for maintainers building Android starter kits, project generators, internal mobile platforms, or reusable app templates.
 
 ## What you will learn
 
-- Why normal app CI is not enough for templates
-- What a template smoke test should cover
-- How generator regressions slip through
-- How ComposeTemplate validates generated output
+- why normal app CI is not enough for template repositories
+- what generated-output smoke tests should cover
+- how ComposeTemplate validates scaffolding and app generation
+- why secret exclusion belongs in CI
 
 ## The problem
 
-A normal app repository can ask:
+A normal Android repository usually validates the current app:
 
-```text
-Does this app build and pass tests?
+- lint
+- unit tests
+- debug build
+- release build
+
+A template repository has another responsibility: it must prove the generated output works.
+
+The template app can build while the generator is broken. A scaffold task can emit invalid modules. A create-new-app task can accidentally copy secrets. A package rewrite can miss source paths.
+
+That is why template repositories need CI beyond normal app checks.
+
+## Why this matters for Android projects
+
+A template generator creates the starting point for future applications. If the generator is broken, every new project starts broken.
+
+This is worse than a normal app bug because it spreads into downstream repositories.
+
+## ComposeTemplate's CI shape
+
+ComposeTemplate CI has four major jobs:
+
+1. lint
+2. unit tests
+3. debug and release build
+4. template smoke test
+
+The first three validate the current repository. The fourth validates the generator behavior.
+
+## Template smoke test
+
+The smoke test checks:
+
+```bash
+./gradlew help --task scaffoldFeature
+./gradlew scaffoldFeature -PfeatureName=ci_feature
+./gradlew :feature:ci_feature:presentation:compileDebugKotlin
+./gradlew scaffoldFeature -PfeatureName=ci_database_feature -PwithDatabase=true
+./gradlew :feature:ci_database_feature:data:compileDebugKotlin :feature:ci_database_feature:presentation:compileDebugKotlin
+./gradlew create-new-app -Pargs='com.example.generated,GeneratedApp' -q --console=plain
 ```
 
-A template repository must also ask:
+It then verifies that generated apps do not include local secret files or Git metadata.
 
-```text
-Does the app generated from this template build and behave correctly?
-```
+## What this catches
 
-If CI only validates the template source, the generator can break unnoticed.
+The smoke test protects against:
 
-## ComposeTemplate CI model
+- scaffold task registration failures
+- invalid generated Gradle files
+- invalid generated ViewModel or screen code
+- invalid generated Room starter files
+- missing app dependency wiring
+- broken package rewrite behavior
+- copied `secrets.properties`
+- copied `local.properties`
+- copied `.git` metadata
 
-ComposeTemplate’s CI validates:
+## Design trade-offs
 
-- formatting with ktlint,
-- static analysis with detekt,
-- unit tests,
-- debug and release assembly,
-- feature scaffold generation,
-- database-backed scaffold generation,
-- compilation of scaffolded feature modules,
-- create-new-app execution,
-- generated app exclusion of local files.
+Template smoke tests add CI time, but they protect the most important behavior of a generator repository.
 
-## Why generated output matters
-
-The generated app is what users actually consume. If it contains `local.properties`, stale package names, broken native bindings, or missing Gradle wiring, the template has failed.
-
-## Smoke tests vs full validation
-
-A smoke test is intentionally lightweight. It should catch high-value failures quickly. It does not replace deeper generated-app builds, security scans, or benchmark runs.
-
-## Common mistakes
-
-- Only building the template app.
-- Not testing scaffolded features.
-- Not checking local file exclusions.
-- Not testing release assembly.
-- Allowing generator behavior to change without review.
+For ComposeTemplate, this is not optional. `create-new-app` and `scaffoldFeature` are product features of the template.
 
 ## Production checklist
 
-- [ ] CI builds the template app.
-- [ ] CI runs unit tests and static analysis.
-- [ ] CI runs feature scaffolding.
-- [ ] CI runs create-new-app.
-- [ ] CI verifies generated apps do not include local secrets.
-- [ ] CI compiles generated/scaffolded modules.
+- [ ] current app lint is checked
+- [ ] current app tests run
+- [ ] debug and release builds run
+- [ ] feature scaffolding is smoke-tested
+- [ ] database scaffolding is smoke-tested
+- [ ] generated app creation is smoke-tested
+- [ ] generated apps exclude local secrets
+- [ ] CI mirrors documented local verification commands
 
-## Summary
+## Takeaways
 
-Template CI must test the product of the template: generated projects. ComposeTemplate treats generator behavior as production behavior and validates it in CI.
+- Template repositories must test generated output.
+- A successful current-app build does not prove the generator works.
+- Secret exclusion should be validated automatically.
+- CI is part of the template's product quality.

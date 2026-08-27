@@ -2,88 +2,92 @@
 
 ## Who this article is for
 
-This article is for Android developers maintaining projects with many modules and many dependencies.
+This article is for Android developers who maintain dependency versions across multi-module projects.
 
 ## What you will learn
 
-- Why dependency versions become a governance problem
-- How Gradle Version Catalog works
-- Why Compose BOM matters
-- How Kotlin, KSP and AGP compatibility should be managed
-- Common dependency-management mistakes
+- why dependency versions drift in Android projects
+- how Gradle version catalogs centralize decisions
+- why Compose BOM, Kotlin, KSP, and AGP compatibility matter
+- how ComposeTemplate treats dependency updates as governance work
 
 ## The problem
 
-In small projects, dependency versions are easy to see. In multi-module projects, versions can spread across many `build.gradle.kts` files.
+Android projects often start with dependencies declared directly in module files. As modules grow, versions spread across the repository and upgrades become risky.
 
-That creates risk:
+Version drift causes problems such as mismatched Compose artifacts, incompatible Kotlin/KSP versions, inconsistent test dependencies, and hard-to-review plugin upgrades.
 
-- different modules use different versions,
-- KSP and Kotlin become incompatible,
-- Compose libraries drift,
-- dependency updates are hard to review,
-- security and maintenance updates are missed.
+## Why this matters for Android projects
 
-## Version Catalog mental model
+Android builds combine the Android Gradle Plugin, Kotlin, Compose compiler, KSP, Room, Hilt, Navigation, and many AndroidX libraries. These tools have compatibility relationships.
 
-A Gradle Version Catalog centralizes dependency coordinates and versions in:
+A version upgrade is not just a text change. It can affect code generation, compiler behavior, generated sources, runtime behavior, and CI stability.
+
+## ComposeTemplate's approach
+
+ComposeTemplate centralizes versions in:
 
 ```text
 gradle/libs.versions.toml
 ```
 
-It usually contains:
+The catalog includes SDK versions, AndroidX, Compose BOM, Navigation3, DataStore, Room, Retrofit, OkHttp, Hilt, Kotlin, KSP, static analysis, testing, benchmark dependencies, Google Play libraries, Coil, and build logic dependencies.
 
-- `[versions]` for version numbers,
-- `[libraries]` for library aliases,
-- `[plugins]` for plugin aliases.
+## Library aliases
 
-Modules then reference aliases instead of hardcoding coordinates.
+Library aliases remove coordinates from module files:
 
-## ComposeTemplate approach
+```toml
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+```
 
-ComposeTemplate keeps AndroidX, Compose, Navigation3, Hilt, Room, Retrofit, OkHttp, testing, benchmark, static analysis, and build tool versions in the version catalog.
+Modules and convention plugins can use stable aliases instead of raw strings.
 
-This is especially important because several tools must align:
+## Plugin aliases
 
-- Kotlin and KSP,
-- Android Gradle Plugin and Gradle,
-- Compose compiler and Kotlin,
-- Room compiler and KSP,
-- Hilt compiler and KSP.
+Plugin aliases centralize Gradle plugin versions:
+
+```toml
+android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+```
+
+This makes plugin upgrades easier to review.
 
 ## Compose BOM
 
-Compose uses a Bill of Materials. A BOM aligns Compose artifact versions so each Compose dependency does not need its own explicit version.
+Compose uses a BOM to align Compose artifacts. This reduces the need to version every Compose dependency independently and lowers mismatch risk across UI modules.
 
-This reduces mismatch risk across UI dependencies.
+## Kotlin and KSP compatibility
 
-## Renovate and update strategy
+KSP versions are tied to Kotlin versions. When Kotlin changes, KSP should be reviewed immediately.
 
-Automated tools can open update PRs, but version updates are still engineering changes. For Android projects, updates should consider build compatibility, runtime behavior, and generated template output.
+A safe update flow is:
 
-## Common mistakes
+1. update Kotlin
+2. update KSP to the compatible line
+3. sync Gradle
+4. run tests
+5. compile generated features
+6. run debug and release builds
 
-### Updating Kotlin without KSP
+## Design trade-offs
 
-KSP versions are tied to Kotlin. Updating one without the other can break compilation.
+A version catalog is another file to maintain, but it makes dependency decisions explicit and reviewable.
 
-### Mixing Compose BOM with explicit Compose versions
-
-That defeats part of the BOM’s purpose.
-
-### Treating dependency updates as mechanical
-
-Some updates change generated code, compiler behavior, lint rules, or runtime performance.
+For template projects, that reviewability matters because downstream generated apps inherit the dependency baseline.
 
 ## Production checklist
 
-- [ ] Versions are centralized in `libs.versions.toml`.
-- [ ] Compose uses a BOM consistently.
-- [ ] Kotlin and KSP are updated together.
-- [ ] Dependency update PRs run full CI.
-- [ ] Template smoke tests run after build-tool updates.
+- [ ] dependency versions live in the catalog
+- [ ] plugin versions live in the catalog
+- [ ] Kotlin and KSP are upgraded together
+- [ ] Compose artifacts are aligned through the BOM
+- [ ] CI validates dependency upgrades
+- [ ] Renovate or similar tooling is configured intentionally
 
-## Summary
+## Takeaways
 
-A version catalog is not just a nicer syntax. It is dependency governance for a multi-module Android project. ComposeTemplate uses it to make upgrades visible, reviewable, and consistent.
+- Version catalogs are dependency governance, not just syntax cleanup.
+- Android dependency upgrades must respect compatibility relationships.
+- Template dependency choices become defaults for generated apps.

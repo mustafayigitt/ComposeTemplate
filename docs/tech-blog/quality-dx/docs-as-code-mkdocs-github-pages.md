@@ -2,60 +2,70 @@
 
 ## Who this article is for
 
-This article is for open-source maintainers and engineering teams that want project documentation to evolve with code.
+This article is for maintainers who want project documentation to live beside source code and evolve through normal review workflows.
 
 ## What you will learn
 
-- Why README-only documentation does not scale
-- What docs-as-code means
-- Why MkDocs Material works well for developer docs
-- How GitHub Pages deployment fits the workflow
+- why docs-as-code works well for template repositories
+- how MkDocs organizes documentation
+- why GitHub Pages is useful for publishing
+- how documentation quality can be enforced with standards
 
 ## The problem
 
-A README is a good entry point, but it becomes overloaded as a project grows. Architecture, security, build system, performance, and contribution docs need structure.
+Documentation often drifts away from code. A wiki page explains an old module layout. A README contains newer information than the docs site. Blog posts mention classes that no longer exist.
 
-External wiki systems can drift because changes are not reviewed with code.
+For a template repository, stale documentation is especially harmful because downstream projects copy its assumptions.
 
-## Docs-as-code mental model
+## Why this matters for Android projects
 
-Documentation lives in the repository as Markdown. Changes go through pull requests, review, CI, and version history.
+Android templates encode architecture, build logic, security policy, CI behavior, and generation workflows. If docs are stale, developers misuse the template or cargo-cult outdated patterns.
 
-This makes documentation part of the engineering workflow.
+Docs should be versioned, reviewed, and changed with the code.
 
-## ComposeTemplate approach
+## ComposeTemplate's approach
 
-ComposeTemplate uses:
+ComposeTemplate uses MkDocs with Material theme. Documentation source lives under `docs/`, and navigation is configured in `mkdocs.yml`.
 
-- `docs/` for Markdown pages,
-- `mkdocs.yml` for navigation,
-- MkDocs Material for site rendering,
-- GitHub Actions for deployment,
-- GitHub Pages for hosting.
+The docs are organized into:
 
-## Why MkDocs Material
+- Guides
+- Architecture
+- Build System
+- Security
+- Template Tools
+- Quality
+- Reference
+- Tech Blog Series
+- Contributing
 
-MkDocs Material provides navigation, search, code highlighting, admonitions, and a polished reading experience while keeping content in Markdown.
+## Documentation standard
 
-## CI and deployment
+ComposeTemplate includes a documentation standard that defines page types, required sections, quality bar, code example rules, repository reference rules, and accuracy expectations.
 
-The Pages workflow builds the site and deploys it. This means broken navigation or invalid docs configuration can be caught before publishing.
+This prevents docs from becoming shallow checklists.
 
-## Common mistakes
+## Publishing workflow
 
-- Keeping important docs only in README.
-- Publishing docs that are not reviewed.
-- Letting navigation drift from file structure.
-- Not testing documentation builds.
+GitHub Pages can publish the MkDocs site from CI. This keeps docs public, searchable, and tied to repository history.
+
+## Design trade-offs
+
+Docs-as-code requires contributors to edit Markdown and submit PRs. It is less freeform than a wiki, but much more reviewable.
+
+For a production template, reviewability is more important than informal editing.
 
 ## Production checklist
 
-- [ ] Docs live in the repository.
-- [ ] Navigation is defined in `mkdocs.yml`.
-- [ ] Docs build in CI.
-- [ ] README links to the documentation site.
-- [ ] Architecture and security docs are reviewed like code.
+- [ ] docs live in the repository
+- [ ] navigation is defined in `mkdocs.yml`
+- [ ] page types have a clear standard
+- [ ] code examples match real repository files
+- [ ] docs changes are reviewed through PRs
+- [ ] generated docs are published consistently
 
-## Summary
+## Takeaways
 
-Documentation is part of developer experience. ComposeTemplate uses docs-as-code so documentation remains versioned, reviewable, and close to implementation decisions.
+- Documentation is part of the product surface of a template.
+- Docs-as-code keeps architecture decisions close to implementation.
+- A documentation standard prevents shallow pages from spreading.

@@ -42,6 +42,10 @@ nav:
   - Start Here:
       - Getting Started: getting-started.md
       - Project Philosophy: project-philosophy.md
+  - Guides:
+      - Generate a New App: guides/generate-new-app.md
+      - Scaffold a Feature: guides/scaffold-feature.md
+      - Release Readiness: guides/release-readiness.md
   - Architecture:
       - Overview: architecture/overview.md
       - Feature Modularization: architecture/feature-modularization.md
@@ -69,6 +73,9 @@ nav:
       - Testing Strategy: quality/testing-strategy.md
       - Performance and Baseline Profiles: quality/performance-baseline-profiles.md
       - Release Readiness Checklist: quality/release-readiness-checklist.md
+  - Reference:
+      - Module Map: reference/module-map.md
+      - Gradle Tasks: reference/gradle-tasks.md
   - Tech Blog Series:
       - Overview: tech-blog/index.md
       - Architecture:
@@ -99,6 +106,7 @@ nav:
           - Docs as Code with MkDocs and GitHub Pages: tech-blog/quality-dx/docs-as-code-mkdocs-github-pages.md
           - Retrofit OkHttp and Network Layer Design: tech-blog/quality-dx/retrofit-okhttp-network-layer.md
   - Contributing:
+      - Documentation Standard: contributing/documentation-standard.md
       - Adding a New Feature: contributing/adding-a-new-feature.md
       - Extending ComposeTemplate: contributing/extending-composetemplate.md
       - Contribution Guide: contributing/contribution-guide.md
