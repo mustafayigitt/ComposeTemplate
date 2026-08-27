@@ -87,5 +87,5 @@ Generated code should pass the same quality bar as hand-written code. If generat
 
 - `build-logic/convention/TestConventionPlugin.kt`
 - `core/network/src/test`
-- `feature/auth/src/test` style feature tests where available
+- `feature/*/*/src/test`
 - `.github/workflows/ci.yml`
