@@ -4,6 +4,8 @@ site_url: https://mustafayigitt.github.io/ComposeTemplate/
 repo_url: https://github.com/mustafayigitt/ComposeTemplate
 repo_name: mustafayigitt/ComposeTemplate
 
+docs_dir: wiki
+
 theme:
   name: material
   features:
@@ -38,75 +40,13 @@ markdown_extensions:
       permalink: true
 
 nav:
-  - Overview: index.md
-  - Start Here:
-      - Getting Started: getting-started.md
-      - Project Philosophy: project-philosophy.md
-  - Guides:
-      - Generate a New App: guides/generate-new-app.md
-      - Scaffold a Feature: guides/scaffold-feature.md
-      - Release Readiness: guides/release-readiness.md
-  - Architecture:
-      - Overview: architecture/overview.md
-      - Feature Modularization: architecture/feature-modularization.md
-      - Clean Architecture: architecture/clean-architecture.md
-      - Navigation Architecture: architecture/navigation-architecture.md
-      - UI State Management: architecture/ui-state-management.md
-      - Data Layer: architecture/data-layer.md
-      - Authentication and Token Flow: architecture/authentication-token-flow.md
-  - Security:
-      - Secret Management: security/secret-management.md
-      - Runtime Security Signals: security/runtime-security-signals.md
-      - Certificate Pinning: security/certificate-pinning.md
-      - Release Hardening: security/release-hardening.md
-  - Build System:
-      - Gradle Convention Plugins: build-system/gradle-convention-plugins.md
-      - Version Catalog: build-system/version-catalog.md
-      - Static Analysis: build-system/static-analysis.md
-      - CI Pipeline: build-system/ci-pipeline.md
-  - Template Tools:
-      - Create New App: template-tools/create-new-app.md
-      - Scaffold Feature: template-tools/scaffold-feature.md
-      - Validate Secrets: template-tools/validate-secrets.md
-      - APK/AAB Secret Scanning: template-tools/apk-aab-secret-scanning.md
-  - Quality:
-      - Testing Strategy: quality/testing-strategy.md
-      - Performance and Baseline Profiles: quality/performance-baseline-profiles.md
-      - Release Readiness Checklist: quality/release-readiness-checklist.md
-  - Reference:
-      - Module Map: reference/module-map.md
-      - Gradle Tasks: reference/gradle-tasks.md
-  - Tech Blog Series:
-      - Overview: tech-blog/index.md
-      - Architecture:
-          - Building a Production-Grade Jetpack Compose Template Generator: tech-blog/architecture/template-generator.md
-          - Feature Modularization with Clean Architecture in Android: tech-blog/architecture/feature-modularization-clean-architecture.md
-          - Navigation3 with Feature-Owned Screen Registration: tech-blog/architecture/navigation3-feature-owned-screen-registration.md
-          - UI State and One-Shot Events in Jetpack Compose: tech-blog/architecture/ui-state-one-shot-events.md
-      - Build System:
-          - Gradle Convention Plugins for Scalable Android Projects: tech-blog/build-system/gradle-convention-plugins-scalable-android.md
-          - Version Catalog and Dependency Governance in Android: tech-blog/build-system/version-catalog-dependency-governance.md
-          - KSP, Hilt and Build Logic Integration: tech-blog/build-system/ksp-hilt-build-logic.md
-      - Template Engineering:
-          - Building an Android Template Generator with Gradle: tech-blog/template-engineering/android-template-generator-gradle.md
-          - Feature Scaffolding for Clean Architecture: tech-blog/template-engineering/feature-scaffolding-clean-architecture.md
-          - CI for Android Template Repositories: tech-blog/template-engineering/ci-android-template-repositories.md
-      - Security:
-          - Native Secret Obfuscation with NDK, CMake and RegisterNatives: tech-blog/security/native-secret-obfuscation-ndk-cmake-registernatives.md
-          - Runtime Integrity Signals on Android: tech-blog/security/runtime-integrity-signals.md
-          - Certificate Pinning Security vs Operational Risk: tech-blog/security/certificate-pinning-security-operational-risk.md
-          - Secret Validation and APK/AAB Secret Scanning: tech-blog/security/secret-validation-apk-aab-secret-scanning.md
-      - Performance:
-          - Baseline Profiles for Faster Android Startup: tech-blog/performance/baseline-profiles-faster-android-startup.md
-          - Macrobenchmarking Android Apps the Right Way: tech-blog/performance/macrobenchmarking-android-apps.md
-          - Measuring Generated Templates Not Just Apps: tech-blog/performance/measuring-generated-templates.md
-      - Quality and Developer Experience:
-          - Static Analysis with Ktlint and Detekt: tech-blog/quality-dx/static-analysis-ktlint-detekt.md
-          - Testing Stack JUnit MockK Truth and Coroutine Tests: tech-blog/quality-dx/testing-stack-junit-mockk-truth-coroutines.md
-          - Docs as Code with MkDocs and GitHub Pages: tech-blog/quality-dx/docs-as-code-mkdocs-github-pages.md
-          - Retrofit OkHttp and Network Layer Design: tech-blog/quality-dx/retrofit-okhttp-network-layer.md
-  - Contributing:
-      - Documentation Standard: contributing/documentation-standard.md
-      - Adding a New Feature: contributing/adding-a-new-feature.md
-      - Extending ComposeTemplate: contributing/extending-composetemplate.md
-      - Contribution Guide: contributing/contribution-guide.md
+  - Overview: README.md
+  - 00 - Project Context: 00-project-context.md
+  - 01 - Module Topology and Build System: 01-module-topology.md
+  - 02 - Navigation and UI State: 02-navigation-and-ui-state.md
+  - 03 - Network and Auth Token Flow: 03-network-and-auth.md
+  - 04 - Secrets, Security and Hardening: 04-secrets-and-hardening.md
+  - 05 - Generator and Scaffolding Tooling: 05-generator-and-scaffolding.md
+  - 06 - Quality, Tests and CI: 06-quality-tests-ci.md
+  - 07 - Risks, Gaps and Open Questions: 07-risks-and-gaps.md
+  - 08 - Getting Started: 08-getting-started.md
