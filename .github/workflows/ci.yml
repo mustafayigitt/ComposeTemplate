@@ -119,6 +119,47 @@ jobs:
       - name: Assemble debug and release
         run: ./gradlew assembleDebug :app:assembleRelease
 
+  plug-out:
+    name: Plug-out (optional modules removed)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Create local.properties and secrets.properties
+        run: |
+          # (diğer job'lardaki aynı blok)
+
+      - name: Delete optional modules
+        run: |
+          set -eu
+          for module in core/security; do
+            gradle_path=":$(echo "$module" | tr '/' ':')"
+            echo "Removing $gradle_path"
+            rm -rf "$module"
+            sed -i "\|include(\"$gradle_path\")|d" settings.gradle.kts
+            sed -i "\|project(\"$gradle_path\")|d" app/build.gradle.kts
+          done
+
+      - name: Verify no source references the removed modules
+        run: |
+          set -eu
+          if grep -rn "core\.security" --include="*.kt" app core feature; then
+            echo "Removed module is still referenced from Kotlin sources."
+            exit 1
+          fi
+
+      - name: Assemble debug without optional modules
+        run: ./gradlew :app:assembleDebug
+
   template-smoke:
     name: Template Smoke
     runs-on: ubuntu-latest
