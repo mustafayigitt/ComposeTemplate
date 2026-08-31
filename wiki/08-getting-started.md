@@ -7,9 +7,13 @@ Every command and key below was verified against the Gradle plugins and CI workf
 | Requirement | Source of truth |
 | --- | --- |
 | JDK 17 | `.github/workflows/ci.yml` (temurin 17) |
-| Android SDK: compileSdk 37, targetSdk 36, minSdk 23 | `gradle/libs.versions.toml` |
+| Android SDK: compileSdk 37, targetSdk 36, minSdk 26 | `gradle/libs.versions.toml` |
 | NDK 27.0.12077973 + CMake | version catalog + `core/secrets` |
 | Gradle wrapper (do not use a system Gradle) | composite build with `includeBuild("build-logic")` |
+
+The app targets Android 8.0 (API 26) and newer. Lowering that baseline is a one-line
+change in the version catalog, but read the [baseline decision log](07-risks-and-gaps.md#baseline-decision-log)
+first — some of the template's Java-API assumptions depend on it.
 
 ## 1. Generate your app
 
@@ -89,6 +93,7 @@ After scaffolding you still need to:
 - [ ] `scanApkForSecrets` clean on the release artifact
 - [ ] `hardeningReport` reviewed; pinning decision made with a rotation plan
 - [ ] Real auth refresh endpoint implemented behind `ITokenRefresher`
+- [ ] `minSdk` reviewed against your own audience before the first release
 - [ ] Sample features (`detail`, design-system catalog) removed or adapted
 - [ ] CI secrets configured as environment variables
 - [ ] App name, icon, locales and store metadata updated

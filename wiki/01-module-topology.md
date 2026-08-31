@@ -44,7 +44,7 @@ Each feature tier plugin encodes what that layer is allowed to depend on — thi
 
 | Area | Version |
 | --- | --- |
-| minSdk / targetSdk / compileSdk | 23 / 36 / 37 |
+| minSdk / targetSdk / compileSdk | 26 / 36 / 37 |
 | NDK | 27.0.12077973 |
 | Kotlin | 2.0.21 |
 | AGP | 9.2.1 |
@@ -58,6 +58,8 @@ Each feature tier plugin encodes what that layer is allowed to depend on — thi
 | Coil | 3.4.0 |
 | Detekt / ktlint plugin | 1.23.8 / 14.2.0 |
 | Test stack | JUnit 4.13.2, MockK 1.14.11, Truth 1.4.5, coroutines-test 1.11.0 |
+
+Every module reads `minSdk`, `targetSdk` and `compileSdk` from this catalog through a convention plugin — no module declares them itself, so the baseline moves in one edit. The reasoning behind the Android 8.0 baseline is recorded in [07 - Risks](07-risks-and-gaps.md#baseline-decision-log).
 
 Note: the catalog carries both `converter-gson` and `kotlinx-serialization-core` — see [03 - Network](03-network-and-auth.md).
 
