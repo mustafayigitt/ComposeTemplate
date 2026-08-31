@@ -151,10 +151,12 @@ jobs:
           echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
           echo "MIN_VERSION=1" >> secrets.properties
 
+      # Every module listed here must be deletable without touching any other source file.
+      # The list grows with each plug-out refactor, which makes regressions impossible to merge.
       - name: Delete optional modules
         run: |
           set -eu
-          for module in core/security; do
+          for module in core/security core/analytics; do
             gradle_path=":$(echo "$module" | tr '/' ':')"
             echo "Removing $gradle_path"
             rm -rf "$module"
@@ -165,7 +167,7 @@ jobs:
       - name: Verify no source references the removed modules
         run: |
           set -eu
-          if grep -rn "core\.security" --include="*.kt" app core feature; then
+          if grep -rn "core\.security\|core\.analytics" --include="*.kt" app core feature; then
             echo "Removed module is still referenced from Kotlin sources."
             exit 1
           fi

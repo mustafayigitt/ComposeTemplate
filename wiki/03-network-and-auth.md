@@ -2,7 +2,9 @@
 
 ## `core:network` contents
 
-`AuthInterceptor.kt`, `TokenAuthenticator.kt`, `BaseRepository.kt`, `NetworkMonitor.kt`, `di/NetworkModule.kt`. Tests: `BaseRepositoryTest`, `TokenAuthenticatorTest`.
+`AuthInterceptor.kt`, `TokenAuthenticator.kt`, `BaseRepository.kt`, `di/NetworkModule.kt`, `di/TokenRefresherModule.kt`. Tests: `BaseRepositoryTest`, `TokenAuthenticatorTest`.
+
+> `NetworkMonitor` used to live here. It now sits in `core:common` (`core.common.connectivity`) because it only observes `ConnectivityManager` and never touches Retrofit, OkHttp or `SecretManager`. Connectivity is a device capability; `core:network` is the transport layer and stays optional.
 
 ## `NetworkModule`
 
@@ -24,7 +26,7 @@
 
 ## `TokenAuthenticator` — the most interesting piece
 
-An OkHttp `Authenticator` (not an interceptor), `@Singleton internal`, injected with `IPreferencesManager` and `dagger.Lazy<ITokenRefresher>`.
+An OkHttp `Authenticator` (not an interceptor), `@Singleton internal`, injected with `IPreferencesManager` and `Lazy<Set<ITokenRefresher>>`.
 
 Behavior:
 
@@ -34,17 +36,17 @@ Behavior:
 4. Refresh itself runs under `runBlocking`, with an in-code rationale (OkHttp's `Authenticator` API is blocking).
 5. The retried request is rebuilt with `"$tokenType $token"`, defaulting to `Bearer`.
 
-### Why `dagger.Lazy<ITokenRefresher>` matters
+### Why the refresher is an optional `Set`
 
-`ITokenRefresher` is declared in `core:common` and implemented in `feature:auth:data`. `core:network` therefore never depends on a feature module, and `Lazy` breaks the dependency cycle at construction time. This is the cleanest example of dependency inversion in the codebase and is worth keeping intact when features change.
+`ITokenRefresher` is declared in `core:common` and implemented in `feature:auth:data`. `core:network` therefore never depends on a feature module.
 
-## `NetworkMonitor`
+The set is declared with `@Multibinds` in `TokenRefresherModule`, so a project that deletes `feature:auth` still builds: `resolveRefresher()` returns `null`, a 401 is simply not retried, and Timber logs `"No token refresher is installed; a 401 will not be retried."`. When exactly one refresher is present it is used; more than one is a wiring error and fails loudly.
 
-Exposes connectivity as a flow; consumed by `MainActivity`/`AppNavigation` to render the offline banner.
+`dagger.Lazy` around the set is not cosmetic — without it the `AuthRepository → Retrofit → OkHttpClient → TokenAuthenticator` construction cycle returns. This is the cleanest example of dependency inversion in the codebase and is worth keeping intact when features change.
 
 ## Feature-side example: `feature:auth:data`
 
-`AuthRepository`, `remote/AuthService`, `model/{AuthRequestModel, AuthResponseModel, RefreshTokenRequestModel}`, `di/BinderModule` (binds interfaces) and `di/ProviderModule` (provides Retrofit service). `AuthRepositoryTest` covers the repository path.
+`AuthRepository`, `remote/AuthService`, `model/{AuthRequestModel, AuthResponseModel, RefreshTokenRequestModel}`, `di/BinderModule` (binds interfaces, including `@Binds @IntoSet` for `ITokenRefresher`) and `di/ProviderModule` (provides Retrofit service). `AuthRepositoryTest` covers the repository path.
 
 > **Note:** The refresh endpoint in the template is a placeholder shape — a generated project must point it at a real backend contract before release.
 
