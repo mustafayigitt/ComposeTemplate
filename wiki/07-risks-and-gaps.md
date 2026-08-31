@@ -18,7 +18,7 @@ Findings from reading the code, ordered by practical impact. Each item is an obs
 | 5 | Two serialization stacks | `NetworkModule` (Gson) vs `kotlin.serialization` for routes/models | Extra dependency surface, reflection, and ProGuard-keep burden for no functional gain |
 | 6 | `safeCall` catches only `HttpException` and `IOException` | `BaseRepository` | Deserialization or `IllegalState` failures escape the `Result` abstraction and can crash callers that assume total coverage |
 | 7 | Theme state exposed through the navigation contract | `INavigationManager.isDarkModeFlow` | Misplaced responsibility; consumers depend on navigation to read appearance settings |
-| 8 | CI secret bootstrap duplicated four times | `.github/workflows/ci.yml` | Drift risk; a reusable workflow or composite action would collapse it into one definition |
+| 8 | CI secret bootstrap duplicated five times | `.github/workflows/ci.yml` | Drift risk; a reusable workflow or composite action would collapse it into one definition |
 | 9 | No module-graph enforcement | build-logic | Layer rules live in tier plugins and review only; nothing fails the build when a boundary is crossed or a feature imports another feature |
 | 10 | `SecretManager` is a global object requiring `initialize(context)` | `core:secrets` | Initialization-order coupling; a secret read before startup completes fails at runtime rather than compile time |
 
@@ -76,6 +76,48 @@ and consumed as `Lazy<Set<T>>` where a dependency cycle has to stay broken (see
 `TokenAuthenticator`). One mechanism covers both "zero or one" and "zero or many",
 so the template teaches a single pattern rather than two.
 
+### A module is only pluggable if `:app` never imports it
+
+Dependency injection is the easy half of the plug-out contract. The half that
+actually blocks deletion is the `import` line: Kotlin fails at compile time before
+Dagger ever runs. Three collaborators — `IAnalyticsManager`, `NetworkMonitor` and
+`LocaleManager` — had perfectly self-contained bindings and were still undeletable
+purely because `MainActivity` and `AppNavigation` named their types.
+
+The three fixes, one per shape of the problem:
+
+| Problem shape | Fix | Applied to |
+| --- | --- | --- |
+| The type lives in the wrong module | Move it | `NetworkMonitor` → `core:common` |
+| `:app` calls into an optional module | Invert it with an observer multibinding | analytics screen views → `NavigationObserver` |
+| `:app` runs startup work for another module | Move it into an `AppInitializer` | locale restore → `LocaleInitializer` |
+
+`MainActivity` now injects only `INavigationManager`, `ScreenRegistry`,
+`NetworkMonitor` and `Set<NavigationObserver>`, all from modules that are never
+deleted. The CI `plug-out` job is what keeps it that way.
+
+### `core:network` is a transport layer, not a connectivity layer
+
+`NetworkMonitor` was moved to `core:common` rather than solving the coupling by
+making `core:network` a Compose module or by letting `core:ui` depend on
+`core:network`. Both alternatives were rejected:
+
+- Adding Compose to `core:network` would put UI concerns in a transport module to
+  work around a layering mistake instead of fixing it.
+- `core:ui` is a core module and `core:network` is optional. A core → optional edge
+  breaks the plug-out contract outright.
+
+The move costs nothing: `NetworkMonitor` imports only `android.net.*` and
+`@ApplicationContext`, and `core:common` already applies the Hilt convention plugin.
+
+### Extension points are added when there is a second user, not before
+
+An injectable "app chrome" slot was considered so that optional modules could
+contribute UI around the navigation host. It was dropped: once `NetworkStatus`
+lives in `core:common`, the offline banner has no coupling left to solve, and the
+mechanism would have shipped with zero users. `NavigationObserver` was kept because
+analytics is a real, currently-optional consumer.
+
 ## Suggested remediation order
 
 1. Make `scaffoldFeature` fail loudly when it cannot wire `settings.gradle.kts` or `app/build.gradle.kts` (item 1).
@@ -84,6 +126,7 @@ so the template teaches a single pattern rather than two.
 4. Pick one serialization stack; add a broad `catch` to `safeCall` (5, 6).
 5. Move `isDarkModeFlow` to a theme/preferences contract (7).
 6. Extract the CI secret bootstrap into a composite action (8).
+7. Add a lint or detekt rule that fails the build when `:app` imports an optional module, so the plug-out contract is enforced at review time and not only by the CI delete job (9).
 
 ## Open questions for the maintainer
 
