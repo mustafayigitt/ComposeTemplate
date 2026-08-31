@@ -25,13 +25,17 @@ import javax.inject.Singleton
  * Thread Safety:
  * - Uses synchronized block to prevent multiple simultaneous token refresh requests
  * - Checks if token was already refreshed by another thread
+ *
+ * Optional refreshing:
+ * - Token refreshing is contributed by another module and may be absent entirely.
+ * - When absent, a 401 is simply not retried; the network layer stays functional.
  */
 @Singleton
 internal class TokenAuthenticator
     @Inject
     constructor(
         private val prefs: IPreferencesManager,
-        private val tokenRefresher: Lazy<ITokenRefresher>,
+        private val tokenRefreshers: Lazy<Set<@JvmSuppressWildcards ITokenRefresher>>,
     ) : Authenticator {
         private val lock = Any()
 
@@ -70,25 +74,44 @@ internal class TokenAuthenticator
                 return if (!newToken.isNullOrEmpty()) {
                     buildRequestWithToken(response.request, newToken)
                 } else {
-                    // Token refresh failed, don't retry
+                    // Token refresh failed or is not available, don't retry
                     null
                 }
             }
         }
 
-        private fun refreshToken(): String? =
-            try {
+        private fun refreshToken(): String? {
+            val refresher = resolveRefresher() ?: return null
+            return try {
                 // Note: runBlocking is acceptable here because:
                 // 1. Authenticator.authenticate() is called on OkHttp's dispatcher thread, not the main thread
                 // 2. The token refresh is a blocking operation by nature (we need the token before proceeding)
                 // 3. This is the standard pattern for OkHttp Authenticator with suspend functions
                 runBlocking {
-                    tokenRefresher.get().refreshToken().getOrNull()
+                    refresher.refreshToken().getOrNull()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Token refresh failed")
                 null
             }
+        }
+
+        /**
+         * Resolves the single installed refresher, or null when the contributing module is
+         * absent. Resolution is deferred until a 401 actually happens, which also keeps the
+         * refresher out of the object graph that builds this authenticator.
+         */
+        private fun resolveRefresher(): ITokenRefresher? {
+            val refreshers = tokenRefreshers.get()
+            if (refreshers.isEmpty()) {
+                Timber.d("No token refresher is installed; a 401 will not be retried.")
+                return null
+            }
+            check(refreshers.size == 1) {
+                "Exactly one ITokenRefresher may be contributed, but found ${refreshers.size}."
+            }
+            return refreshers.first()
+        }
 
         private fun buildRequestWithToken(
             request: Request,

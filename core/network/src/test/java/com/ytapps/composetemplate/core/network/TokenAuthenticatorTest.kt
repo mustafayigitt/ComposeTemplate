@@ -25,8 +25,7 @@ internal class TokenAuthenticatorTest {
     fun setUp() {
         preferencesManager = mockk()
         tokenRefresher = mockk()
-        val lazyTokenRefresher = Lazy { tokenRefresher }
-        authenticator = TokenAuthenticator(preferencesManager, lazyTokenRefresher)
+        authenticator = TokenAuthenticator(preferencesManager, refreshers(tokenRefresher))
     }
 
     @Test
@@ -48,6 +47,19 @@ internal class TokenAuthenticatorTest {
 
             assertThat(result).isNull()
         }
+
+    @Test
+    fun `given no refresher is contributed when unauthorized then does not retry`() =
+        runTest {
+            every { preferencesManager.getAccessToken() } returns "old-token"
+            authenticator = TokenAuthenticator(preferencesManager, refreshers())
+
+            val result = authenticator.authenticate(null, unauthorizedResponse("https://example.com/protected"))
+
+            assertThat(result).isNull()
+        }
+
+    private fun refreshers(vararg refreshers: ITokenRefresher): Lazy<Set<ITokenRefresher>> = Lazy { refreshers.toSet() }
 
     private fun unauthorizedResponse(url: String): Response =
         Response
