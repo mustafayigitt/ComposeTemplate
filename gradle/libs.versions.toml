@@ -1,6 +1,6 @@
 [versions]
 # SDK versions
-minSdk = "23"
+minSdk = "26"
 compileSdk = "37"
 targetSdk = "36"
 ndk = "27.0.12077973"

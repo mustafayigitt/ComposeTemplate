@@ -13,7 +13,7 @@ This wiki is the **single documentation source** for ComposeTemplate. It is writ
 | 04 | [Secrets, Security and Hardening](04-secrets-and-hardening.md) | NDK/JNI secret pipeline and Gradle guardrails |
 | 05 | [Generator and Scaffolding Tooling](05-generator-and-scaffolding.md) | `scaffoldFeature`, `create-new-app` |
 | 06 | [Quality, Tests and CI](06-quality-tests-ci.md) | Unit tests, four CI jobs, template smoke test |
-| 07 | [Risks, Gaps and Open Questions](07-risks-and-gaps.md) | 17 findings with a remediation order |
+| 07 | [Risks, Gaps and Open Questions](07-risks-and-gaps.md) | 17 findings, a remediation order and the baseline decision log |
 | 08 | [Getting Started](08-getting-started.md) | Commands and secret keys taken from the build |
 
 Reading order: start with 00 for the mental model, then 01–06 for subsystems, and read 07 before making changes.
@@ -28,7 +28,7 @@ Reading order: start with 00 for the mental model, then 01–06 for subsystems, 
 | License | Apache-2.0 |
 | Gradle modules | ~48 |
 | Convention plugins | 17 |
-| minSdk / targetSdk / compileSdk | 23 / 36 / 37 |
+| minSdk / targetSdk / compileSdk | 26 / 36 / 37 |
 | Kotlin / AGP / KSP | 2.0.21 / 9.2.1 / 2.0.21-1.0.28 |
 
 ## One-paragraph summary

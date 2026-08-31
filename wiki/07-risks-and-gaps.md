@@ -34,6 +34,48 @@ Findings from reading the code, ordered by practical impact. Each item is an obs
 | 16 | `config` module is local-only | `IConfigManager` + `LocalConfigProvider`; no remote-config backend, so runtime flags require a release |
 | 17 | Benchmarks and baseline profiles never run in CI | Performance infrastructure exists but is unmeasured |
 
+## Baseline decision log
+
+Decisions that constrain the whole template and are easy to reverse accidentally.
+
+### `minSdk` is 26 (Android 8.0, Oreo)
+
+The template previously shipped `minSdk 23`. That number was never load-bearing:
+the repository contains no `@RequiresApi` or `@TargetApi` annotation, and all three
+runtime `SDK_INT` checks already guard higher levels — `Build.VERSION_CODES.S` (31)
+for dynamic color in `Theme.kt`, and `Build.VERSION_CODES.P` (28) twice in
+`DeviceIntegrityManager` for `signingInfo`. Raising the baseline therefore required
+zero source changes and removed zero code.
+
+What the Oreo baseline buys:
+
+| Available without desugaring | Since |
+| --- | --- |
+| `java.util.Optional`, `java.util.function`, `Stream` | API 24 |
+| **`java.time`** (the reason 26 was chosen over 24) | API 26 |
+| Adaptive icons, notification channels as the native path | API 26 |
+
+Consequences to keep in mind:
+
+- **Core library desugaring is deliberately not enabled.** No convention plugin sets
+  `isCoreLibraryDesugaringEnabled`; `AndroidLibraryConventionPlugin` only sets
+  Java 17 source/target compatibility. At API 26 the features that desugaring
+  usually provides are already present, so the extra D8 step, the
+  `coreLibraryDesugaring` dependency and its R8 interaction are all avoided.
+- **Lowering `minSdk` again is one line** in `gradle/libs.versions.toml`, but below
+  API 26 any `java.time` usage starts requiring desugaring, and below API 24 the
+  same is true of `Optional`. This is why Dagger's `@BindsOptionalOf` was not used
+  for optional dependencies: it requires `java.util.Optional`, which was unavailable
+  at the old baseline. The template uses a possibly-empty `@Multibinds` set instead,
+  which works at any API level and stays uniform with `Set<AppInitializer>`.
+
+### Optionality is expressed with multibindings, not `Optional`
+
+Optional collaborators are declared as a possibly-empty `Set<T>` via `@Multibinds`
+and consumed as `Lazy<Set<T>>` where a dependency cycle has to stay broken (see
+`TokenAuthenticator`). One mechanism covers both "zero or one" and "zero or many",
+so the template teaches a single pattern rather than two.
+
 ## Suggested remediation order
 
 1. Make `scaffoldFeature` fail loudly when it cannot wire `settings.gradle.kts` or `app/build.gradle.kts` (item 1).

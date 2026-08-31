@@ -117,10 +117,13 @@ build-logic/
 All dependencies and versions are managed in `gradle/libs.versions.toml`.
 
 ### Key SDK Versions
-- **minSdk**: 23
+- **minSdk**: 26
 - **compileSdk**: 37
 - **targetSdk**: 36
 - **Kotlin**: 2.0.21
+
+The `minSdk` baseline is Android 8.0 (Oreo). It is read from the catalog by every
+convention plugin, so changing it there changes it for all ~48 modules at once.
 
 ## 🔧 Configuring Metrics
 

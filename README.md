@@ -32,7 +32,7 @@ New here? Read [08 - Getting Started](wiki/08-getting-started.md) for setup, req
 
 ## Requirements
 
-JDK 17, Android SDK (compileSdk 37 / targetSdk 36 / minSdk 23), NDK 27.0.12077973 with CMake. Always use the Gradle wrapper — this is a composite build.
+JDK 17, Android SDK (compileSdk 37 / targetSdk 36 / minSdk 26), NDK 27.0.12077973 with CMake. Always use the Gradle wrapper — this is a composite build.
 
 ## Contributing
 
