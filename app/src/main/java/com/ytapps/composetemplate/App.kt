@@ -1,39 +1,28 @@
 package com.ytapps.composetemplate
 
 import android.app.Application
-import com.ytapps.composetemplate.core.secrets.SecretManager
-import com.ytapps.composetemplate.core.security.DeviceIntegrityManager
-import com.ytapps.composetemplate.core.security.SecurityPolicy
+import com.ytapps.composetemplate.core.common.initializer.AppInitializer
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltAndroidApp
 class App : Application() {
+    /**
+     * Startup work contributed by optional modules. The set is empty when every
+     * contributing module has been removed, so nothing here needs to change when a module
+     * is plugged out.
+     */
+    @Inject
+    lateinit var initializers: Set<@JvmSuppressWildcards AppInitializer>
+
     override fun onCreate() {
         super.onCreate()
-        SecretManager.initialize(this)
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
-        enforceClientHardeningPolicy()
-    }
-
-    private fun enforceClientHardeningPolicy() {
-        val report =
-            DeviceIntegrityManager(
-                context = this,
-                policy =
-                    SecurityPolicy(
-                        expectedPackageName = BuildConfig.APPLICATION_ID,
-                        blockOnFindings = !BuildConfig.DEBUG && SecretManager.isNativeRuntimeChecksEnabled(),
-                    ),
-            ).evaluate()
-
-        if (report.findings.isNotEmpty()) {
-            Timber.w("Client hardening findings: %s", report.findings.joinToString())
-        }
-        check(!report.isBlocked) {
-            "Client hardening policy blocked app startup: ${report.findings.joinToString()}"
-        }
+        initializers
+            .sortedBy { it.order }
+            .forEach { it.init(this) }
     }
 }
