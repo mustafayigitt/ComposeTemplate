@@ -1,31 +1,31 @@
 name: CI
-
+​
 on:
   pull_request:
     branches: [main, develop]
   push:
     branches: [main]
-
+​
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
+​
 jobs:
   lint:
     name: Lint (ktlint + detekt)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+​
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: temurin
-
+​
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-
+​
       - name: Create local.properties and secrets.properties
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
@@ -42,28 +42,28 @@ jobs:
           echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
           echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
           echo "MIN_VERSION=1" >> secrets.properties
-
+​
       - name: Run ktlint
         run: ./gradlew ktlintCheck
-
+​
       - name: Run detekt
         run: ./gradlew detekt
-
+​
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+​
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: temurin
-
+​
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-
+​
       - name: Create local.properties and secrets.properties
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
@@ -80,25 +80,25 @@ jobs:
           echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
           echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
           echo "MIN_VERSION=1" >> secrets.properties
-
+​
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest
-
+​
   build:
     name: Assemble Debug + Release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+​
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: temurin
-
+​
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-
+​
       - name: Create local.properties and secrets.properties
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
@@ -115,25 +115,25 @@ jobs:
           echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
           echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
           echo "MIN_VERSION=1" >> secrets.properties
-
+​
       - name: Assemble debug and release
         run: ./gradlew assembleDebug :app:assembleRelease
-
+​
   plug-out:
     name: Plug-out (optional modules removed)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+​
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: temurin
-
+​
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-
+​
       - name: Create local.properties and secrets.properties
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
@@ -150,44 +150,46 @@ jobs:
           echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
           echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
           echo "MIN_VERSION=1" >> secrets.properties
-
+​
+      # Every module listed here must be deletable without touching any other source file.
+      # The list grows with each plug-out refactor, which makes regressions impossible to merge.
       - name: Delete optional modules
         run: |
           set -eu
-          for module in core/security; do
+          for module in core/security core/analytics; do
             gradle_path=":$(echo "$module" | tr '/' ':')"
             echo "Removing $gradle_path"
             rm -rf "$module"
             sed -i "\|include(\"$gradle_path\")|d" settings.gradle.kts
             sed -i "\|project(\"$gradle_path\")|d" app/build.gradle.kts
           done
-
+​
       - name: Verify no source references the removed modules
         run: |
           set -eu
-          if grep -rn "core\.security" --include="*.kt" app core feature; then
+          if grep -rn "core\.security\|core\.analytics" --include="*.kt" app core feature; then
             echo "Removed module is still referenced from Kotlin sources."
             exit 1
           fi
-
+​
       - name: Assemble debug without optional modules
         run: ./gradlew :app:assembleDebug
-
+​
   template-smoke:
     name: Template Smoke
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+​
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: temurin
-
+​
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-
+​
       - name: Create local.properties and secrets.properties
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
@@ -204,25 +206,26 @@ jobs:
           echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
           echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
           echo "MIN_VERSION=1" >> secrets.properties
-
+​
       - name: Verify scaffold task is registered
         run: ./gradlew help --task scaffoldFeature
-
+​
       - name: Generate a feature scaffold
         run: ./gradlew scaffoldFeature -PfeatureName=ci_feature
-
+​
       - name: Compile generated feature
         run: ./gradlew :feature:ci_feature:presentation:compileDebugKotlin
-
+​
       - name: Generate a database feature scaffold
         run: ./gradlew scaffoldFeature -PfeatureName=ci_database_feature -PwithDatabase=true
-
+​
       - name: Compile generated database feature
         run: ./gradlew :feature:ci_database_feature:data:compileDebugKotlin :feature:ci_database_feature:presentation:compileDebugKotlin
-
+​
       - name: Verify create-new-app excludes local secrets
         run: |
           ./gradlew create-new-app -Pargs='com.example.generated,GeneratedApp' -q --console=plain
           test ! -f ../GeneratedApp/secrets.properties
           test ! -f ../GeneratedApp/local.properties
           test ! -d ../GeneratedApp/.git
+​
