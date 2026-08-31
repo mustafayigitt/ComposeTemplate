@@ -2,7 +2,7 @@
 
 ## `core:navigation` surface
 
-`INavigationItem`, `IBottomBarItem`, `INavigationManager`, `IScreenProvider`, `NavigationManager`, `ScreenRegistry`, `di/NavigationModule.kt`.
+`INavigationItem`, `IBottomBarItem`, `INavigationManager`, `IScreenProvider`, `NavigationManager`, `ScreenRegistry`, `NavigationObserver`, `di/NavigationModule.kt`, `di/NavigationObserverModule.kt`.
 
 ## `NavigationManager` (internal, `@Singleton`)
 
@@ -28,14 +28,28 @@ State and operations:
 
 This makes a misconfigured feature a silent visual defect rather than a crash, and `Set` iteration order is not guaranteed if two providers claim the same route.
 
+## `NavigationObserver`
+
+```kotlin
+interface NavigationObserver {
+    fun onRouteChanged(route: INavigationItem)
+}
+```
+
+- Declared with `@Multibinds` in `NavigationObserverModule`, so the set resolves even when **nothing** contributes to it.
+- `core:analytics` contributes `AnalyticsNavigationObserver` with `@Binds @IntoSet`; it is the only contributor today.
+- The navigation host iterates the set on every route change and knows none of the implementations.
+
+This is the mechanism that lets `core:analytics` be deleted from a generated project. Screen-view logging used to be a `LaunchedEffect` inside `AppNavigation`, which forced `:app` to import `IAnalyticsManager` and `AnalyticsEvent` and made the module impossible to remove.
+
 ## `MainActivity` and `AppNavigation`
 
-- `@AndroidEntryPoint`; field-injects `INavigationManager`, `ScreenRegistry`, `NetworkMonitor`, `IAnalyticsManager`, `LocaleManager`.
+- `@AndroidEntryPoint`; field-injects `INavigationManager`, `ScreenRegistry`, `NetworkMonitor` (from `core:common`) and `Set<NavigationObserver>`. **Nothing here comes from an optional module.**
 - `enableEdgeToEdge()`.
 - Dark mode collected from `navigationManager.isDarkModeFlow` via `collectAsStateWithLifecycle`.
-- `LaunchedEffect` calls `localeManager.restoreSavedLanguage()`.
 - Renders `ComposeTemplateTheme { AppNavigation(...) }`.
-- `AppNavigation` uses Navigation3 `NavDisplay`, logs a screen-view analytics event on route change, shows an offline banner above content, and shows the bottom bar only when the current route is a bottom-bar item. Unhandled back finishes the Activity.
+- `AppNavigation` uses Navigation3 `NavDisplay`, notifies every `NavigationObserver` on route change, shows an offline banner above content, and shows the bottom bar only when the current route is a bottom-bar item. Unhandled back finishes the Activity.
+- Language restoration is **not** done here. It runs as a `LocaleInitializer` contributed to `Set<AppInitializer>` from `core:data` (see page 01).
 
 ## UI state contract: `BaseViewModel<S, E>`
 
