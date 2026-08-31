@@ -119,6 +119,60 @@ jobs:
       - name: Assemble debug and release
         run: ./gradlew assembleDebug :app:assembleRelease
 
+  plug-out:
+    name: Plug-out (optional modules removed)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Create local.properties and secrets.properties
+        run: |
+          echo "STORE_FILE=debug.keystore" > local.properties
+          echo "API_KEY_DEBUG=\"debug_secret_value\"" > secrets.properties
+          echo "API_KEY_RELEASE=\"release_secret_value\"" >> secrets.properties
+          echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
+          echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
+          echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
+          echo "KEY_PASSWORD=\"android\"" >> secrets.properties
+          echo "STORE_PASSWORD=\"android\"" >> secrets.properties
+          echo "XOR_MASK=\"ci_mask_value_with_24_chars_minimum\"" >> secrets.properties
+          echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
+          echo "NATIVE_RUNTIME_CHECKS_ENABLED=true" >> secrets.properties
+          echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
+          echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
+          echo "MIN_VERSION=1" >> secrets.properties
+
+      - name: Delete optional modules
+        run: |
+          set -eu
+          for module in core/security; do
+            gradle_path=":$(echo "$module" | tr '/' ':')"
+            echo "Removing $gradle_path"
+            rm -rf "$module"
+            sed -i "\|include(\"$gradle_path\")|d" settings.gradle.kts
+            sed -i "\|project(\"$gradle_path\")|d" app/build.gradle.kts
+          done
+
+      - name: Verify no source references the removed modules
+        run: |
+          set -eu
+          if grep -rn "core\.security" --include="*.kt" app core feature; then
+            echo "Removed module is still referenced from Kotlin sources."
+            exit 1
+          fi
+
+      - name: Assemble debug without optional modules
+        run: ./gradlew :app:assembleDebug
+
   template-smoke:
     name: Template Smoke
     runs-on: ubuntu-latest

@@ -1,5 +1,6 @@
 plugins {
     id("composetemplate.android.library")
+    id("composetemplate.android.hilt")
 }
 
 android {
@@ -7,6 +8,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:common"))
     implementation(project(":core:secrets"))
     implementation(libs.androidx.core)
+    implementation(libs.timber)
 }
