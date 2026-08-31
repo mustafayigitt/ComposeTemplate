@@ -13,12 +13,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
-import com.ytapps.composetemplate.core.analytics.AnalyticsEvent
-import com.ytapps.composetemplate.core.analytics.IAnalyticsManager
+import com.ytapps.composetemplate.core.common.connectivity.NetworkMonitor
+import com.ytapps.composetemplate.core.common.connectivity.NetworkStatus
 import com.ytapps.composetemplate.core.navigation.INavigationManager
+import com.ytapps.composetemplate.core.navigation.NavigationObserver
 import com.ytapps.composetemplate.core.navigation.ScreenRegistry
-import com.ytapps.composetemplate.core.network.NetworkMonitor
-import com.ytapps.composetemplate.core.network.NetworkStatus
 import com.ytapps.composetemplate.core.ui.components.AppNoInternetBanner
 import com.ytapps.composetemplate.core.ui.theme.component.AppNavigationBar
 
@@ -28,7 +27,7 @@ fun AppNavigation(
     navigationManager: INavigationManager,
     screenRegistry: ScreenRegistry,
     networkMonitor: NetworkMonitor,
-    analyticsManager: IAnalyticsManager,
+    navigationObservers: Set<NavigationObserver>,
 ) {
     val backStack by navigationManager.backStack.collectAsStateWithLifecycle()
     val currentRoute = backStack.lastOrNull()
@@ -37,13 +36,8 @@ fun AppNavigation(
     val networkStatus by networkMonitor.networkStatus.collectAsStateWithLifecycle(initialValue = NetworkStatus.Available)
 
     LaunchedEffect(currentRoute) {
-        currentRoute?.let {
-            analyticsManager.logEvent(
-                AnalyticsEvent(
-                    type = AnalyticsEvent.SCREEN_VIEW,
-                    extras = mapOf(AnalyticsEvent.SCREEN_NAME to it.route),
-                ),
-            )
+        currentRoute?.let { route ->
+            navigationObservers.forEach { observer -> observer.onRouteChanged(route) }
         }
     }
 
