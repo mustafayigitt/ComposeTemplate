@@ -1,3 +1,5 @@
+import java.io.File
+
 pluginManagement {
     includeBuild("build-logic")
     repositories {
@@ -18,50 +20,36 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "ComposeTemplate"
-include(":app")
-include(":core:common")
-include(":core:secrets")
-include(":core:data")
-include(":core:network")
-include(":core:security")
-include(":core:ui")
-include(":core:navigation")
-include(":core:analytics")
-include(":core:config")
-include(":core:permission")
-include(":core:google-play")
-include(":core:database")
-include(":feature:auth:data")
-include(":feature:auth:domain")
-include(":feature:auth:navigation")
-include(":feature:auth:presentation")
-include(":feature:detail:data")
-include(":feature:detail:domain")
-include(":feature:detail:navigation")
-include(":feature:detail:presentation")
-include(":feature:list:data")
-include(":feature:list:domain")
-include(":feature:list:navigation")
-include(":feature:list:presentation")
-include(":feature:profile:data")
-include(":feature:profile:domain")
-include(":feature:profile:navigation")
-include(":feature:profile:presentation")
-include(":feature:onboarding:data")
-include(":feature:onboarding:domain")
-include(":feature:onboarding:navigation")
-include(":feature:onboarding:presentation")
-include(":feature:search:data")
-include(":feature:search:domain")
-include(":feature:search:navigation")
-include(":feature:search:presentation")
-include(":feature:splash:data")
-include(":feature:splash:domain")
-include(":feature:splash:navigation")
-include(":feature:splash:presentation")
-include(":feature:home:data")
-include(":feature:home:domain")
-include(":feature:home:navigation")
-include(":feature:home:presentation")
-include(":benchmark")
-include(":baselineprofile")
+
+/*
+ * Modules are discovered from the filesystem instead of being listed one by one.
+ *
+ * The plug-out contract says a module must be removable by deleting its folder. That was never
+ * quite true while every module also had to be named here: deleting a folder left a dangling
+ * include() behind, and a dangling include() does not break one module, it breaks configuration
+ * for the entire build. Scanning removes that second step, and it removes the mirror-image step
+ * for scaffolding, which no longer has to patch this file to register a generated feature.
+ *
+ * A directory is a module when it directly contains a build.gradle.kts. Directories are still
+ * traversed after being included, because feature modules nest one level deeper than core ones.
+ */
+val nonModuleDirectories = setOf("build", "build-logic", "buildSrc", "gradle", "src")
+
+fun includeModulesUnder(
+    directory: File,
+    parentPath: String,
+) {
+    directory
+        .listFiles()
+        ?.filter { it.isDirectory && !it.name.startsWith(".") && it.name !in nonModuleDirectories }
+        ?.sortedBy { it.name }
+        ?.forEach { candidate ->
+            val modulePath = "$parentPath:${candidate.name}"
+            if (File(candidate, "build.gradle.kts").isFile) {
+                include(modulePath)
+            }
+            includeModulesUnder(candidate, modulePath)
+        }
+}
+
+includeModulesUnder(rootDir, "")
