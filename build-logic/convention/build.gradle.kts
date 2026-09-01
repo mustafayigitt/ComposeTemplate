@@ -83,5 +83,9 @@ gradlePlugin {
             id = "composetemplate.baseline.profile.generator"
             implementationClass = "com.ytapps.composetemplate.convention.BaselineProfileGeneratorConventionPlugin"
         }
+        register("appModuleBoundary") {
+            id = "composetemplate.app.boundary"
+            implementationClass = "com.ytapps.composetemplate.convention.AppModuleBoundaryPlugin"
+        }
     }
 }
