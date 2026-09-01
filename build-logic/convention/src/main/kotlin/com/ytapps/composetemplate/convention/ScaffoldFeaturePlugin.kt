@@ -89,31 +89,9 @@ class ScaffoldFeaturePlugin : Plugin<Project> {
                     }
                 }
 
-                // Register in settings.gradle.kts
-                var settingsUpdated = false
-                val settingsFile = File(target.rootProject.rootDir, "settings.gradle.kts")
-                if (settingsFile.exists()) {
-                    val settingsContent = settingsFile.readText()
-                    val newIncludes = subModules.joinToString("\n") { "include(\":feature:$featureName:$it\")" }
-                    if (!settingsContent.contains(":feature:$featureName:")) {
-                        settingsFile.appendText("\n$newIncludes")
-                        settingsUpdated = true
-                    }
-                }
-
-                // Register in app/build.gradle.kts
-                var appDependenciesUpdated = false
-                val appBuildFile = File(target.rootProject.rootDir, "app/build.gradle.kts")
-                if (appBuildFile.exists()) {
-                    val appBuildContent = appBuildFile.readLines().toMutableList()
-                    val dependenciesIndex = appBuildContent.indexOfLast { it.trim().startsWith("implementation(project(\":feature:") }
-                    if (dependenciesIndex != -1) {
-                        val newDeps = subModules.map { "    implementation(project(\":feature:$featureName:$it\"))" }
-                        appBuildContent.addAll(dependenciesIndex + 1, newDeps)
-                        appBuildFile.writeText(appBuildContent.joinToString("\n"))
-                        appDependenciesUpdated = true
-                    }
-                }
+                // settings.gradle.kts and app/build.gradle.kts are intentionally left alone. Both
+                // derive their module list from the folders that exist on disk, so creating the
+                // directories above is already enough to register the feature with the build.
 
                 logger.lifecycle(
                     """
@@ -121,8 +99,8 @@ class ScaffoldFeaturePlugin : Plugin<Project> {
                     |✅ Feature '$featureName' scaffolded at feature/$featureName/
                     |
                     |Automation:
-                    |  - settings.gradle.kts: ${if (settingsUpdated) "updated" else "not changed"}
-                    |  - app/build.gradle.kts dependencies: ${if (appDependenciesUpdated) "updated" else "not changed"}
+                    |  - settings.gradle.kts: no edit needed, modules are discovered from disk
+                    |  - app/build.gradle.kts: no edit needed, :app wires every discovered module
                     |  - Room starter files: ${if (withDatabase) "created" else "skipped"}
                     |
                     |Next steps:
