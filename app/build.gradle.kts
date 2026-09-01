@@ -80,50 +80,16 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
-    implementation(project(":core:secrets"))
-    implementation(project(":core:data"))
-    implementation(project(":core:network"))
-    implementation(project(":core:security"))
-    implementation(project(":core:ui"))
-    implementation(project(":core:navigation"))
-    implementation(project(":core:analytics"))
-    implementation(project(":core:config"))
-    implementation(project(":core:permission"))
-    implementation(project(":core:google-play"))
-    implementation(project(":core:database"))
-    implementation(project(":feature:auth:data"))
-    implementation(project(":feature:auth:domain"))
-    implementation(project(":feature:auth:navigation"))
-    implementation(project(":feature:auth:presentation"))
-    implementation(project(":feature:detail:data"))
-    implementation(project(":feature:detail:domain"))
-    implementation(project(":feature:detail:navigation"))
-    implementation(project(":feature:detail:presentation"))
-    implementation(project(":feature:home:data"))
-    implementation(project(":feature:home:domain"))
-    implementation(project(":feature:home:navigation"))
-    implementation(project(":feature:home:presentation"))
-    implementation(project(":feature:list:data"))
-    implementation(project(":feature:list:domain"))
-    implementation(project(":feature:list:navigation"))
-    implementation(project(":feature:list:presentation"))
-    implementation(project(":feature:onboarding:data"))
-    implementation(project(":feature:onboarding:domain"))
-    implementation(project(":feature:onboarding:navigation"))
-    implementation(project(":feature:onboarding:presentation"))
-    implementation(project(":feature:profile:data"))
-    implementation(project(":feature:profile:domain"))
-    implementation(project(":feature:profile:navigation"))
-    implementation(project(":feature:profile:presentation"))
-    implementation(project(":feature:search:data"))
-    implementation(project(":feature:search:domain"))
-    implementation(project(":feature:search:navigation"))
-    implementation(project(":feature:search:presentation"))
-    implementation(project(":feature:splash:data"))
-    implementation(project(":feature:splash:domain"))
-    implementation(project(":feature:splash:navigation"))
-    implementation(project(":feature:splash:presentation"))
+    // Every core and feature module found on disk is wired in automatically, so deleting a
+    // module's folder removes it from the build without an edit here, and scaffolding a new
+    // feature needs no edit either. Intermediate path projects such as :feature:auth own no
+    // build file and are skipped.
+    rootProject.subprojects
+        .filter { it.buildFile.isFile }
+        .map { it.path }
+        .filter { it.startsWith(":core:") || it.startsWith(":feature:") }
+        .sorted()
+        .forEach { implementation(project(it)) }
 
     implementation(libs.androidx.core)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -33,12 +33,9 @@ Dependency wiring in the generated scripts: `data -> domain`, `presentation -> d
 
 ### Build-file automation
 
-1. **`settings.gradle.kts`** — appends four `include(":feature:<name>:<tier>")` lines, guarded by a `contains(":feature:<name>:")` check.
-2. **`app/build.gradle.kts`** — finds the **last** line starting with `implementation(project(":feature:` and inserts the four new dependencies after it.
+None, by design. `settings.gradle.kts` discovers modules by scanning for directories that directly contain a `build.gradle.kts`, and `:app` derives its `core` and `feature` dependencies from the discovered projects. Writing the folders above is therefore all it takes to register the feature with the build; the task logs `no edit needed` for both files and continues to next steps and the suggested verification command `./gradlew :feature:<name>:presentation:compileDebugKotlin`.
 
-The task then logs whether each file was actually updated, plus next steps and the suggested verification command `./gradlew :feature:<name>:presentation:compileDebugKotlin`.
-
-> **Warning:** Both edits are line/text based. If the anchor line in `app/build.gradle.kts` is absent or reformatted, the task reports `not changed` and continues successfully — leaving a generated feature that compiles standalone but is never included in the app. Always read the task output.
+This replaces an earlier mechanism worth knowing about, because its failure mode is a general lesson. The task used to append `include(":feature:<name>:<tier>")` lines to `settings.gradle.kts` and insert dependencies after the **last** line starting with `implementation(project(":feature:` in `app/build.gradle.kts`. The second edit was anchored on text: when the anchor was missing or reformatted, the task logged `not changed`, exited successfully, and left a feature that compiled on its own but was never part of the app. Deriving the list from the filesystem removes the anchor, and with it the failure.
 
 ## `create-new-app`
 
@@ -48,6 +45,7 @@ The task then logs whether each file was actually updated, plus next steps and t
 
 - Produces a **sibling** project directory (`../MyNewApp`).
 - Rebrands package name, application name, namespaces, manifests and resources across the tree.
+- Copies the tree and rewrites text; it never parses `settings.gradle.kts`, so module discovery applies unchanged to the generated project.
 - Native bindings survive the rename because JNI methods are bound dynamically via `RegisterNatives` with the class path injected from the Gradle namespace (see [04](04-secrets-and-hardening.md)).
 - CI asserts the generated project contains **no** `secrets.properties`, no `local.properties`, and no `.git` directory — i.e. no leaked credentials and no inherited history.
 

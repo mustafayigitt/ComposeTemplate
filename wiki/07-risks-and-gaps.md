@@ -6,33 +6,32 @@ Findings from reading the code, ordered by practical impact. Each item is an obs
 
 | # | Finding | Where | Why it matters |
 | --- | --- | --- | --- |
-| 1 | Scaffolding mutates build files by text anchor and fails silently | `ScaffoldFeaturePlugin` | If the last `implementation(project(":feature:` line in `app/build.gradle.kts` is missing or reformatted, the task logs `not changed` and still succeeds, producing a feature the app never includes |
-| 2 | Navigation back stack is not persisted | `NavigationManager` | A `@Singleton` in-memory `MutableStateFlow<List<INavigationItem>>` is lost on process death; users return to the start destination with no state restoration |
-| 3 | Unresolved routes render text instead of failing | `ScreenRegistry` | Fallback shows `"Screen not found: <route>"`; a DI wiring mistake ships as a broken screen rather than a build/test failure |
-| 4 | Test pyramid inverted | whole repo | 5 unit tests, all infrastructure; 8 presentation modules and the `BaseViewModel` contract are untested |
+| 1 | Navigation back stack is not persisted | `NavigationManager` | A `@Singleton` in-memory `MutableStateFlow<List<INavigationItem>>` is lost on process death; users return to the start destination with no state restoration |
+| 2 | Unresolved routes render text instead of failing | `ScreenRegistry` | Fallback shows `"Screen not found: <route>"`; a DI wiring mistake ships as a broken screen rather than a build/test failure |
+| 3 | Test pyramid inverted | whole repo | 5 unit tests, all infrastructure; 8 presentation modules and the `BaseViewModel` contract are untested |
 
 ## Medium impact
 
 | # | Finding | Where | Why it matters |
 | --- | --- | --- | --- |
-| 5 | Two serialization stacks | `NetworkModule` (Gson) vs `kotlin.serialization` for routes/models | Extra dependency surface, reflection, and ProGuard-keep burden for no functional gain |
-| 6 | `safeCall` catches only `HttpException` and `IOException` | `BaseRepository` | Deserialization or `IllegalState` failures escape the `Result` abstraction and can crash callers that assume total coverage |
-| 7 | Theme state exposed through the navigation contract | `INavigationManager.isDarkModeFlow` | Misplaced responsibility; consumers depend on navigation to read appearance settings |
-| 8 | CI secret bootstrap duplicated five times | `.github/workflows/ci.yml` | Drift risk; a reusable workflow or composite action would collapse it into one definition |
-| 9 | Module-graph enforcement stops at `:app` | build-logic | `checkAppModuleBoundary` now fails the build when the application module imports a pluggable module, but every other edge is still guarded by review alone: a feature may import another feature, and a core module may import an optional one |
-| 10 | `SecretManager` is a global object requiring `initialize(context)` | `core:secrets` | Initialization-order coupling; a secret read before startup completes fails at runtime rather than compile time |
+| 4 | Two serialization stacks | `NetworkModule` (Gson) vs `kotlin.serialization` for routes/models | Extra dependency surface, reflection, and ProGuard-keep burden for no functional gain |
+| 5 | `safeCall` catches only `HttpException` and `IOException` | `BaseRepository` | Deserialization or `IllegalState` failures escape the `Result` abstraction and can crash callers that assume total coverage |
+| 6 | Theme state exposed through the navigation contract | `INavigationManager.isDarkModeFlow` | Misplaced responsibility; consumers depend on navigation to read appearance settings |
+| 7 | CI secret bootstrap duplicated five times | `.github/workflows/ci.yml` | Drift risk; a reusable workflow or composite action would collapse it into one definition |
+| 8 | Module-graph enforcement stops at `:app` | build-logic | `checkAppModuleBoundary` now fails the build when the application module imports a pluggable module, but every other edge is still guarded by review alone: a feature may import another feature, and a core module may import an optional one |
+| 9 | `SecretManager` is a global object requiring `initialize(context)` | `core:secrets` | Initialization-order coupling; a secret read before startup completes fails at runtime rather than compile time |
 
 ## Lower impact / by design but worth stating
 
 | # | Finding | Note |
 | --- | --- | --- |
-| 11 | Bottom-bar order derives from multibinding key strings | Ordering is a naming convention, not a typed contract |
-| 12 | Fixed 4-module shape for every feature | Consistent, but trivial features (`splash`, `detail`) pay full configuration cost — 32 modules for 8 features |
-| 13 | Unbuffered event `Channel` in `BaseViewModel` | Single-consumer, rendezvous semantics; needs to be documented for feature authors |
-| 14 | `runBlocking` inside `TokenAuthenticator` | Required by OkHttp's blocking `Authenticator` API; rationale is in the source |
-| 15 | Certificate pinning disabled in debug | Pin misconfiguration only appears in release builds |
-| 16 | `config` module is local-only | `IConfigManager` + `LocalConfigProvider`; no remote-config backend, so runtime flags require a release |
-| 17 | Benchmarks and baseline profiles never run in CI | Performance infrastructure exists but is unmeasured |
+| 10 | Bottom-bar order derives from multibinding key strings | Ordering is a naming convention, not a typed contract |
+| 11 | Fixed 4-module shape for every feature | Consistent, but trivial features (`splash`, `detail`) pay full configuration cost — 32 modules for 8 features |
+| 12 | Unbuffered event `Channel` in `BaseViewModel` | Single-consumer, rendezvous semantics; needs to be documented for feature authors |
+| 13 | `runBlocking` inside `TokenAuthenticator` | Required by OkHttp's blocking `Authenticator` API; rationale is in the source |
+| 14 | Certificate pinning disabled in debug | Pin misconfiguration only appears in release builds |
+| 15 | `config` module is local-only | `IConfigManager` + `LocalConfigProvider`; no remote-config backend, so runtime flags require a release |
+| 16 | Benchmarks and baseline profiles never run in CI | Performance infrastructure exists but is unmeasured |
 
 ## Baseline decision log
 
@@ -76,6 +75,32 @@ and consumed as `Lazy<Set<T>>` where a dependency cycle has to stay broken (see
 `TokenAuthenticator`). One mechanism covers both "zero or one" and "zero or many",
 so the template teaches a single pattern rather than two.
 
+### Modules are discovered, not declared
+
+`settings.gradle.kts` scans the tree and includes every directory that directly
+contains a `build.gradle.kts`; `:app` builds its `core` and `feature` dependency
+list from the projects that scan produced. Neither file names a module.
+
+The reason is the plug-out contract's fourth criterion: deleting a module's folder
+must leave a working build. That was never actually true while the module was also
+named in two other files. A dangling `include()` does not break one module, it
+breaks configuration for the whole build, so "delete the folder" was really a
+three-file edit that CI had to reproduce with `sed`.
+
+The same change removes the mirror-image problem in `scaffoldFeature`, which used to
+patch both files after generating a feature — see [05](05-generator-and-scaffolding.md).
+
+Two details are load-bearing:
+
+- **`build-logic` must stay out of the scan.** It is an included build, not a
+  project; including it as one breaks the build. It sits in the skip list next to
+  `build`, `buildSrc`, `gradle` and `src`.
+- **Directories are traversed even after being included.** Core modules are one
+  level deep and feature modules are two, so recursion cannot stop at the first
+  match. Intermediate paths such as `feature/auth` own no build file, are never
+  included as projects, and are filtered out of `:app`'s dependency list by a
+  `buildFile.isFile` check.
+
 ### A module is only pluggable if `:app` never imports it
 
 Dependency injection is the easy half of the plug-out contract. The half that
@@ -109,10 +134,11 @@ Three properties were deliberate:
 - **Allowlist, not blocklist.** The check permits `core.common`, `core.navigation`,
   `core.ui` and the app's own packages, and rejects everything else under `core.*`
   or `feature.*`. A blocklist would need an edit every time a module is added, and
-  the edit that gets forgotten is exactly the one that matters.
+  the edit that gets forgotten is exactly the one that matters. This matters more now
+  that modules appear in the build merely by existing on disk.
 - **Anchored on the application namespace.** Imports are compared against the
-  module's own package root, read from the `namespace` in `afterEvaluate`. Matching a
-  bare `.core.` substring would flag `androidx.core.view.WindowCompat`.
+  module's own package root, read from the `namespace` through a lazy provider.
+  Matching a bare `.core.` substring would flag `androidx.core.view.WindowCompat`.
 - **A Gradle task, not a detekt rule.** `config/detekt/detekt.yml` is one root file
   shared by every module, so a global forbidden-import entry for `core.analytics`
   would also fail `core:analytics`'s own sources. The boundary belongs to a single
@@ -147,13 +173,12 @@ analytics is a real, currently-optional consumer.
 
 ## Suggested remediation order
 
-1. Make `scaffoldFeature` fail loudly when it cannot wire `settings.gradle.kts` or `app/build.gradle.kts` (item 1).
-2. Persist the navigation back stack and make unresolved routes fail in debug builds (2, 3).
-3. Add ViewModel tests for at least one full feature vertical and a `ScreenRegistry` coverage test (4, 3).
-4. Pick one serialization stack; add a broad `catch` to `safeCall` (5, 6).
-5. Move `isDarkModeFlow` to a theme/preferences contract (7).
-6. Extract the CI secret bootstrap into a composite action (8).
-7. Extend module-graph enforcement beyond the application module (9). `checkAppModuleBoundary` covers `:app`; still unenforced are feature → feature imports and core → optional edges. Both need a rule that can express per-module allowlists without a shared global configuration.
+1. Persist the navigation back stack and make unresolved routes fail in debug builds (1, 2).
+2. Add ViewModel tests for at least one full feature vertical and a `ScreenRegistry` coverage test (3, 2).
+3. Pick one serialization stack; add a broad `catch` to `safeCall` (4, 5).
+4. Move `isDarkModeFlow` to a theme/preferences contract (6).
+5. Extract the CI secret bootstrap into a composite action (7).
+6. Extend module-graph enforcement beyond the application module (8). `checkAppModuleBoundary` covers `:app`; still unenforced are feature → feature imports and core → optional edges. Both need a rule that can express per-module allowlists without a shared global configuration.
 
 ## Open questions for the maintainer
 
