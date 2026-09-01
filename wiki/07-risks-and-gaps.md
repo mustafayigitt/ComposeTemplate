@@ -19,7 +19,7 @@ Findings from reading the code, ordered by practical impact. Each item is an obs
 | 6 | `safeCall` catches only `HttpException` and `IOException` | `BaseRepository` | Deserialization or `IllegalState` failures escape the `Result` abstraction and can crash callers that assume total coverage |
 | 7 | Theme state exposed through the navigation contract | `INavigationManager.isDarkModeFlow` | Misplaced responsibility; consumers depend on navigation to read appearance settings |
 | 8 | CI secret bootstrap duplicated five times | `.github/workflows/ci.yml` | Drift risk; a reusable workflow or composite action would collapse it into one definition |
-| 9 | No module-graph enforcement | build-logic | Layer rules live in tier plugins and review only; nothing fails the build when a boundary is crossed or a feature imports another feature |
+| 9 | Module-graph enforcement stops at `:app` | build-logic | `checkAppModuleBoundary` now fails the build when the application module imports a pluggable module, but every other edge is still guarded by review alone: a feature may import another feature, and a core module may import an optional one |
 | 10 | `SecretManager` is a global object requiring `initialize(context)` | `core:secrets` | Initialization-order coupling; a secret read before startup completes fails at runtime rather than compile time |
 
 ## Lower impact / by design but worth stating
@@ -94,7 +94,34 @@ The three fixes, one per shape of the problem:
 
 `MainActivity` now injects only `INavigationManager`, `ScreenRegistry`,
 `NetworkMonitor` and `Set<NavigationObserver>`, all from modules that are never
-deleted. The CI `plug-out` job is what keeps it that way.
+deleted.
+
+### The plug-out contract is a build rule, not a review convention
+
+Keeping `:app` clean by review does not survive contact with a growing template, so
+the rule is executable. `composetemplate.app.boundary` registers
+`checkAppModuleBoundary`, wired into `preBuild` and `check`, which reads every
+`import` under `app/src` and fails when the application module names a symbol from a
+pluggable module.
+
+Three properties were deliberate:
+
+- **Allowlist, not blocklist.** The check permits `core.common`, `core.navigation`,
+  `core.ui` and the app's own packages, and rejects everything else under `core.*`
+  or `feature.*`. A blocklist would need an edit every time a module is added, and
+  the edit that gets forgotten is exactly the one that matters.
+- **Anchored on the application namespace.** Imports are compared against the
+  module's own package root, read from the `namespace` in `afterEvaluate`. Matching a
+  bare `.core.` substring would flag `androidx.core.view.WindowCompat`.
+- **A Gradle task, not a detekt rule.** `config/detekt/detekt.yml` is one root file
+  shared by every module, so a global forbidden-import entry for `core.analytics`
+  would also fail `core:analytics`'s own sources. The boundary belongs to a single
+  module and is enforced there.
+
+This complements rather than replaces the CI `plug-out` job. The job proves that the
+modules it deletes are genuinely removable, after the fact and only for the modules
+listed in `ci.yml`; the task blocks the regression before it is committed, for every
+module.
 
 ### `core:network` is a transport layer, not a connectivity layer
 
@@ -126,7 +153,7 @@ analytics is a real, currently-optional consumer.
 4. Pick one serialization stack; add a broad `catch` to `safeCall` (5, 6).
 5. Move `isDarkModeFlow` to a theme/preferences contract (7).
 6. Extract the CI secret bootstrap into a composite action (8).
-7. Add a lint or detekt rule that fails the build when `:app` imports an optional module, so the plug-out contract is enforced at review time and not only by the CI delete job (9).
+7. Extend module-graph enforcement beyond the application module (9). `checkAppModuleBoundary` covers `:app`; still unenforced are feature → feature imports and core → optional edges. Both need a rule that can express per-module allowlists without a shared global configuration.
 
 ## Open questions for the maintainer
 
