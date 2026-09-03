@@ -153,15 +153,17 @@ jobs:
 
       # Every module listed here must be deletable without touching any other source file.
       # The list grows with each plug-out refactor, which makes regressions impossible to merge.
+      #
+      # Deleting the folder is the whole operation: settings.gradle.kts discovers modules from
+      # disk, so there is nothing left to edit afterwards. The two sed calls that used to strip
+      # include() and project() lines were removed once that landed.
       - name: Delete optional modules
         run: |
           set -eu
-          for module in core/security core/analytics; do
+          for module in core/security core/analytics benchmark baselineprofile; do
             gradle_path=":$(echo "$module" | tr '/' ':')"
             echo "Removing $gradle_path"
             rm -rf "$module"
-            sed -i "\|include(\"$gradle_path\")|d" settings.gradle.kts
-            sed -i "\|project(\"$gradle_path\")|d" app/build.gradle.kts
           done
 
       - name: Verify no source references the removed modules
@@ -172,8 +174,19 @@ jobs:
             exit 1
           fi
 
+      # A successful build only proves the perf wiring did not explode; it does not prove the
+      # conditional branch ran. Asserting the log line proves composetemplate.perf actually took
+      # the "generator project is absent" path, so this job would still fail if the plugin
+      # silently started wiring baseline profiles unconditionally again.
       - name: Assemble debug without optional modules
-        run: ./gradlew :app:assembleDebug
+        run: |
+          set -euo pipefail
+          ./gradlew :app:assembleDebug | tee plug-out-build.log
+          if ! grep -q "Baseline profiles are disabled" plug-out-build.log; then
+            echo "composetemplate.perf did not report a missing :baselineprofile project."
+            echo "Either the plugin stopped being applied, or its wiring is no longer conditional."
+            exit 1
+          fi
 
   template-smoke:
     name: Template Smoke

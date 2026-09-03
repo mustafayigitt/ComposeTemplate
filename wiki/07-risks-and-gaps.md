@@ -31,7 +31,8 @@ Findings from reading the code, ordered by practical impact. Each item is an obs
 | 13 | `runBlocking` inside `TokenAuthenticator` | Required by OkHttp's blocking `Authenticator` API; rationale is in the source |
 | 14 | Certificate pinning disabled in debug | Pin misconfiguration only appears in release builds |
 | 15 | `config` module is local-only | `IConfigManager` + `LocalConfigProvider`; no remote-config backend, so runtime flags require a release |
-| 16 | Benchmarks and baseline profiles never run in CI | Performance infrastructure exists but is unmeasured |
+| 16 | Benchmarks and baseline profiles never run in CI | Performance infrastructure exists but is unmeasured. It is now at least removable — see the decision log below |
+| 17 | `benchmark/build.gradle.kts` bypasses its own convention plugin | It applies `com.android.test` directly and repeats every setting that `composetemplate.baseline.profile.generator` already applies for `:baselineprofile` |
 
 ## Baseline decision log
 
@@ -101,6 +102,48 @@ Two details are load-bearing:
   included as projects, and are filtered out of `:app`'s dependency list by a
   `buildFile.isFile` check.
 
+### Performance tooling is wired conditionally, not unconditionally
+
+Discovery made module folders deletable, but `:app` still reached out to the
+performance modules by name. Three lines in `app/build.gradle.kts` did it:
+`alias(libs.plugins.baselineprofile)`, `baselineProfile(project(":baselineprofile"))`
+and the `profileinstaller` runtime dependency. The first two fail configuration of
+the application module the moment `baselineprofile/` is deleted, which made the
+performance layer the last remaining violation of the contract's third criterion —
+a module's Gradle wiring must be self-contained.
+
+`composetemplate.perf` now owns all three. It calls
+`rootProject.findProject(":baselineprofile")` and does nothing but log when the
+result is `null`. Because modules are discovered from disk, that lookup and the
+question "does the folder still exist" are the same question, so there is no flag to
+keep in sync. `findProject` is used rather than `project(path)` specifically because
+the latter throws when the project is absent, which is the failure being removed.
+
+Two consequences worth knowing before touching this:
+
+- **The plugin is applied by id, and that requires a line in the root build script.**
+  `androidx.baselineprofile` reached the plugin classpath only through `:app`'s
+  `plugins {}` block, so removing that alias would have made
+  `pluginManager.apply("androidx.baselineprofile")` fail with "plugin not found". It
+  is now declared `apply false` at the root, the same mechanism
+  `AndroidHiltConventionPlugin` already relies on for Hilt. Applying by id also means
+  the convention project needs no `compileOnly` dependency, since no typed extension
+  is configured.
+- **The `benchmark` build type stays in `app/build.gradle.kts` on purpose.** It looks
+  like performance wiring, but it references only app-local files
+  (`benchmark-rules.pro` and the release signing config) and names no module. The
+  performance modules select it through `matchingFallbacks`, not the other way
+  around, so it remains valid after they are deleted. Moving it into the plugin would
+  mean calling `getDefaultProguardFile(...)` through
+  `com.android.build.api.dsl.ApplicationExtension`, which is not verified to expose
+  it; an unnecessary risk for no gain in removability.
+
+Still open: `benchmark/build.gradle.kts` does not use
+`composetemplate.baseline.profile.generator` at all (finding 17). Folding it in needs
+`targetSdk`, `testInstrumentationRunner`, the `androidx.benchmark.suppressErrors`
+argument and a build type added to that plugin, none of which are confirmed against
+`TestExtension` yet, so it was deliberately left out of this change.
+
 ### A module is only pluggable if `:app` never imports it
 
 Dependency injection is the easy half of the plug-out contract. The half that
@@ -149,6 +192,9 @@ modules it deletes are genuinely removable, after the fact and only for the modu
 listed in `ci.yml`; the task blocks the regression before it is committed, for every
 module.
 
+Note what the task does **not** catch: the performance wiring above was a build-file
+coupling, not an `import`. Boundary violations come in both shapes.
+
 ### `core:network` is a transport layer, not a connectivity layer
 
 `NetworkMonitor` was moved to `core:common` rather than solving the coupling by
@@ -179,6 +225,7 @@ analytics is a real, currently-optional consumer.
 4. Move `isDarkModeFlow` to a theme/preferences contract (6).
 5. Extract the CI secret bootstrap into a composite action (7).
 6. Extend module-graph enforcement beyond the application module (8). `checkAppModuleBoundary` covers `:app`; still unenforced are feature → feature imports and core → optional edges. Both need a rule that can express per-module allowlists without a shared global configuration.
+7. Fold `benchmark/build.gradle.kts` into `composetemplate.baseline.profile.generator` so the two performance modules stop configuring themselves differently (17).
 
 ## Open questions for the maintainer
 
@@ -186,6 +233,7 @@ analytics is a real, currently-optional consumer.
 - Should `ScreenRegistry` throw in debug builds and fall back only in release?
 - Is Gson kept deliberately (backend contract flexibility) or is it legacy?
 - Should `hardeningReport` and `scanApkForSecrets` be part of the CI release job rather than manual tasks?
+- Should the CI `plug-out` job also delete `benchmark/` and `baselineprofile/`, now that doing so is supposed to work?
 
 ---
 

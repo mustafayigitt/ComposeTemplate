@@ -4,7 +4,7 @@ import java.util.Properties
 plugins {
     id("composetemplate.create.new.app")
     id("composetemplate.android.application")
-    alias(libs.plugins.baselineprofile)
+    id("composetemplate.perf")
     id("composetemplate.android.application.compose")
     id("composetemplate.android.hilt")
     id("composetemplate.test")
@@ -63,6 +63,9 @@ android {
             )
         }
 
+        // Kept here deliberately. This build type references only app-local files, so it stays
+        // valid when the benchmark and baselineprofile modules are deleted; those modules select
+        // it through matchingFallbacks rather than the other way around.
         create("benchmark") {
             initWith(getByName("release"))
             matchingFallbacks += listOf("release")
@@ -103,7 +106,6 @@ dependencies {
     implementation(libs.androidx.material3.adaptive.navigation3)
     implementation(libs.kotlinx.serialization.core)
 
-    implementation(libs.androidx.profileinstaller)
-
-    baselineProfile(project(":baselineprofile"))
+    // Baseline profile wiring, including the profileinstaller runtime dependency, is contributed
+    // by composetemplate.perf and only when :baselineprofile exists.
 }

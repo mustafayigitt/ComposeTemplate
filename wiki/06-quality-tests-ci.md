@@ -16,6 +16,8 @@ The failure message names the file, the line, the offending import and the mecha
 
 Relationship to the CI `plug-out` job: the job proves that the modules it deletes are actually removable, after the fact and only for the modules listed in `ci.yml`. The Gradle task prevents the regression up front, for every module, on every build.
 
+What the task cannot see is a build-file coupling. It reads `import` lines, so a module named only in `app/build.gradle.kts` — which is exactly how the performance modules used to be wired — passes the check and still blocks deletion. That shape is caught by the `plug-out` job instead.
+
 ## Test stack
 
 Standardized by `composetemplate.test`: JUnit 4.13.2, MockK 1.14.11, Truth 1.4.5, `kotlinx-coroutines-test` 1.11.0, plus AndroidX JUnit/Espresso and Compose UI test artifacts declared in the catalog.
@@ -34,19 +36,20 @@ Standardized by `composetemplate.test`: JUnit 4.13.2, MockK 1.14.11, Truth 1.4.5
 
 ## Performance infrastructure
 
-- `:baselineprofile` module with the `androidx.baselineprofile` plugin, consumed by `app` via `baselineProfile(project(":baselineprofile"))`.
-- `:benchmark` module with Macrobenchmark + UI Automator.
-- Dedicated `benchmark` build type in `app` (`initWith(release)` + `benchmark-rules.pro`) and `androidx.profileinstaller` at runtime.
-- Neither benchmarks nor baseline-profile generation run in CI — the infrastructure exists, the measurement loop does not.
+- `:baselineprofile` module, configured by `composetemplate.baseline.profile.generator`.
+- `:benchmark` module with Macrobenchmark + UI Automator. It does **not** use that convention plugin: it applies `com.android.test` directly and repeats the same configuration by hand.
+- Dedicated `benchmark` build type in `app` (`initWith(release)` + `benchmark-rules.pro`). This one stays in the build file on purpose — it names no module, and the performance modules select it through `matchingFallbacks` rather than the reverse.
+- `composetemplate.perf` owns the rest of the wiring: applying `androidx.baselineprofile`, the `baselineProfile(project(":baselineprofile"))` dependency and `androidx.profileinstaller` at runtime. All three are contributed **only when `:baselineprofile` is present in the build**, so deleting the performance folders leaves a working application module. See the decision log in [07](07-risks-and-gaps.md#baseline-decision-log).
+- Neither benchmarks nor baseline-profile generation run in CI — the infrastructure exists, the measurement loop does not. What CI does verify is that the infrastructure is removable.
 
 ## CI: `.github/workflows/ci.yml`
 
 JDK 17 (temurin), `gradle/actions/setup-gradle@v4`, concurrency group with `cancel-in-progress`. Five jobs:
 
-1. **lint** — `ktlintCheck` + `detekt`
+1. **lint** — `ktlintCheck` + `detekt`. Also the job that compiles `build-logic`, so convention-plugin errors surface here first.
 2. **test** — `testDebugUnitTest`
 3. **build** — `assembleDebug` + `:app:assembleRelease`
-4. **plug-out** — deletes the optional modules listed in the job (`core/security`, `core/analytics`), strips their `include(...)` and `project(...)` lines, greps the Kotlin sources to prove nothing still references them, then runs `:app:assembleDebug`. The list grows with each plug-out refactor, which is what makes a regression unmergeable.
+4. **plug-out** — the contract's executable half. It deletes `core/security`, `core/analytics`, `benchmark` and `baselineprofile`, greps the Kotlin sources to prove nothing still references the two `core` modules, then runs `:app:assembleDebug`. The list grows with each plug-out refactor, which is what makes a regression unmergeable.
 5. **template-smoke** — the distinctive one:
    - `help --task scaffoldFeature`
    - `scaffoldFeature -PfeatureName=ci_feature`, then compile it
@@ -56,13 +59,30 @@ JDK 17 (temurin), `gradle/actions/setup-gradle@v4`, concurrency group with `canc
 
 The smoke job is the mechanism that keeps the generator honest: if a template file drifts and no longer compiles after generation, CI fails even though the template repository itself still builds.
 
+### Two details of the plug-out job worth knowing
+
+**Deleting the folder is the entire operation.** The job used to run two `sed` commands per module to strip `include(...)` from `settings.gradle.kts` and `project(...)` from `app/build.gradle.kts`. Once modules were discovered from disk those commands matched nothing, and they have been removed. If they are ever reintroduced, they are a sign that a module has been hardcoded somewhere again.
+
+**A green build is not sufficient proof.** `:app:assembleDebug` succeeding after the deletion only shows that nothing exploded; it does not show that `composetemplate.perf` took its conditional path. The job therefore asserts the plugin's log line:
+
+```bash
+./gradlew :app:assembleDebug | tee plug-out-build.log
+grep -q "Baseline profiles are disabled" plug-out-build.log
+```
+
+Without that assertion the job would still pass if the plugin silently stopped being applied, or started wiring baseline profiles unconditionally again. Note the `set -euo pipefail`: piping Gradle into `tee` would otherwise hide a Gradle failure behind `tee`'s exit code.
+
 ### CI weak points
 
-- Every job recreates `local.properties` and `secrets.properties` with an inline heredoc — the same block is duplicated **five times**, so any secret-key change must be applied in five places.
-- No instrumentation tests, no benchmark run.
+- Every job recreates `local.properties` and `secrets.properties` with an inline block — the same 14 lines are duplicated **five times**, so any secret-key change must be applied in five places.
+- No instrumentation tests. Benchmarks are proven removable but never actually run, so no performance number is ever measured.
 - No report/coverage artifact upload; failures must be read from logs.
 - A sample signature hash is embedded in the workflow for release assembly.
-- The workflow file is YAML, so an invisible character on a blank line inside a `run: |` block makes GitHub skip the workflow entirely and report **zero** check runs rather than a failure. A PR that looks unchecked is the symptom.
+- The workflow file is YAML, so an invisible character on a blank line inside a `run: |` block makes GitHub skip the workflow entirely and report **zero** check runs rather than a failure. A PR that looks unchecked is the symptom. To clear it:
+
+```bash
+perl -CSD -pi -e 's/\x{200b}//g' .github/workflows/ci.yml
+```
 
 ## Local verification equivalent
 
