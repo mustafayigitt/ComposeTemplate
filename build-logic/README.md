@@ -14,12 +14,15 @@ build-logic/
 │       ├── AndroidLibraryConventionPlugin.kt
 │       ├── AndroidLibraryNativeConventionPlugin.kt # NDK secret management
 │       ├── AndroidRoomConventionPlugin.kt
+│       ├── AppModuleBoundaryPlugin.kt              # registers checkAppModuleBoundary
 │       ├── BaselineProfileGeneratorConventionPlugin.kt
+│       ├── CheckAppModuleBoundaryTask.kt
 │       ├── CreateNewAppPlugin.kt
 │       ├── FeatureDomainConventionPlugin.kt
 │       ├── FeatureDataConventionPlugin.kt
 │       ├── FeatureNavigationConventionPlugin.kt
 │       ├── FeaturePresentationConventionPlugin.kt
+│       ├── PerfConventionPlugin.kt                 # conditional baseline profile wiring
 │       ├── ScaffoldFeaturePlugin.kt
 │       ├── StaticAnalysisConventionPlugin.kt
 │       ├── TestConventionPlugin.kt
@@ -30,6 +33,9 @@ build-logic/
 
 ## ✨ Recent Improvements
 
+- **Module discovery**: `settings.gradle.kts` finds modules on disk, so adding or removing one needs no build-file edit.
+- **Enforced app boundary**: the build fails when `:app` imports a module that is meant to stay removable.
+- **Conditional performance tooling**: baseline profile wiring is applied only when the generator module exists.
 - **Compose Metrics & Reports**: Integrated support for generating performance and stability metrics.
 - **Secret Management**: Automated validation, native obfuscation, and artifact scanning support.
 - **Centralized Versioning**: Categorized dependencies in Version Catalog for better maintainability.
@@ -40,6 +46,7 @@ build-logic/
 **What it does:**
 - Applies the Android application plugin, Kotlin Android plugin, and shared SDK/default config.
 - Configures build types, packaging, and project-wide Android defaults.
+- Also applies `composetemplate.static.analysis` and `composetemplate.app.boundary`.
 
 ### `composetemplate.android.application.compose`
 **What it does:**
@@ -88,11 +95,24 @@ build-logic/
 - Applies Ktlint and Detekt consistently across modules.
 - Uses the shared Detekt config from `config/detekt/detekt.yml`.
 
+### `composetemplate.app.boundary`
+**What it does:**
+- Registers the `checkAppModuleBoundary` verification task and hooks it into the application module's build.
+- Fails the build when `:app` imports a symbol from any module other than `core:common`, `core:navigation` and `core:ui`.
+- Writes a report to `build/reports/plugout/app-module-boundary.txt`.
+- This is what keeps optional modules deletable: they must reach the app through DI multibindings rather than imports.
+
+### `composetemplate.perf`
+**What it does:**
+- Applies `androidx.baselineprofile`, adds the `:baselineprofile` generator dependency and the `profileinstaller` runtime dependency — but **only if the `:baselineprofile` project is part of the build**.
+- When the folder has been deleted, it logs that baseline profiles are disabled and does nothing else, so performance tooling can be plugged out with a folder delete.
+- CI asserts that log line, so a change that silently made the wiring unconditional again would fail instead of passing.
+
 ### `composetemplate.scaffold.feature`
 **What it does:**
 - Generates `data`, `domain`, `navigation`, and `presentation` feature sub-modules.
-- Wires settings/app dependencies.
 - Creates a route, ViewModel, UI state/event, stateless screen, screen provider, Hilt binding, and localized string resources.
+- Performs **no** build-file edits: module discovery registers the new folders, so the task logs `no edit needed` for `settings.gradle.kts` and `app/build.gradle.kts`.
 
 ### `composetemplate.create.new.app`
 **What it does:**

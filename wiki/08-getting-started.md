@@ -71,6 +71,12 @@ Hard rules enforced by validation:
 ./gradlew scanApkForSecrets
 ```
 
+To reproduce the boundary rule that CI enforces on `:app`:
+
+```bash
+./gradlew :app:checkAppModuleBoundary
+```
+
 ## 5. Add your first feature
 
 ```bash
@@ -78,7 +84,10 @@ Hard rules enforced by validation:
 ./gradlew :feature:user_profile:presentation:compileDebugKotlin
 ```
 
-Read the task output: it reports whether `settings.gradle.kts` and `app/build.gradle.kts` were actually updated. If either says `not changed`, wire it manually before continuing.
+The task writes four sub-module folders and nothing else. It logs `no edit needed` for
+both `settings.gradle.kts` and `app/build.gradle.kts`, which is the expected output, not a
+warning: modules are discovered from disk, so creating the folders is what registers the
+feature with the build. Do not go looking for an `include(...)` line to add.
 
 After scaffolding you still need to:
 
@@ -86,13 +95,20 @@ After scaffolding you still need to:
 2. Register the route as a bottom-bar item if it belongs in the tab bar (multibinding key determines order).
 3. Add repository/use-case contracts if the feature needs data.
 
+## Removing what you do not need
+
+Optional modules are deleted, not disabled. Delete the folder and the build stops
+referencing it — no flags, no `include(...)` cleanup. CI proves this on every pull request
+by deleting `core/security`, `core/analytics`, `benchmark` and `baselineprofile` and
+building the app without them. See [06 - Quality, Tests and CI](06-quality-tests-ci.md).
+
 ## First-release checklist
 
 - [ ] `validateSecrets` passes with real values
 - [ ] Release keystore configured; `:app:assembleRelease` succeeds
 - [ ] `scanApkForSecrets` clean on the release artifact
 - [ ] `hardeningReport` reviewed; pinning decision made with a rotation plan
-- [ ] Real auth refresh endpoint implemented behind `ITokenRefresher`
+- [ ] An `ITokenRefresher` contributed if you need 401 retry — the template ships none, so today a 401 simply fails (see [03 - Network](03-network-and-auth.md))
 - [ ] `minSdk` reviewed against your own audience before the first release
 - [ ] Sample features (`detail`, design-system catalog) removed or adapted
 - [ ] CI secrets configured as environment variables
