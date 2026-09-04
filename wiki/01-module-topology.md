@@ -21,19 +21,22 @@
 
 These counts describe what the tree contains today, not a contract. Because modules are discovered, adding or deleting a module folder changes the inventory with no build-file edit anywhere.
 
-## Convention plugins (19)
+Of these, 44 are Android library modules — every `core:*` and every `feature:*:*`, since even `feature:*:domain` applies `composetemplate.android.library`. That is the set the boundary check covers.
+
+## Convention plugins (20)
 
 Applied by ID, e.g. `composetemplate.android.library`, `composetemplate.feature.presentation`.
 
 - **Android base**: `android.application`, `android.application.compose`, `android.library`, `android.library.compose`, `android.library.native`, `android.hilt`, `android.room`
 - **Feature tiers**: `feature.domain`, `feature.data`, `feature.navigation`, `feature.presentation`
-- **Tooling**: `test`, `static.analysis`, `create.new.app`, `scaffold.feature`, `validate.secrets`, `baseline.profile.generator`, `app.boundary`, `perf`, plus the shared `ProjectExtensions` helpers (not a plugin)
+- **Tooling**: `test`, `static.analysis`, `create.new.app`, `scaffold.feature`, `validate.secrets`, `baseline.profile.generator`, `app.boundary`, `module.boundary`, `perf`, plus the shared `ProjectExtensions` helpers (not a plugin)
 
 Each feature tier plugin encodes what that layer is allowed to depend on — this is where Clean Architecture is actually implemented, rather than in package naming.
 
-Two of these exist to protect the plug-out property rather than to configure a module:
+Three of these exist to protect the plug-out property rather than to configure a module:
 
 - **`app.boundary`** registers `checkAppModuleBoundary`, which fails the build when `:app` imports a symbol from any module other than `core:common`, `core:navigation` or `core:ui`.
+- **`module.boundary`** registers `checkModuleBoundary` for every library module. It is applied by `composetemplate.android.library`, so no module opts in, and the rule it enforces is derived from the module's own Gradle path: the four core modules that survive every plug-out combination may name only each other, any other core module may not name a feature, and a feature may not name another feature except through its published `navigation` module.
 - **`perf`** applies the baseline profile plugin and its dependencies **only when `:baselineprofile` is part of the build**, so deleting the folder is enough to remove performance tooling.
 
 ## `app/build.gradle.kts`
@@ -46,9 +49,9 @@ Two of these exist to protect the plug-out property rather than to configure a m
 - `buildConfig = true` (needed for secret and flag plumbing).
 - Core and feature module dependencies are **derived from the discovered projects**, not listed by hand. Only libraries `:app` uses directly are declared explicitly, such as the Navigation3 libraries and Timber.
 
-> **Note:** `:app` may import symbols only from `core:common`, `core:navigation` and `core:ui`. Every other module reaches the app through DI multibindings instead of imports, and `checkAppModuleBoundary` fails the build if that rule is broken. See [06 - Quality, Tests and CI](06-quality-tests-ci.md) and [07 - Risks](07-risks-and-gaps.md).
+> **Note:** `:app` may import symbols only from `core:common`, `core:navigation` and `core:ui`, and every other module is held to its own version of the same rule by `checkModuleBoundary`. Modules reach each other through DI multibindings instead of imports, and the build fails when that is broken. See [06 - Quality, Tests and CI](06-quality-tests-ci.md) and [07 - Risks](07-risks-and-gaps.md#baseline-decision-log).
 
-One class of coupling this check cannot see is build-file coupling: `:app` once declared `baselineProfile(project(":baselineprofile"))` in its own script, which broke deletion of that module without a single Kotlin import. That is what `composetemplate.perf` fixed.
+One class of coupling these checks cannot see is build-file coupling: `:app` once declared `baselineProfile(project(":baselineprofile"))` in its own script, which broke deletion of that module without a single Kotlin import. That is what `composetemplate.perf` fixed, and it remains the open half of the rule.
 
 ## Version catalog highlights
 

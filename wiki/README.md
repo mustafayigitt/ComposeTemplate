@@ -7,13 +7,13 @@ This wiki is the **single documentation source** for ComposeTemplate. It is writ
 | # | Page | What it covers |
 | --- | --- | --- |
 | 00 | [Project Context](00-project-context.md) | What this repository really is, and the opinions it enforces |
-| 01 | [Module Topology and Build System](01-module-topology.md) | 47 modules, 19 convention plugins, version catalog |
+| 01 | [Module Topology and Build System](01-module-topology.md) | 47 modules, 20 convention plugins, version catalog |
 | 02 | [Navigation and UI State](02-navigation-and-ui-state.md) | Hand-written back stack, `ScreenRegistry`, `BaseViewModel` |
 | 03 | [Network and Auth Token Flow](03-network-and-auth.md) | `safeCall`, `TokenAuthenticator`, certificate pinning |
 | 04 | [Secrets, Security and Hardening](04-secrets-and-hardening.md) | NDK/JNI secret pipeline and Gradle guardrails |
 | 05 | [Generator and Scaffolding Tooling](05-generator-and-scaffolding.md) | `scaffoldFeature`, `create-new-app` |
 | 06 | [Quality, Tests and CI](06-quality-tests-ci.md) | Unit tests, five CI jobs, template smoke test |
-| 07 | [Risks, Gaps and Open Questions](07-risks-and-gaps.md) | 17 findings, a remediation order and the baseline decision log |
+| 07 | [Risks, Gaps and Open Questions](07-risks-and-gaps.md) | 20 findings, a remediation order and the baseline decision log |
 | 08 | [Getting Started](08-getting-started.md) | Commands and secret keys taken from the build |
 
 Reading order: start with 00 for the mental model, then 01–06 for subsystems, and read 07 before making changes.
@@ -27,10 +27,10 @@ Reading order: start with 00 for the mental model, then 01–06 for subsystems, 
 | Base package | `com.ytapps.composetemplate` |
 | License | Apache-2.0 |
 | Gradle modules | 47 |
-| Convention plugins | 19 |
+| Convention plugins | 20 |
 | minSdk / targetSdk / compileSdk | 26 / 36 / 37 |
 | Kotlin / AGP / KSP | 2.0.21 / 9.2.1 / 2.0.21-1.0.28 |
 
 ## One-paragraph summary
 
-ComposeTemplate is not a sample app: it is a **Gradle-based project generator** whose own application code doubles as the live fixture that proves the generator works. The heaviest logic sits in `build-logic/convention` (feature scaffolding, app rebranding, secret validation), and the most opinionated runtime code sits in `core:navigation` (a hand-written back stack over Navigation3) and `core:secrets` (NDK/JNI secret obfuscation with dynamic `RegisterNatives`). The template's guardrails — secret validation, APK/AAB secret scanning, a build-time check that stops `:app` from importing any removable module, and CI jobs that generate a whole new app and delete four optional modules before rebuilding — are its real differentiator.
+ComposeTemplate is not a sample app: it is a **Gradle-based project generator** whose own application code doubles as the live fixture that proves the generator works. The heaviest logic sits in `build-logic/convention` (feature scaffolding, app rebranding, secret validation), and the most opinionated runtime code sits in `core:navigation` (a hand-written back stack over Navigation3) and `core:secrets` (NDK/JNI secret obfuscation with dynamic `RegisterNatives`). The template's guardrails — secret validation, APK/AAB secret scanning, a build-time check that stops any module from importing a module it is not allowed to name, and CI jobs that generate a whole new app and delete four optional modules before rebuilding — are its real differentiator.

@@ -71,11 +71,19 @@ Hard rules enforced by validation:
 ./gradlew scanApkForSecrets
 ```
 
-To reproduce the boundary rule that CI enforces on `:app`:
+To reproduce the boundary rules that CI enforces, run any of the checks on their own:
 
 ```bash
 ./gradlew :app:checkAppModuleBoundary
+./gradlew :core:data:checkModuleBoundary
+./gradlew :feature:auth:presentation:checkModuleBoundary
 ```
+
+Each task is wired into both `preBuild` and `check`, so an ordinary `assembleDebug` or
+`testDebugUnitTest` already runs them for every module. Note that `ktlintCheck` does
+**not** trigger `preBuild`, so a lint-only run will not surface a boundary violation.
+What a failure looks like, and why it is worded the way it is, is in
+[07 - Risks](07-risks-and-gaps.md#baseline-decision-log).
 
 ## 5. Add your first feature
 
@@ -89,6 +97,9 @@ both `settings.gradle.kts` and `app/build.gradle.kts`, which is the expected out
 warning: modules are discovered from disk, so creating the folders is what registers the
 feature with the build. Do not go looking for an `include(...)` line to add.
 
+The new feature is governed by `checkModuleBoundary` from its first build, because the
+rule comes from the module's Gradle path rather than from a list someone has to update.
+
 After scaffolding you still need to:
 
 1. Replace the generated placeholder UI/state with the real screen.
@@ -98,9 +109,22 @@ After scaffolding you still need to:
 ## Removing what you do not need
 
 Optional modules are deleted, not disabled. Delete the folder and the build stops
-referencing it — no flags, no `include(...)` cleanup. CI proves this on every pull request
-by deleting `core/security`, `core/analytics`, `benchmark` and `baselineprofile` and
-building the app without them. See [06 - Quality, Tests and CI](06-quality-tests-ci.md).
+referencing it — no flags, no `include(...)` cleanup. Two mechanisms keep that true: the
+boundary checks fail the build when a module imports something it is not allowed to name,
+so the coupling never accumulates in the first place; and CI proves the result on every
+pull request by deleting `core/security`, `core/analytics`, `benchmark` and
+`baselineprofile` and building the app without them.
+
+If you need a genuine exception, declare it in the importing module's own build script
+rather than weakening the rule for everyone:
+
+```kotlin
+moduleBoundary {
+    additionalPermittedImports.add("feature.auth.domain.")
+}
+```
+
+See [06 - Quality, Tests and CI](06-quality-tests-ci.md).
 
 ## First-release checklist
 
