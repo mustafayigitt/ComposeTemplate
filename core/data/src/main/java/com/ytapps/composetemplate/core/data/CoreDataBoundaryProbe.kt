@@ -1,16 +1,23 @@
 package com.ytapps.composetemplate.core.data
 
-import com.ytapps.composetemplate.core.network.BaseRepository
+import com.ytapps.composetemplate.core.config.IConfigManager
 
 /**
  * TEMPORARY probe, reverted in the next commit.
  *
  * `core:data` is one of the four modules that survive every plug-out combination, so it may
- * only name the others. Importing [BaseRepository] from the optional `core:network` module is
+ * only name the others. Importing [IConfigManager] from the optional `core:config` module is
  * the violation `checkModuleBoundary` has to reject: nothing deletes `core:data`, so an import
- * from here would make `core:network` undeletable in every configuration.
+ * from here would make `core:config` undeletable in every configuration.
  *
- * The import resolves to a real public symbol and is used by the declaration below, so the
- * boundary check is the only thing that can fail on this file.
+ * The import resolves to a real public interface and is implemented below, so neither an
+ * unresolved reference nor a ktlint unused-import can be mistaken for the boundary check
+ * firing.
  */
-internal abstract class CoreDataBoundaryProbe : BaseRepository()
+internal class CoreDataBoundaryProbe : IConfigManager {
+    override fun getBoolean(key: String): Boolean = false
+
+    override fun getString(key: String): String = ""
+
+    override fun getLong(key: String): Long = 0L
+}
