@@ -28,20 +28,21 @@ Those four files carry more logic than most `core` modules contain of runtime lo
 - Screen state is standardized by `BaseViewModel<S, E>`: one `StateFlow` for state, one `Channel` for one-shot events.
 - Secrets never live as plain Kotlin strings in release: they go through XOR-obfuscated byte arrays in native code.
 - Build conventions are not optional: modules apply `composetemplate.*` plugins instead of configuring Android/Kotlin/Hilt themselves.
-- Optional modules stay deletable: `:app` may import symbols only from `core:common`, `core:navigation` and `core:ui`, and `checkAppModuleBoundary` fails the build when that rule is broken. Everything else reaches the app through DI multibindings.
+- Optional modules stay deletable, and this is enforced for **every** module rather than argued in review. `:app` may import symbols only from `core:common`, `core:navigation` and `core:ui`; the four core modules that survive every plug-out combination may name only each other; every other core module may not name a feature; and a feature may not name another feature except through its published navigation contract. `checkAppModuleBoundary` and `checkModuleBoundary` fail the build when that is broken. Everything else reaches its consumers through DI multibindings.
 - Modules are discovered from disk, so adding or removing one is a folder operation rather than a build-file edit.
 
 ## Opinions the code does *not* enforce (worth knowing)
 
-- Feature-to-feature isolation is unchecked. The boundary task inspects `:app` only, so one feature importing another compiles happily.
-- The boundary task reads Kotlin `import` lines. Coupling expressed in a build file is invisible to it — `:app` once declared `baselineProfile(project(":baselineprofile"))`, which blocked deletion of that module without a single import.
+- The boundary checks read Kotlin `import` lines. Coupling expressed in a build file is invisible to them — `:app` once declared `baselineProfile(project(":baselineprofile"))`, which blocked deletion of that module without a single import.
+- Removability is only *proven* for four modules. The CI plug-out job deletes `core/security`, `core/analytics`, `benchmark` and `baselineprofile`; the remaining optional modules satisfy the rule but are never actually deleted and rebuilt.
 - `:app` still *depends* on every module at the Gradle level; what it may not do is *import* them. Removability comes from multibindings, not from a short dependency list.
 - Presentation modules have no tests, so the ViewModel/state contract is unverified by CI.
+- `main` is unprotected: passing checks are not a merge requirement.
 
 ## Scale snapshot
 
 - 47 Gradle modules (`:app`, 12 core, 32 feature, `:benchmark`, `:baselineprofile`) — a count the discovery rule produces from the tree, not a fixed contract.
-- 19 convention plugins in a composite build: `pluginManagement { includeBuild("build-logic") }`.
+- 20 convention plugins in a composite build: `pluginManagement { includeBuild("build-logic") }`.
 - `RepositoriesMode.FAIL_ON_PROJECT_REPOS` — modules cannot declare their own repositories.
 - Languages: Kotlin, C++, CMake.
 

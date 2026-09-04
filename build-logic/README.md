@@ -11,17 +11,18 @@ build-logic/
 │       ├── AndroidApplicationConventionPlugin.kt
 │       ├── AndroidComposeConventionPlugin.kt
 │       ├── AndroidHiltConventionPlugin.kt
-│       ├── AndroidLibraryConventionPlugin.kt
+│       ├── AndroidLibraryConventionPlugin.kt       # applies static.analysis + module.boundary
 │       ├── AndroidLibraryNativeConventionPlugin.kt # NDK secret management
 │       ├── AndroidRoomConventionPlugin.kt
 │       ├── AppModuleBoundaryPlugin.kt              # registers checkAppModuleBoundary
 │       ├── BaselineProfileGeneratorConventionPlugin.kt
-│       ├── CheckAppModuleBoundaryTask.kt
+│       ├── CheckModuleBoundaryTask.kt              # the shared scanner, driven by task inputs
 │       ├── CreateNewAppPlugin.kt
 │       ├── FeatureDomainConventionPlugin.kt
 │       ├── FeatureDataConventionPlugin.kt
 │       ├── FeatureNavigationConventionPlugin.kt
 │       ├── FeaturePresentationConventionPlugin.kt
+│       ├── ModuleBoundaryPlugin.kt                 # registers checkModuleBoundary per module
 │       ├── PerfConventionPlugin.kt                 # conditional baseline profile wiring
 │       ├── ScaffoldFeaturePlugin.kt
 │       ├── StaticAnalysisConventionPlugin.kt
@@ -34,7 +35,7 @@ build-logic/
 ## ✨ Recent Improvements
 
 - **Module discovery**: `settings.gradle.kts` finds modules on disk, so adding or removing one needs no build-file edit.
-- **Enforced app boundary**: the build fails when `:app` imports a module that is meant to stay removable.
+- **Enforced module boundaries**: the build fails when any module imports another module it is not allowed to name — not just `:app`.
 - **Conditional performance tooling**: baseline profile wiring is applied only when the generator module exists.
 - **Compose Metrics & Reports**: Integrated support for generating performance and stability metrics.
 - **Secret Management**: Automated validation, native obfuscation, and artifact scanning support.
@@ -59,6 +60,7 @@ build-logic/
 **What it does:**
 - Applies the Android library plugin, Kotlin Android plugin, and shared library defaults.
 - Keeps module SDK and packaging configuration consistent.
+- Also applies `composetemplate.static.analysis` and `composetemplate.module.boundary`, which is how every library module gets a boundary check without opting in.
 
 ### `composetemplate.android.library.compose`
 **What it does:**
@@ -102,6 +104,24 @@ build-logic/
 - Writes a report to `build/reports/plugout/app-module-boundary.txt`.
 - This is what keeps optional modules deletable: they must reach the app through DI multibindings rather than imports.
 
+### `composetemplate.module.boundary`
+**What it does:**
+- Registers `checkModuleBoundary` for every Android library module, applied through `composetemplate.android.library` so no build script opts in.
+- Derives the rule from the module's own Gradle path:
+  - `core:common`, `core:navigation`, `core:ui` and `core:data` survive every plug-out combination, so they may name only each other. An import of an optional module from here would make that module undeletable everywhere.
+  - Any other `core:*` module may name any core module but never a feature.
+  - A `feature:X:*` module may name its own feature and any feature's `navigation` module — a feature's route contract is what it publishes — but not another feature's `domain`, `data` or `presentation` code.
+- Writes a report to `build/reports/plugout/module-boundary.txt`, and hooks into `preBuild` and `check`.
+- Narrow exceptions are declared per module, not in a shared file:
+
+```kotlin
+moduleBoundary {
+    additionalPermittedImports.add("feature.auth.domain.")
+}
+```
+
+- Both boundary plugins share one `CheckModuleBoundaryTask`. The task knows nothing about which module it is checking; guarded prefixes, permitted patterns and advice text all arrive as task inputs.
+
 ### `composetemplate.perf`
 **What it does:**
 - Applies `androidx.baselineprofile`, adds the `:baselineprofile` generator dependency and the `profileinstaller` runtime dependency — but **only if the `:baselineprofile` project is part of the build**.
@@ -143,7 +163,7 @@ All dependencies and versions are managed in `gradle/libs.versions.toml`.
 - **Kotlin**: 2.0.21
 
 The `minSdk` baseline is Android 8.0 (Oreo). It is read from the catalog by every
-convention plugin, so changing it there changes it for all ~48 modules at once.
+convention plugin, so changing it there changes it for all 47 modules at once.
 
 ## 🔧 Configuring Metrics
 
