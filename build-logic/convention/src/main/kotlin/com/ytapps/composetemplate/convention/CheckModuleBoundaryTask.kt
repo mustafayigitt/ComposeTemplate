@@ -84,11 +84,8 @@ abstract class CheckModuleBoundaryTask : DefaultTask() {
             }
 
         if (violations.isNotEmpty()) {
-            logger.error(buildFailureMessage(label, violations))
             writeReport(violations.joinToString(separator = "\n"))
-            throw GradleException(
-                "$label imports ${violations.size} symbol(s) from modules it is not allowed to name.",
-            )
+            throw GradleException(buildFailureMessage(label, violations))
         }
 
         writeReport("ok: ${kotlinSources.size} file(s) checked, no forbidden imports")
@@ -150,21 +147,33 @@ abstract class CheckModuleBoundaryTask : DefaultTask() {
         return Regex("^$expression.*")
     }
 
+    /**
+     * Builds the whole failure report as the exception message.
+     *
+     * This deliberately does not go through `logger.error`. Gradle flushes console output line
+     * by line and attributes each line to whichever task is current, so under parallel execution
+     * a multi-line error came apart: the header appeared beneath a different module's task and
+     * the offending import surfaced far below it. For a check whose entire purpose is to name
+     * the module that broke the rule, a report that can be separated from its own module name is
+     * a defect. Gradle prints an exception message under `* What went wrong:` as a single block,
+     * already prefixed with the failing task path, so the module, the imports and the advice stay
+     * together.
+     */
     private fun buildFailureMessage(
         label: String,
         violations: List<String>,
     ): String =
         buildString {
-            appendLine()
-            appendLine("$label imports symbols from modules it is not allowed to name:")
+            appendLine(
+                "$label imports ${violations.size} symbol(s) from modules it is not allowed to name:",
+            )
             appendLine()
             violations.forEach { violation -> appendLine("  $violation") }
             appendLine()
             adviceLines.get().forEach { advice -> appendLine("  $advice") }
             appendLine()
             appendLine("  Removing a module has to stay a folder deletion. An import turns it into a")
-            appendLine("  compile error, which is exactly what this check prevents.")
-            appendLine()
+            append("  compile error, which is exactly what this check prevents.")
         }
 
     private fun writeReport(summary: String) {
