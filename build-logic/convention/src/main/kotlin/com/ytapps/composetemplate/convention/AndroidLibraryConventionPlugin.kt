@@ -16,6 +16,10 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             with(pluginManager) {
                 apply("com.android.library")
                 apply("composetemplate.static.analysis")
+                // Every core and feature module goes through this plugin, so applying the
+                // boundary check here is what makes the rule cover the whole graph without a
+                // single build script opting in.
+                apply("composetemplate.module.boundary")
             }
 
             extensions.configure<LibraryExtension> {

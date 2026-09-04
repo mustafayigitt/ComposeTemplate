@@ -87,6 +87,10 @@ gradlePlugin {
             id = "composetemplate.app.boundary"
             implementationClass = "com.ytapps.composetemplate.convention.AppModuleBoundaryPlugin"
         }
+        register("moduleBoundary") {
+            id = "composetemplate.module.boundary"
+            implementationClass = "com.ytapps.composetemplate.convention.ModuleBoundaryPlugin"
+        }
         register("perf") {
             id = "composetemplate.perf"
             implementationClass = "com.ytapps.composetemplate.convention.PerfConventionPlugin"
