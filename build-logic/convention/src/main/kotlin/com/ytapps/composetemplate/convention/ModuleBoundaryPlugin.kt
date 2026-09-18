@@ -17,27 +17,28 @@ abstract class ModuleBoundaryExtension {
     /**
      * Extra import patterns this module may name, relative to the package root, where `*`
      * matches exactly one package segment.
+     */
+    abstract val additionalPermittedImports: ListProperty<String>
+
+    /**
+     * Extra literal Gradle project paths this module may reference from `build.gradle.kts`.
+     * `*` matches exactly one `:`-delimited path segment.
      *
      * ```
      * moduleBoundary {
-     *     additionalPermittedImports.add("feature.auth.domain.")
+     *     additionalPermittedProjectDependencies.add(":feature:auth:domain")
      * }
      * ```
      */
-    abstract val additionalPermittedImports: ListProperty<String>
+    abstract val additionalPermittedProjectDependencies: ListProperty<String>
 }
 
 /**
- * Applies the plug-out boundary rule to every core and feature module.
+ * Applies the plug-out boundary rules to every core and feature module.
  *
- * `composetemplate.app.boundary` proved the rule can be executable rather than a review
- * convention, but it only covered `:app`. Every other edge stayed unguarded: a feature could
- * import another feature's internals, and a core module that is never deleted could import one
- * that is, which quietly makes the optional module undeletable everywhere.
- *
- * The rule is derived from the module's own Gradle path rather than configured, so a module
- * added later is governed the moment it exists on disk - the same property that made module
- * discovery worth doing.
+ * The source-import rule and the build-file rule are separate tasks because they inspect
+ * different coupling surfaces. Both use the same module-derived policy and both are wired into
+ * the normal `preBuild`/`check` lifecycle.
  *
  * Every lambda below is parameterless on purpose. Gradle's `Action<T>` parameters surface in
  * Kotlin as `T.() -> Unit`, so declaring a parameter is a compile error. `matching` is the
@@ -68,8 +69,6 @@ class ModuleBoundaryPlugin : Plugin<Project> {
             reportFile.set(
                 target.layout.buildDirectory.file("reports/plugout/module-boundary.txt"),
             )
-            // Both the namespace and the module's own exceptions are set by the build script
-            // that applies this plugin, so they are read through providers rather than now.
             permittedPatterns.set(
                 target.provider {
                     rule.permittedPatterns + extension.additionalPermittedImports.get()
@@ -84,9 +83,35 @@ class ModuleBoundaryPlugin : Plugin<Project> {
             )
         }
 
+        val projectDependencyCheck =
+            target.tasks.register(
+                "checkProjectDependencyBoundary",
+                CheckProjectDependencyBoundaryTask::class.java,
+            )
+
+        projectDependencyCheck.configure {
+            group = "verification"
+            description =
+                "Fails when ${target.path} declares a project dependency it is not allowed to name"
+            moduleLabel.set(target.path)
+            buildFile.set(target.layout.projectDirectory.file("build.gradle.kts"))
+            permittedPatterns.set(
+                target.provider {
+                    rule.permittedProjectDependencyPatterns +
+                        extension.additionalPermittedProjectDependencies.get()
+                },
+            )
+            reportFile.set(
+                target.layout.buildDirectory.file("reports/plugout/project-dependency-boundary.txt"),
+            )
+        }
+
         target.tasks
             .matching { it.name == "preBuild" || it.name == "check" }
-            .configureEach { dependsOn(boundaryCheck) }
+            .configureEach {
+                dependsOn(boundaryCheck)
+                dependsOn(projectDependencyCheck)
+            }
     }
 
     private fun boundaryRuleFor(segments: List<String>): BoundaryRule? {
@@ -99,10 +124,6 @@ class ModuleBoundaryPlugin : Plugin<Project> {
         }
     }
 
-    /**
-     * A core module never imports a feature. Beyond that the rule splits in two, because the
-     * damage an import does depends on whether this module can itself be deleted.
-     */
     private fun coreRule(name: String): BoundaryRule =
         if (name in ALWAYS_PRESENT_CORE_MODULES) {
             BoundaryRule(
@@ -111,21 +132,25 @@ class ModuleBoundaryPlugin : Plugin<Project> {
                     (ALWAYS_PRESENT_CORE_MODULES + name)
                         .distinct()
                         .map { module -> "core.$module." },
+                permittedProjectDependencyPatterns =
+                    (ALWAYS_PRESENT_CORE_MODULES + name)
+                        .distinct()
+                        .map { module -> ":core:$module" },
                 adviceLines =
                     listOf(
                         "core:$name survives every plug-out combination, so it may name only the",
                         "other modules that survive with it: $ALWAYS_PRESENT_DESCRIPTION.",
                         "",
-                        "An import of an optional module from here makes that module undeletable",
-                        "everywhere, because this module is never the one being deleted.",
-                        "Invert the dependency with a multibinding, or move the shared type into",
-                        "core:common.",
+                        "An import or build dependency on an optional module from here makes",
+                        "that module undeletable everywhere. Invert the dependency with a",
+                        "multibinding, or move the shared type into core:common.",
                     ),
             )
         } else {
             BoundaryRule(
                 guardedPrefixes = listOf(FEATURE_PREFIX),
                 permittedPatterns = emptyList(),
+                permittedProjectDependencyPatterns = listOf(":core:*") ,
                 adviceLines =
                     listOf(
                         "core:$name is optional, so it may name any core module - but never a",
@@ -136,17 +161,16 @@ class ModuleBoundaryPlugin : Plugin<Project> {
             )
         }
 
-    /**
-     * A feature may name its own sub-modules and any other feature's navigation module. The
-     * navigation module is what a feature publishes: `feature:auth:presentation` links to a
-     * route owned by `feature:splash:navigation` today, and that edge is intended. Its data and
-     * presentation code are private, because coupling to those is what stops two features from
-     * being removed independently.
-     */
     private fun featureRule(name: String): BoundaryRule =
         BoundaryRule(
             guardedPrefixes = listOf(FEATURE_PREFIX),
             permittedPatterns = listOf("feature.$name.", FEATURE_NAVIGATION_PATTERN),
+            permittedProjectDependencyPatterns =
+                listOf(
+                    ":core:*",
+                    ":feature:$name:*",
+                    ":feature:*:navigation",
+                ),
             adviceLines =
                 listOf(
                     "feature:$name may name its own sub-modules and the navigation module of any",
@@ -161,6 +185,7 @@ class ModuleBoundaryPlugin : Plugin<Project> {
     private data class BoundaryRule(
         val guardedPrefixes: List<String>,
         val permittedPatterns: List<String>,
+        val permittedProjectDependencyPatterns: List<String>,
         val adviceLines: List<String>,
     )
 
@@ -169,16 +194,9 @@ class ModuleBoundaryPlugin : Plugin<Project> {
         const val FEATURE_GROUP = "feature"
         const val CORE_PREFIX = "core."
         const val FEATURE_PREFIX = "feature."
-
-        /** Any feature's navigation module, whatever the feature is called. */
         const val FEATURE_NAVIGATION_PATTERN = "feature.*.navigation."
 
-        /**
-         * Core modules that no plug-out combination removes. They are the only modules another
-         * always-present module is allowed to name.
-         */
         val ALWAYS_PRESENT_CORE_MODULES = listOf("common", "navigation", "ui", "data")
-
         val ALWAYS_PRESENT_DESCRIPTION =
             ALWAYS_PRESENT_CORE_MODULES.joinToString(separator = ", ") { module -> "core:$module" }
     }
