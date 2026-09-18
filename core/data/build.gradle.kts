@@ -10,6 +10,7 @@ android {
 
 dependencies {
     implementation(project(":core:common"))
+    implementation(project(":core:config"))
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.appcompat)
 }
