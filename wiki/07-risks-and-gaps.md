@@ -18,7 +18,7 @@ Findings from reading the code, ordered by practical impact. Each item is an obs
 | 5 | `safeCall` catches only `HttpException` and `IOException` | `BaseRepository` | Deserialization or `IllegalState` failures escape the `Result` abstraction and can crash callers that assume total coverage |
 | 6 | Theme state exposed through the navigation contract | `INavigationManager.isDarkModeFlow` | Misplaced responsibility; consumers depend on navigation to read appearance settings |
 | 7 | CI secret bootstrap duplicated five times | `.github/workflows/ci.yml` | Drift risk; a reusable workflow or composite action would collapse it into one definition |
-| 8 | Boundary enforcement sees imports, not build files | build-logic | Import-level enforcement now covers every module (see the decision log), but the check reads Kotlin `import` lines only. A `project(":…")` line in a build script couples two modules without an import — the exact shape that once blocked deleting `:baselineprofile` |
+| 8 | Build-file boundary enforcement is intentionally literal-only | build-logic | `checkProjectDependencyBoundary` now catches explicit `project(":…")` and `project(path = ":…")` references in each module's own `build.gradle.kts`, using the same module policy as the import check. It deliberately does not resolve dynamic project paths, so `:app` can keep discovering and wiring modules from folders on disk. A dynamic edge or a project reference hidden in convention-plugin code still needs architectural review |
 | 9 | `SecretManager` is a global object requiring `initialize(context)` | `core:secrets` | Initialization-order coupling; a secret read before startup completes fails at runtime rather than compile time |
 
 ## Lower impact / by design but worth stating
@@ -33,7 +33,7 @@ Findings from reading the code, ordered by practical impact. Each item is an obs
 | 15 | `config` module is local-only | `IConfigManager` + `LocalConfigProvider`; no remote-config backend, so runtime flags require a release |
 | 16 | Benchmarks and baseline profiles never run in CI | Performance infrastructure exists but is unmeasured. CI proves the tooling is *removable*; it never proves a benchmark *runs*. See the decision log below |
 | 17 | `benchmark/build.gradle.kts` bypasses its own convention plugin | It applies `com.android.test` directly and repeats every setting that `composetemplate.baseline.profile.generator` already applies for `:baselineprofile` |
-| 18 | The CI plug-out job deletes 4 of roughly 12 optional modules | It removes `core/security`, `core/analytics`, `benchmark` and `baselineprofile`. `core:network`, `core:database`, `core:google-play`, `core:permission`, `core:config`, `core:secrets` and the 8 features are *argued* to be removable, not demonstrated. The boundary check closes the import half of that gap for every module, but no job actually deletes those folders and rebuilds |
+| 18 | The CI plug-out job deletes 4 of roughly 12 optional modules | It removes `core/security`, `core/analytics`, `benchmark` and `baselineprofile`. `core:network`, `core:database`, `core:google-play`, `core:permission`, `core:config`, `core:secrets` and the 8 features are *argued* to be removable, not demonstrated. The import and literal build-file boundary checks close the static coupling half of that gap, but no job actually deletes those folders and rebuilds |
 | 19 | `mkdocs build --strict` is not a pull-request check | The published site builds from `main` after merge, so a broken link or nav entry fails once it is already public rather than in review |
 | 20 | `main` is unprotected | Nothing requires the five checks to pass before merging, and a fast merge can outrun CI entirely: PR #25 was merged about a minute after it was opened, so none of its checks ever ran |
 
@@ -192,7 +192,7 @@ Three properties were deliberate:
 
 This complements rather than replaces the CI `plug-out` job. The job proves that the
 modules it deletes are genuinely removable, after the fact and only for the modules
-listed in `ci.yml`; the task blocks the regression before it is committed.
+listed in `ci.yml`; the tasks block static regressions before they are committed.
 
 ### The same rule now applies to every module, and it was proven by making it fail
 
@@ -207,11 +207,12 @@ thoroughly:
   is never the one being deleted.
 
 `composetemplate.module.boundary`, applied by `composetemplate.android.library`,
-registers `checkModuleBoundary` for all 44 library modules — every `core:*` and every
-`feature:*:*`, including `feature:*:domain`, which is an Android library rather than a
-JVM module. No build script opts in. The rule is derived from the module's own Gradle
-path, so a module added later is governed the moment its folder exists on disk, which
-is the same property that made module discovery worth doing.
+registers `checkModuleBoundary` and `checkProjectDependencyBoundary` for all 44
+library modules — every `core:*` and every `feature:*:*`, including
+`feature:*:domain`, which is an Android library rather than a JVM module. No build
+script opts in. The rules are derived from the module's own Gradle path, so a module
+added later is governed the moment its folder exists on disk, which is the same
+property that made module discovery worth doing.
 
 | Module | May not name | Permitted anyway |
 | --- | --- | --- |
@@ -227,64 +228,52 @@ have declared that intended edge a violation on day one. So navigation is modell
 what a feature *publishes*: its route contract is public, its data and presentation
 code are private, and coupling to the latter is what actually stops two features from
 being removed independently. Permitted patterns therefore support `*` as a single
-package segment, which lets `feature.*.navigation.` be written once instead of once
+package or Gradle-path segment, which lets the rule be written once instead of once
 per feature.
 
 A module needing a narrow exception declares it in its own build script rather than in
-a shared file, for the same reason the check is a Gradle task and not a detekt rule:
+a shared file:
 
 ```kotlin
 moduleBoundary {
     additionalPermittedImports.add("feature.auth.domain.")
+    additionalPermittedProjectDependencies.add(":feature:auth:domain")
 }
 ```
 
+The two properties are independent. An import exception permits source access; a
+project-dependency exception permits the corresponding literal build edge. This keeps
+extensions local and reviewable rather than creating a global allowlist that grows
+forever.
+
 **How it was proven.** A green pipeline cannot establish that a check works, because a
-task that has quietly become inert produces exactly the same green. So the check was
-deliberately broken, once per rule branch, with probe commits that were then reverted:
+task that has quietly become inert produces exactly the same green. The import check
+was previously proven with controlled core and feature probes. This change added a
+cycle-free build-file probe: `core:data` temporarily declared
+`implementation(project(":core:config"))`. The expected result was observed:
+Assemble, Unit Tests, Template Smoke and Plug-out failed while Lint stayed green.
+The branch was then restored to the original `core/data/build.gradle.kts` SHA and the
+clean branch returned to 5/5 green. The probe did not point `core:data` at
+`core:network`, because that reverse edge creates a Gradle task-graph cycle before the
+boundary task can run.
 
-| Run | What it establishes |
-| --- | --- |
-| `33846040803` | Clean code, 5/5 green — the rules raise no false alarms on the graph as it stands |
-| `33847159068` | Control case: the task graph collapsed, `4 actionable tasks`, **no check ran at all** |
-| `33847887311` | Core rule rejects a violation: `:core:data:checkModuleBoundary FAILED`, `19 actionable tasks: 17 executed` |
-| `33848373441` | Feature rule rejects a violation: red only on the jobs that build `:app`, while Lint and Template Smoke stay green |
-| `33849020026` | After the revert, 5/5 green again on a tree identical to the pre-probe commit |
+The build-file task reports the source file and line, for example
+`build.gradle.kts:12  project(":core:config")`, and fails before compilation. Its
+report is written to `build/reports/plugout/project-dependency-boundary.txt`.
 
-The control case is the load-bearing row, and it is why the count of actionable tasks
-is quoted. The first probe pointed `core:data` at `core:network` — but `core:network`
-already depends on `core:data`, so the reverse edge closed a loop, Gradle rejected the
-task graph before running anything, and four red jobs proved nothing whatsoever. The
-outer signature was identical to a real violation. `4 actionable tasks` against
-`17 executed` is what separates "the check ran and rejected the import" from "the build
-died first".
-
-Two lessons worth keeping for the next probe:
-
-- **Adding a reverse edge into an always-present core module tends to create a cycle,**
-  because the optional modules already depend on the always-present ones. Read the
-  target module's `build.gradle.kts` before authoring the violation. The retargeted
-  probe used `core:config`, which depends only on `:core:common`.
-- **Enumerate the failure modes that precede the mechanism under test,** not only the
-  ones that follow it. The probe was built so the boundary check was the only thing
-  that *could* fail — the violating import resolved to a real public symbol, the
-  project dependency was declared, and the import was used, so neither an unresolved
-  reference nor a ktlint unused-import could be mistaken for the rule firing.
-  `checkModuleBoundary` runs from `preBuild`, before `compileKotlin`, which is also
-  why `ktlintCheck` stays green during a violation: it never triggers `preBuild`.
-
-One implementation detail is easy to "tidy" back into a bug. The failure report travels
-in the `GradleException` message rather than through `logger.error`. Gradle flushes
+One implementation detail is easy to "tidy" back into a bug. Both failure reports
+travel in `GradleException` messages rather than through `logger.error`. Gradle flushes
 console output line by line and attributes each line to whichever task is current, so
-under parallel execution a multi-line error came apart — the header printed beneath a
-different module's task, with the offending import far below it. For a check whose
-whole purpose is to name the module that broke the rule, a report separable from its own
-module name is a defect. An exception message is printed under `* What went wrong:` as
-one block, already prefixed with the failing task path.
+under parallel execution a multi-line error can come apart. An exception message is
+printed under `* What went wrong:` as one block, already prefixed with the failing task
+path.
 
-What this still does not catch is build-file coupling (finding 8): the performance
-wiring was a `project(":baselineprofile")` line, not an `import`. Boundary violations
-come in both shapes, and only one of them is enforced today.
+What the build-file check intentionally does **not** catch is a dynamic project path
+that cannot be proven statically, or a project edge hidden inside convention-plugin
+code rather than the module's own build script. The first case is necessary for
+filesystem-driven module discovery and both cases remain explicit review surfaces;
+the check is a guardrail against accidental literal coupling, not a ban on flexible
+Gradle composition.
 
 ### `core:network` is a transport layer, not a connectivity layer
 
@@ -320,7 +309,7 @@ analytics is a real, currently-optional consumer.
 3. Pick one serialization stack; add a broad `catch` to `safeCall` (4, 5). A broad catch must rethrow `CancellationException` before mapping anything else, or a cancelled coroutine is silently converted into a failed `Result` and the caller treats teardown as an error.
 4. Move `isDarkModeFlow` to a theme/preferences contract (6).
 5. Extract the CI secret bootstrap into a composite action (7).
-6. Extend boundary enforcement to build files (8). The import half shipped: `checkModuleBoundary` covers every module, with per-module rules and a per-module escape hatch. The remaining half is a check that scans module `build.gradle.kts` files for `project(":…")` edges against the same allowlists — an import scanner cannot see that shape by construction. Such a check has to reason about dependency direction rather than pattern-match, since a reverse edge into an always-present module is also how a task-graph cycle gets created.
+6. Keep the boundary rule honest as the template grows (8). Import and literal build-file checks now cover the statically provable edges with per-module rules and per-module escape hatches. Dynamic paths and convention-plugin dependency declarations remain explicit review surfaces because rejecting them would undermine filesystem-driven extensibility.
 7. Fold `benchmark/build.gradle.kts` into `composetemplate.baseline.profile.generator` so the two performance modules stop configuring themselves differently (17).
 8. Give the plug-out job broader coverage, or state its limits in the README (18). Four modules are proven removable; the rest are argued.
 
