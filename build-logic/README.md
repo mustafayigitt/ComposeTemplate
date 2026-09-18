@@ -16,13 +16,14 @@ build-logic/
 │       ├── AndroidRoomConventionPlugin.kt
 │       ├── AppModuleBoundaryPlugin.kt              # registers checkAppModuleBoundary
 │       ├── BaselineProfileGeneratorConventionPlugin.kt
-│       ├── CheckModuleBoundaryTask.kt              # the shared scanner, driven by task inputs
+│       ├── CheckModuleBoundaryTask.kt              # shared Kotlin import scanner
+│       ├── CheckProjectDependencyBoundaryTask.kt   # build.gradle.kts project-edge scanner
 │       ├── CreateNewAppPlugin.kt
 │       ├── FeatureDomainConventionPlugin.kt
 │       ├── FeatureDataConventionPlugin.kt
 │       ├── FeatureNavigationConventionPlugin.kt
 │       ├── FeaturePresentationConventionPlugin.kt
-│       ├── ModuleBoundaryPlugin.kt                 # registers checkModuleBoundary per module
+│       ├── ModuleBoundaryPlugin.kt                 # registers both boundary checks
 │       ├── PerfConventionPlugin.kt                 # conditional baseline profile wiring
 │       ├── ScaffoldFeaturePlugin.kt
 │       ├── StaticAnalysisConventionPlugin.kt
@@ -36,6 +37,7 @@ build-logic/
 
 - **Module discovery**: `settings.gradle.kts` finds modules on disk, so adding or removing one needs no build-file edit.
 - **Enforced module boundaries**: the build fails when any module imports another module it is not allowed to name — not just `:app`.
+- **Enforced literal build dependencies**: explicit `project(":…")` edges are checked against the same module policy without disabling dynamic module discovery.
 - **Conditional performance tooling**: baseline profile wiring is applied only when the generator module exists.
 - **Compose Metrics & Reports**: Integrated support for generating performance and stability metrics.
 - **Secret Management**: Automated validation, native obfuscation, and artifact scanning support.
@@ -60,7 +62,7 @@ build-logic/
 **What it does:**
 - Applies the Android library plugin, Kotlin Android plugin, and shared library defaults.
 - Keeps module SDK and packaging configuration consistent.
-- Also applies `composetemplate.static.analysis` and `composetemplate.module.boundary`, which is how every library module gets a boundary check without opting in.
+- Also applies `composetemplate.static.analysis` and `composetemplate.module.boundary`, which is how every library module gets both boundary checks without opting in.
 
 ### `composetemplate.android.library.compose`
 **What it does:**
@@ -106,21 +108,25 @@ build-logic/
 
 ### `composetemplate.module.boundary`
 **What it does:**
-- Registers `checkModuleBoundary` for every Android library module, applied through `composetemplate.android.library` so no build script opts in.
-- Derives the rule from the module's own Gradle path:
-  - `core:common`, `core:navigation`, `core:ui` and `core:data` survive every plug-out combination, so they may name only each other. An import of an optional module from here would make that module undeletable everywhere.
+- Registers `checkModuleBoundary` and `checkProjectDependencyBoundary` for every Android library module, applied through `composetemplate.android.library` so no build script opts in.
+- Derives both rules from the module's own Gradle path:
+  - `core:common`, `core:navigation`, `core:ui` and `core:data` survive every plug-out combination, so they may name only each other. An import or literal build dependency on an optional module from here would make that module undeletable everywhere.
   - Any other `core:*` module may name any core module but never a feature.
   - A `feature:X:*` module may name its own feature and any feature's `navigation` module — a feature's route contract is what it publishes — but not another feature's `domain`, `data` or `presentation` code.
-- Writes a report to `build/reports/plugout/module-boundary.txt`, and hooks into `preBuild` and `check`.
+- `checkModuleBoundary` scans Kotlin imports and writes `build/reports/plugout/module-boundary.txt`.
+- `checkProjectDependencyBoundary` scans literal project references in `build.gradle.kts` and writes `build/reports/plugout/project-dependency-boundary.txt`.
+- Both tasks are hooked into `preBuild` and `check`.
+- Dynamic project paths remain supported for module discovery; the check intentionally fails open when it cannot prove a path statically.
 - Narrow exceptions are declared per module, not in a shared file:
 
 ```kotlin
 moduleBoundary {
     additionalPermittedImports.add("feature.auth.domain.")
+    additionalPermittedProjectDependencies.add(":feature:auth:domain")
 }
 ```
 
-- Both boundary plugins share one `CheckModuleBoundaryTask`. The task knows nothing about which module it is checking; guarded prefixes, permitted patterns and advice text all arrive as task inputs.
+- Both boundary tasks share the same module-derived policy. The source task knows nothing about which module it is checking; guarded prefixes, permitted patterns and advice text arrive as task inputs.
 
 ### `composetemplate.perf`
 **What it does:**

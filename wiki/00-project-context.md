@@ -28,12 +28,12 @@ Those four files carry more logic than most `core` modules contain of runtime lo
 - Screen state is standardized by `BaseViewModel<S, E>`: one `StateFlow` for state, one `Channel` for one-shot events.
 - Secrets never live as plain Kotlin strings in release: they go through XOR-obfuscated byte arrays in native code.
 - Build conventions are not optional: modules apply `composetemplate.*` plugins instead of configuring Android/Kotlin/Hilt themselves.
-- Optional modules stay deletable, and this is enforced for **every** module rather than argued in review. `:app` may import symbols only from `core:common`, `core:navigation` and `core:ui`; the four core modules that survive every plug-out combination may name only each other; every other core module may not name a feature; and a feature may not name another feature except through its published navigation contract. `checkAppModuleBoundary` and `checkModuleBoundary` fail the build when that is broken. Everything else reaches its consumers through DI multibindings.
+- Optional modules stay deletable, and this is enforced for **every** module rather than argued in review. `:app` may import symbols only from `core:common`, `core:navigation` and `core:ui`; the four core modules that survive every plug-out combination may name only each other; every other core module may not name a feature; and a feature may not name another feature except through its published navigation contract. `checkAppModuleBoundary` and `checkModuleBoundary` fail the build when that is broken. Literal `project(":…")` edges are checked by `checkProjectDependencyBoundary` under the same module policy. Everything else reaches its consumers through DI multibindings.
 - Modules are discovered from disk, so adding or removing one is a folder operation rather than a build-file edit.
 
 ## Opinions the code does *not* enforce (worth knowing)
 
-- The boundary checks read Kotlin `import` lines. Coupling expressed in a build file is invisible to them — `:app` once declared `baselineProfile(project(":baselineprofile"))`, which blocked deletion of that module without a single import.
+- The build-file check scans literal `project(":…")` and `project(path = ":…")` references in a module's own `build.gradle.kts`. It deliberately does not resolve dynamic project paths: `:app`'s filesystem discovery uses `project(path)` to wire whatever modules exist, and rejecting that would make the template harder to extend.
 - Removability is only *proven* for four modules. The CI plug-out job deletes `core/security`, `core/analytics`, `benchmark` and `baselineprofile`; the remaining optional modules satisfy the rule but are never actually deleted and rebuilt.
 - `:app` still *depends* on every module at the Gradle level; what it may not do is *import* them. Removability comes from multibindings, not from a short dependency list.
 - Presentation modules have no tests, so the ViewModel/state contract is unverified by CI.

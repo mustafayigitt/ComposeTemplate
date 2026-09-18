@@ -39,6 +39,12 @@ Three of these exist to protect the plug-out property rather than to configure a
 - **`module.boundary`** registers `checkModuleBoundary` for every library module. It is applied by `composetemplate.android.library`, so no module opts in, and the rule it enforces is derived from the module's own Gradle path: the four core modules that survive every plug-out combination may name only each other, any other core module may not name a feature, and a feature may not name another feature except through its published `navigation` module.
 - **`perf`** applies the baseline profile plugin and its dependencies **only when `:baselineprofile` is part of the build**, so deleting the folder is enough to remove performance tooling.
 
+The boundary pair covers both source and build-file coupling:
+
+- `checkModuleBoundary` and `checkAppModuleBoundary` scan Kotlin imports.
+- `checkProjectDependencyBoundary` scans literal `project(":…")` and `project(path = ":…")` references in the module's own build script.
+- Dynamic project paths remain available. This is important for `:app`, whose module-discovery code intentionally wires the folders that exist on disk rather than maintaining a hand-written dependency list.
+
 ## `app/build.gradle.kts`
 
 - Plugins: `composetemplate.create.new.app`, `composetemplate.android.application`, `composetemplate.perf`, `composetemplate.android.application.compose`, `composetemplate.android.hilt`, `composetemplate.test`, `kotlin.serialization`.
@@ -49,9 +55,9 @@ Three of these exist to protect the plug-out property rather than to configure a
 - `buildConfig = true` (needed for secret and flag plumbing).
 - Core and feature module dependencies are **derived from the discovered projects**, not listed by hand. Only libraries `:app` uses directly are declared explicitly, such as the Navigation3 libraries and Timber.
 
-> **Note:** `:app` may import symbols only from `core:common`, `core:navigation` and `core:ui`, and every other module is held to its own version of the same rule by `checkModuleBoundary`. Modules reach each other through DI multibindings instead of imports, and the build fails when that is broken. See [06 - Quality, Tests and CI](06-quality-tests-ci.md) and [07 - Risks](07-risks-and-gaps.md#baseline-decision-log).
+> **Note:** `:app` may import symbols only from `core:common`, `core:navigation` and `core:ui`, and every other module is held to its own version of the same rule by `checkModuleBoundary`. Literal build-file edges are checked by `checkProjectDependencyBoundary`, while dynamic discovery remains supported. Modules reach each other through DI multibindings instead of imports, and the build fails when that is broken. See [06 - Quality, Tests and CI](06-quality-tests-ci.md) and [07 - Risks](07-risks-and-gaps.md#baseline-decision-log).
 
-One class of coupling these checks cannot see is build-file coupling: `:app` once declared `baselineProfile(project(":baselineprofile"))` in its own script, which broke deletion of that module without a single Kotlin import. That is what `composetemplate.perf` fixed, and it remains the open half of the rule.
+The previous `baselineProfile(project(":baselineprofile"))` coupling is the example this second check is designed to prevent. `composetemplate.perf` fixed the shipped instance; `checkProjectDependencyBoundary` prevents a new literal edge from silently returning.
 
 ## Version catalog highlights
 
