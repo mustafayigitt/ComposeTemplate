@@ -150,7 +150,7 @@ class ModuleBoundaryPlugin : Plugin<Project> {
             BoundaryRule(
                 guardedPrefixes = listOf(FEATURE_PREFIX),
                 permittedPatterns = emptyList(),
-                permittedProjectDependencyPatterns = listOf(":core:*") ,
+                permittedProjectDependencyPatterns = listOf(":core:*"),
                 adviceLines =
                     listOf(
                         "core:$name is optional, so it may name any core module - but never a",
