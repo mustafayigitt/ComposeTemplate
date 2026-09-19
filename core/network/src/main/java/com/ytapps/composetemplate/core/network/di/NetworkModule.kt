@@ -24,12 +24,15 @@ internal object NetworkModule {
     @Singleton
     fun provideNetworkConfig(
         providers: Set<@JvmSuppressWildcards NetworkConfigProvider>,
-    ): NetworkConfigProvider =
-        when (providers.size) {
-            0 -> DefaultNetworkConfigProvider
-            1 -> providers.single()
-            else -> error("Only one NetworkConfigProvider may be contributed, found ${providers.size}.")
+    ): NetworkConfigProvider {
+        if (providers.isEmpty()) {
+            return DefaultNetworkConfigProvider
         }
+        check(providers.size == 1) {
+            "Only one NetworkConfigProvider may be contributed, found ${providers.size}."
+        }
+        return providers.first()
+    }
 
     @Provides
     @Singleton
