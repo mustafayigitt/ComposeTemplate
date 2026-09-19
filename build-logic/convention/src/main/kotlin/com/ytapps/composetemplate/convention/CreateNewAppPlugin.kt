@@ -40,7 +40,7 @@ class CreateNewAppPlugin : Plugin<Project> {
 
                 printHeader()
 
-                printStep("Copying template files...")
+                printStep("Copying consumer project files...")
                 target.copy {
                     from(target.rootDir)
                     into(targetDir)
@@ -66,6 +66,11 @@ class CreateNewAppPlugin : Plugin<Project> {
                         "**/*.keystore",
                         "**/*.hprof",
                         "**/*.log",
+                        "wiki",
+                        "wiki/**",
+                        "mkdocs.yml",
+                        "CONTRIBUTING.md",
+                        ".github/workflows/pages.yml",
                     )
                 }
 
@@ -75,8 +80,8 @@ class CreateNewAppPlugin : Plugin<Project> {
                 printStep("Restructuring directory hierarchy...")
                 refactorDirectories(targetDir, "com.ytapps.composetemplate", finalAppId)
 
-                printStep("Removing setup logic and fixing formatting...")
-                cleanupNewProject(targetDir)
+                printStep("Removing template-only setup and documentation...")
+                cleanupNewProject(targetDir, finalAppName)
 
                 printFinalSummary(targetDir.name)
             }
@@ -107,7 +112,19 @@ class CreateNewAppPlugin : Plugin<Project> {
         }
     }
 
-    private fun isTextFile(file: File) = file.extension in listOf("kt", "kts", "xml", "properties", "pro", "txt", "md")
+    private fun isTextFile(file: File) = file.extension in listOf(
+        "kt",
+        "kts",
+        "xml",
+        "properties",
+        "pro",
+        "txt",
+        "md",
+        "yml",
+        "yaml",
+        "json",
+        "toml",
+    )
 
     private fun refactorDirectories(targetDir: File, oldPkg: String, newPkg: String) {
         val oldPath = oldPkg.replace(".", File.separator)
@@ -145,7 +162,7 @@ class CreateNewAppPlugin : Plugin<Project> {
         }
     }
 
-    private fun cleanupNewProject(targetDir: File) {
+    private fun cleanupNewProject(targetDir: File, appName: String) {
         targetDir.walkTopDown().forEach { if (it.name == "CreateNewAppPlugin.kt") it.delete() }
         val conventionBuild = File(targetDir, "build-logic/convention/build.gradle.kts")
         if (conventionBuild.exists()) {
@@ -178,6 +195,127 @@ class CreateNewAppPlugin : Plugin<Project> {
                 val cleanedLines = lines.filterNot { it.contains(Regex("""id\(".*\.create\.new\.app"\)""")) }
                 file.writeText(cleanedLines.joinToString("\n"))
             }
+        }
+
+        removeTemplateOnlyWorkflowJobs(targetDir)
+        writeConsumerReadme(targetDir, appName)
+        writeConsumerBuildLogicReadme(targetDir)
+        validateGeneratedProject(targetDir)
+    }
+
+    private fun removeTemplateOnlyWorkflowJobs(targetDir: File) {
+        val workflow = File(targetDir, ".github/workflows/ci.yml")
+        if (!workflow.exists()) return
+
+        val templateOnlyJobs = setOf("plug-out", "template-smoke")
+        val jobPattern = Regex("^  ([A-Za-z0-9_-]+):$")
+        var skipping = false
+        val cleaned = workflow.readLines().filter { line ->
+            jobPattern.matchEntire(line)?.groupValues?.get(1)?.let { jobName ->
+                skipping = jobName in templateOnlyJobs
+            }
+            !skipping
+        }
+
+        workflow.writeText(cleaned.joinToString("\n").trimEnd() + "\n")
+    }
+
+    private fun writeConsumerReadme(targetDir: File, appName: String) {
+        File(targetDir, "README.md").writeText(
+            """# $appName
+
+A modular Android application with a fixed feature vertical and shared build conventions.
+
+## Architecture
+
+Every feature follows the same four-module structure:
+
+- `data` — data sources, repositories and mappers
+- `domain` — contracts, use cases and business rules
+- `navigation` — typed routes and navigation contracts
+- `presentation` — UI state, events, ViewModels and screens
+
+## Local setup
+
+1. Copy `secrets.properties.example` to `secrets.properties` and replace the placeholders.
+2. Run `./gradlew validateSecrets`.
+3. Open the project in Android Studio and sync Gradle.
+4. Run `./gradlew assembleDebug`.
+
+## Add a feature
+
+```bash
+./gradlew scaffoldFeature -PfeatureName=settings
+```
+
+The task creates the four feature modules and module discovery registers them automatically.
+Replace the generated placeholder code with the feature's real contracts, data flow and UI.
+
+## Verification
+
+```bash
+./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug
+```
+
+The project applies module-boundary checks during normal build and test tasks so feature code
+cannot silently depend on layers or modules outside the architecture rules.
+""".trimIndent() + "\n",
+        )
+    }
+
+    private fun writeConsumerBuildLogicReadme(targetDir: File) {
+        File(targetDir, "build-logic/README.md").writeText(
+            """# Build Logic
+
+This directory contains the convention plugins shared by the application modules.
+
+The convention plugins keep Android defaults, Compose, Hilt, Room, testing, static analysis,
+feature layers and module-boundary checks consistent across the project.
+
+`scaffoldFeature` remains available for creating a new four-module feature vertical. The project
+generator used to create this application is intentionally not included in the generated project.
+
+All dependencies and versions remain centralized in `gradle/libs.versions.toml`.
+""".trimIndent() + "\n",
+        )
+    }
+
+    private fun validateGeneratedProject(targetDir: File) {
+        val forbiddenPaths = listOf(
+            "wiki",
+            "mkdocs.yml",
+            "CONTRIBUTING.md",
+            ".github/workflows/pages.yml",
+            "build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/CreateNewAppPlugin.kt",
+        )
+        val missingPaths = forbiddenPaths.filter { File(targetDir, it).exists() }
+
+        val forbiddenTokens = listOf(
+            "com.ytapps.composetemplate",
+            "composetemplate.create.new.app",
+            "CreateNewAppPlugin",
+            "create-new-app",
+            "mkdocs.yml",
+            "https://mustafayigitt.github.io/ComposeTemplate/",
+            "mustafayigitt/ComposeTemplate",
+        )
+        val contentViolations = mutableListOf<String>()
+
+        targetDir.walkTopDown()
+            .filter { it.isFile && isTextFile(it) }
+            .forEach { file ->
+                val content = file.readText()
+                forbiddenTokens.filter(content::contains).forEach { token ->
+                    contentViolations += "${file.relativeTo(targetDir)} contains '$token'"
+                }
+            }
+
+        if (missingPaths.isNotEmpty() || contentViolations.isNotEmpty()) {
+            val details = buildList {
+                missingPaths.forEach { add("forbidden path exists: $it") }
+                addAll(contentViolations)
+            }.joinToString("\n - ")
+            throw GradleException("Generated project contains template-only residue:\n - $details")
         }
     }
 
