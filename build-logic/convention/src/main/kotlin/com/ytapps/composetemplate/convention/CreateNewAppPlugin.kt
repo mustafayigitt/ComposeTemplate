@@ -1,5 +1,6 @@
 package com.ytapps.composetemplate.convention
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import java.io.File
@@ -335,7 +336,6 @@ All dependencies and versions remain centralized in `gradle/libs.versions.toml`.
     }
 
     private fun printStep(msg: String) = println("${blue("ℹ")} $msg")
-    private fun printSuccess(msg: String) = println("${green("✓")} $msg")
     private fun blue(t: String) = "\u001B[34m$t\u001B[0m"
     private fun green(t: String) = "\u001B[32m$t\u001B[0m"
     private fun red(t: String) = "\u001B[31m$t\u001B[0m"
