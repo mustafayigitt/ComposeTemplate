@@ -43,11 +43,18 @@ This replaces an earlier mechanism worth knowing about, because its failure mode
 ./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -q --console=plain
 ```
 
+The output is a consumer project, not a renamed copy of the template repository:
+
 - Produces a **sibling** project directory (`../MyNewApp`).
-- Rebrands package name, application name, namespaces, manifests and resources across the tree.
-- Copies the tree and rewrites text; it never parses `settings.gradle.kts`, so module discovery applies unchanged to the generated project.
+- Rebrands package name, application name, convention-plugin prefix, namespaces, manifests and resources across the tree.
+- Preserves the fixed four-module feature vertical and the `scaffoldFeature` task so development can continue with the same architecture.
+- Replaces the template README and build-logic guide with short documentation for the generated application.
+- Removes the generator implementation and registration, template wiki, MkDocs configuration, contribution guide, Pages publication workflow, and template-only CI jobs.
+- Keeps consumer CI for lint, unit tests and debug/release assembly.
+- Never carries `.git`, local build output, `local.properties`, `secrets.properties`, keystores or generated artifacts into the new project.
 - Native bindings survive the rename because JNI methods are bound dynamically via `RegisterNatives` with the class path injected from the Gradle namespace (see [04](04-secrets-and-hardening.md)).
-- CI asserts the generated project contains **no** `secrets.properties`, no `local.properties`, and no `.git` directory — i.e. no leaked credentials and no inherited history.
+
+Generation ends with a residue validation pass. It fails instead of reporting success if a forbidden template path remains or if searchable text still names the old package, generator plugin/task, template repository or published documentation site. This is the first consumer-projection baseline; later selectable infrastructure must extend the same rule so an unselected capability leaves no module, build dependency, source reference, workflow step or documentation behind.
 
 ## Feature-tier convention plugins
 
