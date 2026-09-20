@@ -22,9 +22,7 @@ import javax.inject.Singleton
 internal object NetworkModule {
     @Provides
     @Singleton
-    fun provideNetworkConfig(
-        providers: Set<@JvmSuppressWildcards NetworkConfigProvider>,
-    ): NetworkConfigProvider {
+    fun provideNetworkConfig(providers: Set<@JvmSuppressWildcards NetworkConfigProvider>): NetworkConfigProvider {
         if (providers.isEmpty()) {
             return DefaultNetworkConfigProvider
         }
@@ -73,9 +71,7 @@ internal object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-    private fun OkHttpClient.Builder.applyCertificatePinning(
-        networkConfig: NetworkConfigProvider,
-    ): OkHttpClient.Builder {
+    private fun OkHttpClient.Builder.applyCertificatePinning(networkConfig: NetworkConfigProvider): OkHttpClient.Builder {
         if (BuildConfig.DEBUG || !networkConfig.certificatePinningEnabled) {
             return this
         }
