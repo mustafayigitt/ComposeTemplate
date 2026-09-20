@@ -2,8 +2,9 @@ package com.ytapps.composetemplate.core.network.di
 
 import com.ytapps.composetemplate.core.network.AuthInterceptor
 import com.ytapps.composetemplate.core.network.BuildConfig
+import com.ytapps.composetemplate.core.network.DefaultNetworkConfigProvider
+import com.ytapps.composetemplate.core.network.NetworkConfigProvider
 import com.ytapps.composetemplate.core.network.TokenAuthenticator
-import com.ytapps.composetemplate.core.secrets.SecretManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,9 +22,22 @@ import javax.inject.Singleton
 internal object NetworkModule {
     @Provides
     @Singleton
+    fun provideNetworkConfig(providers: Set<@JvmSuppressWildcards NetworkConfigProvider>): NetworkConfigProvider {
+        if (providers.isEmpty()) {
+            return DefaultNetworkConfigProvider
+        }
+        check(providers.size == 1) {
+            "Only one NetworkConfigProvider may be contributed, found ${providers.size}."
+        }
+        return providers.first()
+    }
+
+    @Provides
+    @Singleton
     fun provideOkHttpClient(
         authInterceptor: AuthInterceptor,
         tokenAuthenticator: TokenAuthenticator,
+        networkConfig: NetworkConfigProvider,
     ): OkHttpClient =
         OkHttpClient
             .Builder()
@@ -41,35 +55,34 @@ internal object NetworkModule {
                             HttpLoggingInterceptor.Level.NONE
                         }
                 },
-            ).applyCertificatePinning()
+            ).applyCertificatePinning(networkConfig)
             .build()
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit =
+    fun provideRetrofit(
+        okHttpClient: OkHttpClient,
+        networkConfig: NetworkConfigProvider,
+    ): Retrofit =
         Retrofit
             .Builder()
-            .baseUrl(baseUrl)
+            .baseUrl(networkConfig.baseUrl)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-    private val baseUrl: String
-        get() = SecretManager.getBaseUrl()
-
-    private fun OkHttpClient.Builder.applyCertificatePinning(): OkHttpClient.Builder {
-        if (BuildConfig.DEBUG || !SecretManager.isCertificatePinningEnabled()) {
+    private fun OkHttpClient.Builder.applyCertificatePinning(networkConfig: NetworkConfigProvider): OkHttpClient.Builder {
+        if (BuildConfig.DEBUG || !networkConfig.certificatePinningEnabled) {
             return this
         }
 
-        val pins = SecretManager.getCertificatePins()
-        require(pins.size >= MIN_CERTIFICATE_PIN_COUNT) {
+        require(networkConfig.certificatePins.size >= MIN_CERTIFICATE_PIN_COUNT) {
             "Release certificate pinning requires primary and backup SHA-256 pins."
         }
 
-        val host = baseUrl.toHttpUrl().host
+        val host = networkConfig.baseUrl.toHttpUrl().host
         val certificatePinnerBuilder = CertificatePinner.Builder()
-        pins.forEach { pin ->
+        networkConfig.certificatePins.forEach { pin ->
             certificatePinnerBuilder.add(host, pin)
         }
         certificatePinner(certificatePinnerBuilder.build())
