@@ -12,7 +12,5 @@ import dagger.multibindings.IntoSet
 internal interface SecretNetworkConfigModule {
     @Binds
     @IntoSet
-    fun bindSecretNetworkConfigProvider(
-        provider: SecretNetworkConfigProvider,
-    ): NetworkConfigProvider
+    fun bindSecretNetworkConfigProvider(provider: SecretNetworkConfigProvider): NetworkConfigProvider
 }
