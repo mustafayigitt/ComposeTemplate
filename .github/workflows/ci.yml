@@ -241,3 +241,14 @@ jobs:
           test ! -f ../GeneratedApp/secrets.properties
           test ! -f ../GeneratedApp/local.properties
           test ! -d ../GeneratedApp/.git
+
+      - name: Generate a secret-free application
+        run: |
+          ./gradlew create-new-app \
+            -Pargs='com.example.secretfree,SecretFreeApp' \
+            -PwithSecrets=false \
+            -q --console=plain
+
+      - name: Build the secret-free application
+        working-directory: ../SecretFreeApp
+        run: ./gradlew assembleDebug :app:assembleRelease
