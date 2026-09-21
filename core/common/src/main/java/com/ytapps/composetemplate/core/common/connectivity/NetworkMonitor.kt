@@ -75,4 +75,3 @@ class NetworkMonitor
                 }
             }.distinctUntilChanged()
     }
-}
