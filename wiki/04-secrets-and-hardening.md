@@ -1,6 +1,6 @@
 # 04 - Secrets, Security and Hardening
 
-The most mature subsystem in the repository, spanning Gradle, CMake, C++ and Kotlin.
+An optional subsystem spanning Gradle, CMake, C++ and Kotlin. It is included by default for backward compatibility, but the generator can omit it completely when the application does not need client-side secret obfuscation and hardening.
 
 ## Pipeline shape
 
@@ -10,8 +10,42 @@ secrets.properties / env vars
         v  AndroidLibraryNative plugin -> CMake defines + secrets_generated.h
         v  native-lib.cpp (XOR-obfuscated byte arrays)
         v  JNI_OnLoad + RegisterNatives
-        v  SecretManager (Kotlin) -> NetworkModule.baseUrl / API key
+        v  SecretManager (Kotlin)
+        v  SecretNetworkConfigProvider -> NetworkConfigProvider
+        v  NetworkModule base URL + certificate pinning
 ```
+
+The dependency direction is `core:network <- core:secrets`. `core:network` owns the `NetworkConfigProvider` contract; this module contributes the secret-backed implementation through Hilt. The transport layer therefore remains usable when secrets are not selected.
+
+## Selectable generation
+
+The default command retains the full subsystem:
+
+```bash
+./gradlew create-new-app \
+  -Pargs='com.example.app,MyApp'
+```
+
+To generate without secrets and native hardening:
+
+```bash
+./gradlew create-new-app \
+  -Pargs='com.example.app,MyApp' \
+  -PwithSecrets=false
+```
+
+The secret-free projection removes the capability instead of merely disabling it. Generated output has no:
+
+- `core:secrets` or currently secrets-dependent `core:security` module
+- native/CMake source or NDK version entry
+- native and secret-validation convention plugins or registrations
+- `Project.secrets`, secret keys, secret Gradle properties or secret example file
+- secret-backed signing setup or secret bootstrap CI step
+- secret setup instructions in the consumer README
+
+The network module remains buildable with `DefaultNetworkConfigProvider`, which uses the intentionally non-routable `https://example.invalid/` endpoint and disables certificate pinning. The developer must supply real network configuration before connecting the generated application to a backend.
+
+Secret-free release builds are left unsigned until the application adds its own signing strategy.
 
 ## Native layer (`core/secrets/src/main/cpp/native-lib.cpp`)
 
@@ -33,6 +67,8 @@ secrets.properties / env vars
 - Rejects blank results and the `"UNAUTHORIZED_ACCESS"` sentinel by throwing a secret-access exception.
 - Base URL contract: HTTPS required for release, must end with `/`.
 - Requires an explicit `initialize(context)` call at startup — a global object with a nullable context, so initialization order matters.
+
+`SecretNetworkConfigProvider` adapts `SecretManager` to the network-owned contract and contributes itself through `@Binds @IntoSet`. It supplies the base URL, certificate-pinning switch and pins. If this module is absent, `NetworkModule` uses its own default provider; if multiple providers are contributed, startup wiring fails clearly rather than picking one silently.
 
 ## Gradle guardrails: `ValidateSecretsPlugin`
 
@@ -60,6 +96,8 @@ Prints the effective posture: native secrets on/off, native runtime checks, cert
 ## `core:security`
 
 `DeviceIntegrityManager` plus a small policy model: `SecurityPolicy`, `SecurityFinding`, `SecurityAction`, `SecurityReport` — findings are surfaced as data with an associated action rather than hard-coded reactions.
+
+This module currently depends on the secrets capability and is therefore omitted together with it when `-PwithSecrets=false` is selected.
 
 ## Honest limitations (stated by the code itself)
 
