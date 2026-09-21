@@ -16,6 +16,7 @@ class CreateNewAppPlugin : Plugin<Project> {
             doLast {
                 val scanner = Scanner(System.`in`)
                 val rawArgs = target.findProperty("args")?.toString()?.split(",") ?: emptyList()
+                val withSecrets = target.booleanProperty("withSecrets", defaultValue = true)
 
                 val finalAppId: String
                 val finalAppName: String
@@ -82,11 +83,17 @@ class CreateNewAppPlugin : Plugin<Project> {
                 refactorDirectories(targetDir, "com.ytapps.composetemplate", finalAppId)
 
                 printStep("Removing template-only setup and documentation...")
-                cleanupNewProject(targetDir, finalAppName)
+                cleanupNewProject(targetDir, finalAppName, withSecrets)
 
                 printFinalSummary(targetDir.name)
             }
         }
+    }
+
+    private fun Project.booleanProperty(name: String, defaultValue: Boolean): Boolean {
+        val value = findProperty(name)?.toString() ?: return defaultValue
+        return value.toBooleanStrictOrNull()
+            ?: throw GradleException("-$name must be either true or false, but was '$value'.")
     }
 
     private fun validateInputs(appId: String, appName: String): Boolean {
@@ -163,32 +170,17 @@ class CreateNewAppPlugin : Plugin<Project> {
         }
     }
 
-    private fun cleanupNewProject(targetDir: File, appName: String) {
-        targetDir.walkTopDown().forEach { if (it.name == "CreateNewAppPlugin.kt") it.delete() }
-        val conventionBuild = File(targetDir, "build-logic/convention/build.gradle.kts")
-        if (conventionBuild.exists()) {
-            val lines = conventionBuild.readLines()
-            val result = mutableListOf<String>()
-            var skipBlock = false
-            var braceCount = 0
-
-            for (line in lines) {
-                if (line.contains("register(\"createNewApp\")")) {
-                    skipBlock = true
-                }
-
-                if (skipBlock) {
-                    braceCount += line.count { it == '{' }
-                    braceCount -= line.count { it == '}' }
-                    if (braceCount == 0 && line.contains("}")) {
-                        skipBlock = false
-                    }
-                    continue
-                }
-                result.add(line)
-            }
-            conventionBuild.writeText(result.joinToString("\n").replace(Regex("\n{3,}"), "\n\n"))
+    private fun cleanupNewProject(targetDir: File, appName: String, withSecrets: Boolean) {
+        if (!withSecrets) {
+            printStep("Removing unselected secrets and hardening infrastructure...")
+            removeSecretsCapability(targetDir)
         }
+
+        targetDir.walkTopDown().forEach { if (it.name == "CreateNewAppPlugin.kt") it.delete() }
+        removePluginRegistration(
+            File(targetDir, "build-logic/convention/build.gradle.kts"),
+            "createNewApp",
+        )
 
         targetDir.walkTopDown().forEach { file ->
             if (file.name == "build.gradle.kts") {
@@ -199,9 +191,127 @@ class CreateNewAppPlugin : Plugin<Project> {
         }
 
         removeTemplateOnlyWorkflowJobs(targetDir)
-        writeConsumerReadme(targetDir, appName)
+        writeConsumerReadme(targetDir, appName, withSecrets)
         writeConsumerBuildLogicReadme(targetDir)
-        validateGeneratedProject(targetDir)
+        validateGeneratedProject(targetDir, withSecrets)
+    }
+
+    private fun removeSecretsCapability(targetDir: File) {
+        listOf(
+            "core/secrets",
+            "core/security",
+            "secrets.properties.example",
+            "build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/AndroidLibraryNativeConventionPlugin.kt",
+            "build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/ValidateSecretsPlugin.kt",
+        ).forEach { path -> File(targetDir, path).deleteRecursively() }
+
+        val conventionBuild = File(targetDir, "build-logic/convention/build.gradle.kts")
+        removePluginRegistration(conventionBuild, "androidLibraryNative")
+        removePluginRegistration(conventionBuild, "validateSecrets")
+
+        val rootBuild = File(targetDir, "build.gradle.kts")
+        rootBuild.removeLinesContaining(".validate.secrets")
+
+        val projectExtensions =
+            File(
+                targetDir,
+                "build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/ProjectExtensions.kt",
+            )
+        if (projectExtensions.exists()) {
+            val content =
+                projectExtensions
+                    .readText()
+                    .replace("import java.util.Properties\n", "")
+                    .substringBefore("\nval Project.secrets")
+                    .trimEnd() + "\n"
+            projectExtensions.writeText(content)
+        }
+
+        val appBuild = File(targetDir, "app/build.gradle.kts")
+        if (appBuild.exists()) {
+            var content =
+                appBuild
+                    .readText()
+                    .replace(Regex("import .*\.convention\.secrets\n"), "")
+                    .replace("import java.util.Properties\n", "")
+            val signingStart = content.indexOf("    val localProperties =")
+            val buildTypesStart = content.indexOf("    buildTypes {", signingStart)
+            if (signingStart >= 0 && buildTypesStart > signingStart) {
+                content = content.removeRange(signingStart, buildTypesStart)
+            }
+            content =
+                content
+                    .lineSequence()
+                    .filterNot { it.contains("signingConfig = signingConfigs.getByName(\"release\")") }
+                    .joinToString("\n")
+                    .trimEnd() + "\n"
+            appBuild.writeText(content)
+        }
+
+        val gradleProperties = File(targetDir, "gradle.properties")
+        if (gradleProperties.exists()) {
+            gradleProperties.writeText(
+                gradleProperties
+                    .readText()
+                    .substringBefore("\n# Secret Management")
+                    .trimEnd() + "\n",
+            )
+        }
+
+        File(targetDir, ".gitignore").removeLinesContaining("secrets.properties")
+        removeWorkflowStep(targetDir, "Create local.properties and secrets.properties")
+    }
+
+    private fun removePluginRegistration(file: File, registrationName: String) {
+        if (!file.exists()) return
+
+        val result = mutableListOf<String>()
+        var skipping = false
+        var braceCount = 0
+
+        file.readLines().forEach { line ->
+            if (!skipping && line.contains("register(\"$registrationName\")")) {
+                skipping = true
+            }
+
+            if (skipping) {
+                braceCount += line.count { it == '{' }
+                braceCount -= line.count { it == '}' }
+                if (braceCount == 0 && line.contains("}")) {
+                    skipping = false
+                }
+            } else {
+                result += line
+            }
+        }
+
+        file.writeText(result.joinToString("\n").replace(Regex("\n{3,}"), "\n\n").trimEnd() + "\n")
+    }
+
+    private fun File.removeLinesContaining(token: String) {
+        if (!exists()) return
+        writeText(readLines().filterNot { it.contains(token) }.joinToString("\n").trimEnd() + "\n")
+    }
+
+    private fun removeWorkflowStep(targetDir: File, stepName: String) {
+        val workflow = File(targetDir, ".github/workflows/ci.yml")
+        if (!workflow.exists()) return
+
+        val stepHeader = "      - name: $stepName"
+        var skipping = false
+        val cleaned = workflow.readLines().filter { line ->
+            if (line == stepHeader) {
+                skipping = true
+                false
+            } else if (skipping && line.startsWith("      - ")) {
+                skipping = false
+                true
+            } else {
+                !skipping
+            }
+        }
+
+        workflow.writeText(cleaned.joinToString("\n").replace(Regex("\n{3,}"), "\n\n").trimEnd() + "\n")
     }
 
     private fun removeTemplateOnlyWorkflowJobs(targetDir: File) {
@@ -221,7 +331,18 @@ class CreateNewAppPlugin : Plugin<Project> {
         workflow.writeText(cleaned.joinToString("\n").trimEnd() + "\n")
     }
 
-    private fun writeConsumerReadme(targetDir: File, appName: String) {
+    private fun writeConsumerReadme(targetDir: File, appName: String, withSecrets: Boolean) {
+        val localSetup =
+            if (withSecrets) {
+                """1. Copy `secrets.properties.example` to `secrets.properties` and replace the placeholders.
+2. Run `./gradlew validateSecrets`.
+3. Open the project in Android Studio and sync Gradle.
+4. Run `./gradlew assembleDebug`."""
+            } else {
+                """1. Open the project in Android Studio and sync Gradle.
+2. Run `./gradlew assembleDebug`."""
+            }
+
         File(targetDir, "README.md").writeText(
             """# $appName
 
@@ -238,10 +359,7 @@ Every feature follows the same four-module structure:
 
 ## Local setup
 
-1. Copy `secrets.properties.example` to `secrets.properties` and replace the placeholders.
-2. Run `./gradlew validateSecrets`.
-3. Open the project in Android Studio and sync Gradle.
-4. Run `./gradlew assembleDebug`.
+$localSetup
 
 ## Add a feature
 
@@ -281,25 +399,63 @@ All dependencies and versions remain centralized in `gradle/libs.versions.toml`.
         )
     }
 
-    private fun validateGeneratedProject(targetDir: File) {
-        val forbiddenPaths = listOf(
-            "wiki",
-            "mkdocs.yml",
-            "CONTRIBUTING.md",
-            ".github/workflows/pages.yml",
-            "build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/CreateNewAppPlugin.kt",
-        )
+    private fun validateGeneratedProject(targetDir: File, withSecrets: Boolean) {
+        val forbiddenPaths = buildList {
+            addAll(
+                listOf(
+                    "wiki",
+                    "mkdocs.yml",
+                    "CONTRIBUTING.md",
+                    ".github/workflows/pages.yml",
+                    "build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/CreateNewAppPlugin.kt",
+                ),
+            )
+            if (!withSecrets) {
+                addAll(
+                    listOf(
+                        "core/secrets",
+                        "core/security",
+                        "secrets.properties.example",
+                        "build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/AndroidLibraryNativeConventionPlugin.kt",
+                        "build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/ValidateSecretsPlugin.kt",
+                    ),
+                )
+            }
+        }
         val missingPaths = forbiddenPaths.filter { File(targetDir, it).exists() }
 
-        val forbiddenTokens = listOf(
-            "com.ytapps.composetemplate",
-            "composetemplate.create.new.app",
-            "CreateNewAppPlugin",
-            "create-new-app",
-            "mkdocs.yml",
-            "https://mustafayigitt.github.io/ComposeTemplate/",
-            "mustafayigitt/ComposeTemplate",
-        )
+        val forbiddenTokens = buildList {
+            addAll(
+                listOf(
+                    "com.ytapps.composetemplate",
+                    "composetemplate.create.new.app",
+                    "CreateNewAppPlugin",
+                    "create-new-app",
+                    "mkdocs.yml",
+                    "https://mustafayigitt.github.io/ComposeTemplate/",
+                    "mustafayigitt/ComposeTemplate",
+                ),
+            )
+            if (!withSecrets) {
+                addAll(
+                    listOf(
+                        "core:secrets",
+                        "core.security",
+                        "SecretManager",
+                        ".android.library.native",
+                        ".validate.secrets",
+                        "validateSecrets",
+                        "scanApkForSecrets",
+                        "hardeningReport",
+                        "secrets.properties",
+                        "useNativeSecrets",
+                        "NATIVE_RUNTIME_CHECKS_ENABLED",
+                        "EXPECTED_SIGNATURE_HASH",
+                        "XOR_MASK",
+                    ),
+                )
+            }
+        }
         val contentViolations = mutableListOf<String>()
 
         targetDir.walkTopDown()
