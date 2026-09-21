@@ -93,7 +93,7 @@ class CreateNewAppPlugin : Plugin<Project> {
     private fun Project.booleanProperty(name: String, defaultValue: Boolean): Boolean {
         val value = findProperty(name)?.toString() ?: return defaultValue
         return value.toBooleanStrictOrNull()
-            ?: throw GradleException("-$name must be either true or false, but was '$value'.")
+            ?: throw GradleException("-P$name must be either true or false, but was '$value'.")
     }
 
     private fun validateInputs(appId: String, appName: String): Boolean {
@@ -209,8 +209,7 @@ class CreateNewAppPlugin : Plugin<Project> {
         removePluginRegistration(conventionBuild, "androidLibraryNative")
         removePluginRegistration(conventionBuild, "validateSecrets")
 
-        val rootBuild = File(targetDir, "build.gradle.kts")
-        rootBuild.removeLinesContaining(".validate.secrets")
+        File(targetDir, "build.gradle.kts").removeLinesContaining(".validate.secrets")
 
         val projectExtensions =
             File(
@@ -231,9 +230,10 @@ class CreateNewAppPlugin : Plugin<Project> {
         if (appBuild.exists()) {
             var content =
                 appBuild
-                    .readText()
-                    .replace(Regex("import .*\.convention\.secrets\n"), "")
-                    .replace("import java.util.Properties\n", "")
+                    .readLines()
+                    .filterNot { it.startsWith("import ") && it.endsWith(".convention.secrets") }
+                    .filterNot { it == "import java.util.Properties" }
+                    .joinToString("\n")
             val signingStart = content.indexOf("    val localProperties =")
             val buildTypesStart = content.indexOf("    buildTypes {", signingStart)
             if (signingStart >= 0 && buildTypesStart > signingStart) {
@@ -258,6 +258,7 @@ class CreateNewAppPlugin : Plugin<Project> {
             )
         }
 
+        File(targetDir, "gradle/libs.versions.toml").removeLinesContaining("ndk =")
         File(targetDir, ".gitignore").removeLinesContaining("secrets.properties")
         removeWorkflowStep(targetDir, "Create local.properties and secrets.properties")
     }
@@ -452,6 +453,7 @@ All dependencies and versions remain centralized in `gradle/libs.versions.toml`.
                         "NATIVE_RUNTIME_CHECKS_ENABLED",
                         "EXPECTED_SIGNATURE_HASH",
                         "XOR_MASK",
+                        "ndk =",
                     ),
                 )
             }
