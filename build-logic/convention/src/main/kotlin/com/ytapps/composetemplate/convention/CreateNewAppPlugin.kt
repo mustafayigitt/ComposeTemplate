@@ -76,6 +76,11 @@ class CreateNewAppPlugin : Plugin<Project> {
                     )
                 }
 
+                if (!withSecrets) {
+                    printStep("Removing unselected secrets and hardening infrastructure...")
+                    removeSecretsCapability(targetDir)
+                }
+
                 printStep("Updating package names and references...")
                 updateContent(targetDir, finalAppId, finalAppName)
 
@@ -171,11 +176,6 @@ class CreateNewAppPlugin : Plugin<Project> {
     }
 
     private fun cleanupNewProject(targetDir: File, appName: String, withSecrets: Boolean) {
-        if (!withSecrets) {
-            printStep("Removing unselected secrets and hardening infrastructure...")
-            removeSecretsCapability(targetDir)
-        }
-
         targetDir.walkTopDown().forEach { if (it.name == "CreateNewAppPlugin.kt") it.delete() }
         removePluginRegistration(
             File(targetDir, "build-logic/convention/build.gradle.kts"),
