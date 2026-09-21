@@ -2,18 +2,31 @@
 
 ## `core:network` contents
 
-`AuthInterceptor.kt`, `TokenAuthenticator.kt`, `BaseRepository.kt`, `di/NetworkModule.kt`, `di/TokenRefresherModule.kt`. Tests: `BaseRepositoryTest`, `TokenAuthenticatorTest`.
+`AuthInterceptor.kt`, `TokenAuthenticator.kt`, `BaseRepository.kt`, `NetworkConfigProvider.kt`, `DefaultNetworkConfigProvider.kt`, `di/NetworkModule.kt`, `di/NetworkConfigModule.kt`, `di/TokenRefresherModule.kt`. Tests: `BaseRepositoryTest`, `TokenAuthenticatorTest`.
 
-> `NetworkMonitor` used to live here. It now sits in `core:common` (`core.common.connectivity`) because it only observes `ConnectivityManager` and never touches Retrofit, OkHttp or `SecretManager`. Connectivity is a device capability; `core:network` is the transport layer and stays optional.
+> `NetworkMonitor` used to live here. It now sits in `core:common` (`core.common.connectivity`) because it only observes `ConnectivityManager` and never touches Retrofit or OkHttp. Connectivity is a device capability; `core:network` is the transport layer and stays optional.
 
 ## `NetworkModule`
 
 - `@InstallIn(SingletonComponent)` object.
 - OkHttp client composed of `AuthInterceptor` + `TokenAuthenticator` + `HttpLoggingInterceptor`.
 - Logging level `BODY` in debug, `NONE` in release; redacts `Authorization`, `Cookie`, `Set-Cookie` headers.
-- `baseUrl = SecretManager.getBaseUrl()`.
-- Certificate pinning is **skipped** when `BuildConfig.DEBUG` or when pinning is disabled; when active it requires at least `MIN_CERTIFICATE_PIN_COUNT = 2` pins and applies them to the host parsed from the base URL.
+- Retrofit and certificate pinning read their settings through `NetworkConfigProvider`; `core:network` does not import or depend on `SecretManager`.
+- `NetworkConfigModule` declares an empty Hilt multibinding set. Optional infrastructure can contribute one provider without making the transport layer depend on that infrastructure.
+- With no contribution, `DefaultNetworkConfigProvider` keeps the project buildable with `https://example.invalid/` and certificate pinning disabled. The endpoint is intentionally non-routable and must be replaced before real API use.
+- More than one provider is treated as an ambiguous wiring error and fails explicitly.
+- Certificate pinning is **skipped** when `BuildConfig.DEBUG` or when the selected provider disables it; when active it requires at least `MIN_CERTIFICATE_PIN_COUNT = 2` pins and applies them to the host parsed from the provider's base URL.
 - Retrofit uses `GsonConverterFactory`.
+
+### Optional secrets integration
+
+`core:secrets` depends on `core:network`, not the reverse. It contributes `SecretNetworkConfigProvider` through `@Binds @IntoSet`; that adapter reads the base URL and pinning settings from `SecretManager`.
+
+This direction is what lets a generated project omit secrets and native hardening without breaking the network module:
+
+```text
+core:network <- core:secrets
+```
 
 > **Warning:** The project applies `kotlin.serialization` for navigation routes and models while the HTTP layer converts JSON with Gson. Two serialization stacks coexist; unifying on kotlinx.serialization would remove Gson reflection and ProGuard-keep pressure.
 
