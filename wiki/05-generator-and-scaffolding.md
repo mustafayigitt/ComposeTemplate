@@ -40,8 +40,14 @@ This replaces an earlier mechanism worth knowing about, because its failure mode
 ## `create-new-app`
 
 ```bash
+# Full architecture, including native secrets and runtime hardening
 ./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -q --console=plain
+
+# Same architecture without secrets or hardening infrastructure
+./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -PwithSecrets=false -q --console=plain
 ```
+
+`withSecrets` is a strict Boolean and defaults to `true`. Feature shape does not change: every feature still has `data`, `domain`, `navigation` and `presentation`. The flag only controls project-level infrastructure.
 
 The output is a consumer project, not a renamed copy of the template repository:
 
@@ -52,9 +58,18 @@ The output is a consumer project, not a renamed copy of the template repository:
 - Removes the generator implementation and registration, template wiki, MkDocs configuration, contribution guide, Pages publication workflow, and template-only CI jobs.
 - Keeps consumer CI for lint, unit tests and debug/release assembly.
 - Never carries `.git`, local build output, `local.properties`, `secrets.properties`, keystores or generated artifacts into the new project.
-- Native bindings survive the rename because JNI methods are bound dynamically via `RegisterNatives` with the class path injected from the Gradle namespace (see [04](04-secrets-and-hardening.md)).
+- With secrets selected, native bindings survive the rename because JNI methods are bound dynamically via `RegisterNatives` with the class path injected from the Gradle namespace (see [04](04-secrets-and-hardening.md)).
 
-Generation ends with a residue validation pass. It fails instead of reporting success if a forbidden template path remains or if searchable text still names the old package, generator plugin/task, template repository or published documentation site. This is the first consumer-projection baseline; later selectable infrastructure must extend the same rule so an unselected capability leaves no module, build dependency, source reference, workflow step or documentation behind.
+With `withSecrets=false`, generation removes the complete capability rather than asking the developer to clean it up later:
+
+- `core/secrets` and the secrets-dependent `core/security` module
+- NDK/CMake secret sources and the native-library convention plugin
+- secret validation, artifact scanning and hardening-report tasks
+- secret plugin registrations, root plugin application and Gradle property
+- `secrets.properties.example`, secret setup instructions and CI bootstrap steps
+- secret-dependent signing setup; generated release builds remain unsigned until the developer adds an application-specific signing strategy
+
+Generation ends with a residue validation pass. It fails instead of reporting success if a forbidden template path remains or if searchable text still names the old package, generator plugin/task, template repository or published documentation site. For `withSecrets=false`, the same pass additionally rejects secret modules, native/validation plugins, tasks, properties, configuration keys and documentation references.
 
 ## Feature-tier convention plugins
 
@@ -64,7 +79,8 @@ Generation ends with a residue validation pass. It fails instead of reporting su
 
 | Flag | Effect |
 | --- | --- |
-| `composetemplate.useNativeSecrets` | Toggles native secret pipeline (defaults on) |
+| `withSecrets` | Selects secrets and hardening infrastructure during project generation; defaults to `true` |
+| `composetemplate.useNativeSecrets` | Toggles the native path inside a generated project that selected secrets |
 | `composetemplate.composeCompilerMetricsEnabled` | Compose compiler metrics output |
 | `composetemplate.composeCompilerReportsEnabled` | Compose compiler reports output |
 
