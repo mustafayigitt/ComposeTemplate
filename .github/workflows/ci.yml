@@ -160,7 +160,7 @@ jobs:
       - name: Delete optional modules
         run: |
           set -eu
-          for module in core/security core/analytics benchmark baselineprofile; do
+          for module in core/security core/analytics core/database benchmark baselineprofile; do
             gradle_path=":$(echo "$module" | tr '/' ':')"
             echo "Removing $gradle_path"
             rm -rf "$module"
@@ -169,7 +169,7 @@ jobs:
       - name: Verify no source references the removed modules
         run: |
           set -eu
-          if grep -rn "core\.security\|core\.analytics" --include="*.kt" app core feature; then
+          if grep -rn "core\.security\|core\.analytics\|core\.database" --include="*.kt" app core feature; then
             echo "Removed module is still referenced from Kotlin sources."
             exit 1
           fi
