@@ -38,6 +38,7 @@ build-logic/
 - **Module discovery**: `settings.gradle.kts` finds modules on disk, so adding or removing one needs no build-file edit.
 - **Enforced module boundaries**: the build fails when any module imports another module it is not allowed to name — not just `:app`.
 - **Enforced literal build dependencies**: explicit `project(":…")` edges are checked against the same module policy without disabling dynamic module discovery.
+- **Conditional data infrastructure**: feature data modules wire network and database projects only when those projects exist.
 - **Conditional performance tooling**: baseline profile wiring is applied only when the generator module exists.
 - **Compose Metrics & Reports**: Integrated support for generating performance and stability metrics.
 - **Secret Management**: Automated validation, native obfuscation, and artifact scanning support.
@@ -152,7 +153,7 @@ moduleBoundary {
 ### Feature layer plugins
 **What they do:**
 - `composetemplate.feature.domain`: keeps domain modules lean with `:core:common`, Hilt, and tests.
-- `composetemplate.feature.data`: adds data/network/database/secrets infrastructure for repository implementations.
+- `composetemplate.feature.data`: always adds shared data foundations and conditionally adds network/database projects when present.
 - `composetemplate.feature.navigation`: adds typed route/navigation dependencies.
 - `composetemplate.feature.presentation`: adds Compose, UI, navigation, Hilt, and test dependencies.
 

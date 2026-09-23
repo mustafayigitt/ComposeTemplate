@@ -11,11 +11,16 @@ class FeatureDataConventionPlugin : Plugin<Project> {
             pluginManager.apply("composetemplate.android.hilt")
             pluginManager.apply("composetemplate.test")
 
+            val optionalInfrastructure =
+                listOf(":core:network", ":core:database")
+                    .mapNotNull(rootProject::findProject)
+
             dependencies {
                 add("implementation", project(":core:common"))
                 add("implementation", project(":core:data"))
-                add("implementation", project(":core:network"))
-                add("implementation", project(":core:database"))
+                optionalInfrastructure.forEach { infrastructure ->
+                    add("implementation", infrastructure)
+                }
             }
         }
     }
