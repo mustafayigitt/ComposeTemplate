@@ -7,11 +7,10 @@ class GetStartDestinationUseCase
     constructor(
         private val splashRepository: ISplashRepository,
     ) {
-        suspend operator fun invoke(): SplashDestination {
-            if (!splashRepository.isOnboardingCompleted()) {
-                return SplashDestination.Onboarding
+        suspend operator fun invoke(): SplashDestination =
+            if (splashRepository.isOnboardingCompleted()) {
+                SplashDestination.Home
+            } else {
+                SplashDestination.Onboarding
             }
-            val hasUser = splashRepository.hasUser()
-            return if (hasUser) SplashDestination.Home else SplashDestination.Login
-        }
     }

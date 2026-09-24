@@ -23,11 +23,11 @@ internal class OnboardingViewModel
         fun complete() {
             viewModelScope.launch {
                 completeOnboarding()
-                sendEvent(OnboardingEvent.NavigateToLogin)
+                sendEvent(OnboardingEvent.NavigateToHome)
             }
         }
     }
 
 sealed class OnboardingEvent {
-    object NavigateToLogin : OnboardingEvent()
+    object NavigateToHome : OnboardingEvent()
 }

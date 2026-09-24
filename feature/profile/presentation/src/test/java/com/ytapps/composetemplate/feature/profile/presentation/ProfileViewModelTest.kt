@@ -50,14 +50,14 @@ internal class ProfileViewModelTest {
     }
 
     @Test
-    fun `given logout succeeds when logout called then navigate to login event sent`() =
+    fun `given logout succeeds when logout called then navigate to home event sent`() =
         runTest(testDispatcher) {
             viewModel.logout()
             advanceUntilIdle()
 
             val event = viewModel.events.first()
 
-            assertThat(event).isEqualTo(ProfileEvent.NavigateToLogin)
+            assertThat(event).isEqualTo(ProfileEvent.NavigateToHome)
             assertThat(repository.clearAuthCalled).isTrue()
         }
 

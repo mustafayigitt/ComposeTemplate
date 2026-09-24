@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ytapps.composetemplate.core.navigation.INavigationManager
-import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
+import com.ytapps.composetemplate.feature.home.navigation.HomeRoute
 import com.ytapps.composetemplate.feature.onboarding.navigation.OnboardingRoute
 import com.ytapps.composetemplate.feature.onboarding.presentation.R
 import kotlinx.coroutines.launch
@@ -47,9 +47,9 @@ internal fun OnboardingScreenInternal(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is OnboardingEvent.NavigateToLogin -> {
+                is OnboardingEvent.NavigateToHome -> {
                     navigationManager.navigateOver(
-                        route = LoginRoute,
+                        route = HomeRoute,
                         over = OnboardingRoute,
                     )
                 }

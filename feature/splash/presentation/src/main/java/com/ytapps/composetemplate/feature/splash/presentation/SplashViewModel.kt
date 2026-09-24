@@ -3,7 +3,6 @@ package com.ytapps.composetemplate.feature.splash.presentation
 import androidx.lifecycle.viewModelScope
 import com.ytapps.composetemplate.core.navigation.INavigationItem
 import com.ytapps.composetemplate.core.ui.BaseViewModel
-import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
 import com.ytapps.composetemplate.feature.home.navigation.HomeRoute
 import com.ytapps.composetemplate.feature.onboarding.navigation.OnboardingRoute
 import com.ytapps.composetemplate.feature.splash.domain.GetStartDestinationUseCase
@@ -31,7 +30,6 @@ internal class SplashViewModel
                     when (destination) {
                         SplashDestination.Onboarding -> OnboardingRoute
                         SplashDestination.Home -> HomeRoute
-                        SplashDestination.Login -> LoginRoute
                     }
                 updateState { SplashUiState(isLoading = false) }
                 sendEvent(SplashEvent.NavigateTo(route))
