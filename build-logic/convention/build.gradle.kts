@@ -19,6 +19,10 @@ gradlePlugin {
             id = "composetemplate.create.new.app"
             implementationClass = "com.ytapps.composetemplate.convention.CreateNewAppPlugin"
         }
+        register("dataStrategyProjection") {
+            id = "composetemplate.data.strategy.projection"
+            implementationClass = "com.ytapps.composetemplate.convention.DataStrategyProjectionPlugin"
+        }
         register("androidApplication") {
             id = "composetemplate.android.application"
             implementationClass = "com.ytapps.composetemplate.convention.AndroidApplicationConventionPlugin"
