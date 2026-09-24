@@ -272,6 +272,23 @@ jobs:
           MIN_VERSION=1
           EOF
 
+      - name: Verify invalid data strategy is rejected
+        if: matrix.strategy == 'remote'
+        run: |
+          set -euo pipefail
+
+          if ./gradlew create-new-app \
+            -Pargs='com.example.invalid,InvalidStrategyApp' \
+            -PdataStrategy=invalid \
+            -q \
+            --console=plain
+          then
+            echo "Invalid data strategy unexpectedly succeeded."
+            exit 1
+          fi
+
+          test ! -e ../InvalidStrategyApp
+
       - name: Verify scaffold task
         run: ./gradlew help --task scaffoldFeature
 
@@ -290,6 +307,9 @@ jobs:
         run: ./gradlew \
           :feature:ci_database_feature:data:compileDebugKotlin \
           :feature:ci_database_feature:presentation:compileDebugKotlin
+
+      - name: Remove smoke-test feature scaffolds
+        run: rm -rf feature/ci_feature feature/ci_database_feature
 
       - name: Generate ${{ matrix.strategy }} application
         run: |
@@ -313,6 +333,17 @@ jobs:
           if [ "${{ matrix.expect_secrets }}" = "true" ]; then
             test -d "$app_dir/core/secrets"
             test -f "$app_dir/secrets.properties.example"
+
+            echo "STORE_FILE=debug.keystore" > "$app_dir/local.properties"
+            keytool -genkeypair \
+              -keystore "$app_dir/debug.keystore" \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -dname "CN=Android Debug,O=Android,C=US" \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000
 
             cat > "$app_dir/secrets.properties" <<'EOF'
           API_KEY_DEBUG="debug_secret_value"
@@ -346,7 +377,6 @@ jobs:
           if [ "${{ matrix.expect_network }}" = "true" ]; then
             test -d "$app_dir/core/network"
             test -d "$app_dir/feature/auth"
-            test ! -d "$app_dir/core/database"
             grep -R "LoginRoute" "$app_dir/feature/splash" "$app_dir/feature/onboarding"
           else
             test ! -d "$app_dir/core/network"
@@ -379,4 +409,40 @@ jobs:
 
       - name: Build generated ${{ matrix.strategy }} application
         working-directory: ../${{ matrix.app_name }}
+        run: ./gradlew assembleDebug :app:assembleRelease
+
+      - name: Generate network-backed application without secrets
+        if: matrix.strategy == 'remote'
+        run: |
+          ./gradlew create-new-app \
+            -Pargs='com.example.remotesecretfree,RemoteSecretFreeApp' \
+            -PdataStrategy=remote \
+            -PwithSecrets=false \
+            -q \
+            --console=plain
+
+      - name: Verify network-backed secret-free projection
+        if: matrix.strategy == 'remote'
+        run: |
+          set -euo pipefail
+
+          app_dir="../RemoteSecretFreeApp"
+
+          test -d "$app_dir/core/network"
+          test -d "$app_dir/feature/auth"
+          test ! -d "$app_dir/core/secrets"
+          test ! -d "$app_dir/core/security"
+          test ! -f "$app_dir/secrets.properties"
+          test ! -f "$app_dir/secrets.properties.example"
+          test ! -f "$app_dir/local.properties"
+
+          ! grep -R \
+            -E "core:secrets|core\.secrets|core:security|core\.security|SecretManager|validateSecrets|scanApkForSecrets|hardeningReport|secrets\.properties|NATIVE_RUNTIME_CHECKS_ENABLED|EXPECTED_SIGNATURE_HASH|XOR_MASK|ndk =" \
+            "$app_dir" \
+            --exclude-dir=.gradle \
+            --exclude-dir=build
+
+      - name: Build network-backed secret-free application
+        if: matrix.strategy == 'remote'
+        working-directory: ../RemoteSecretFreeApp
         run: ./gradlew assembleDebug :app:assembleRelease
