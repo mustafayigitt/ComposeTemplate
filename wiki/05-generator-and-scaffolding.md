@@ -31,6 +31,8 @@ Always all four sub-modules, each with its own `build.gradle.kts` applying the m
 
 Dependency wiring in the generated scripts: `data -> domain`, `presentation -> domain + navigation`.
 
+The `feature.data` convention always provides `core:common` and `core:data`. It adds `core:network` and `core:database` only when those projects exist in the generated build. Deleting an unselected infrastructure module therefore does not leave a dangling convention-plugin dependency, while the four-module feature vertical remains unchanged.
+
 ### Build-file automation
 
 None, by design. `settings.gradle.kts` discovers modules by scanning for directories that directly contain a `build.gradle.kts`, and `:app` derives its `core` and `feature` dependencies from the discovered projects. Writing the folders above is therefore all it takes to register the feature with the build; the task logs `no edit needed` for both files and continues to next steps and the suggested verification command `./gradlew :feature:<name>:presentation:compileDebugKotlin`.
