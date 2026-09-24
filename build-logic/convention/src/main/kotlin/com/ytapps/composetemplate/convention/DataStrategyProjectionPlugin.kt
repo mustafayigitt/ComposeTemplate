@@ -13,22 +13,23 @@ class DataStrategyProjectionPlugin : Plugin<Project> {
 
         target.tasks.named("create" + "-new-app").configure {
             doFirst {
-                strategy = DataStrategy.parse(target.findProperty("dataStrategy")?.toString())
-                val requestedSecrets =
-                    target.findProperty("withSecrets")?.toString()?.let { value ->
-                        value.toBooleanStrictOrNull()
-                            ?: throw GradleException("-PwithSecrets must be either true or false, but was '$value'.")
-                    } ?: true
+                strategy =
+                    DataStrategy.parse(
+                        target.findProperty("dataStrategy")?.toString(),
+                    )
+                val requestedSecrets = target.strictBooleanProperty("withSecrets", defaultValue = true)
                 includeSecrets = requestedSecrets && strategy.usesNetwork
                 existingSiblingDirectories =
-                    target.rootDir.parentFile.listFiles()
+                    target.rootDir.parentFile
+                        .listFiles()
                         ?.filter(File::isDirectory)
                         ?.toSet()
                         .orEmpty()
             }
             doLast {
                 val generatedDirectories =
-                    target.rootDir.parentFile.listFiles()
+                    target.rootDir.parentFile
+                        .listFiles()
                         ?.filter(File::isDirectory)
                         ?.filterNot(existingSiblingDirectories::contains)
                         .orEmpty()
@@ -36,5 +37,14 @@ class DataStrategyProjectionPlugin : Plugin<Project> {
                 DataStrategyProjector.project(targetDir, strategy, includeSecrets)
             }
         }
+    }
+
+    private fun Project.strictBooleanProperty(
+        name: String,
+        defaultValue: Boolean,
+    ): Boolean {
+        val value = findProperty(name)?.toString() ?: return defaultValue
+        return value.toBooleanStrictOrNull()
+            ?: throw GradleException("-P$name must be either true or false, but was '$value'.")
     }
 }

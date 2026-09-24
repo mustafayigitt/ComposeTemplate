@@ -17,19 +17,29 @@ android {
 
     defaultConfig {
         applicationId = "com.ytapps.composetemplate"
-        versionCode = libs.versions.versionCode.get().toInt()
+        versionCode =
+            libs.versions.versionCode
+                .get()
+                .toInt()
         versionName = libs.versions.versionName.get()
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
 
-    val localProperties = Properties().apply {
-        val localPropertiesFile = rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) localPropertiesFile.inputStream().use { load(it) }
-    }
+    val localProperties =
+        Properties().apply {
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                localPropertiesFile.inputStream().use { load(it) }
+            }
+        }
 
     fun signingValue(key: String): String? =
-        secrets.getProperty(key)?.replace("\"", "") ?: localProperties.getProperty(key)
+        secrets
+            .getProperty(key)
+            ?.replace("\"", "")
+            ?: localProperties.getProperty(key)
 
     signingConfigs {
         create("release") {
@@ -43,17 +53,28 @@ android {
     buildTypes {
         debug {
         }
+
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
+
+        // Kept here deliberately. This build type references only app-local files, so it stays
+        // valid when the benchmark and baselineprofile modules are deleted; those modules select
+        // it through matchingFallbacks rather than the other way around.
         create("benchmark") {
             initWith(getByName("release"))
             matchingFallbacks += listOf("release")
             signingConfig = signingConfigs.getByName("release")
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "benchmark-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "benchmark-rules.pro",
+            )
         }
     }
 
@@ -63,6 +84,10 @@ android {
 }
 
 dependencies {
+    // Every core and feature module found on disk is wired in automatically, so deleting a
+    // module's folder removes it from the build without an edit here, and scaffolding a new
+    // feature needs no edit either. Intermediate path projects such as :feature:auth own no
+    // build file and are skipped.
     rootProject.subprojects
         .filter { it.buildFile.isFile }
         .map { it.path }
@@ -75,9 +100,13 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(libs.timber)
+
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.material3.adaptive.navigation3)
     implementation(libs.kotlinx.serialization.core)
+
+    // Baseline profile wiring, including the profileinstaller runtime dependency, is contributed
+    // by composetemplate.perf and only when :baselineprofile exists.
 }
