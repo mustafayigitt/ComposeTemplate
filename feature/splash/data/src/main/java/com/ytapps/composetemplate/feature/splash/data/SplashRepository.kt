@@ -10,7 +10,5 @@ internal class SplashRepository
     constructor(
         private val preferencesManager: IPreferencesManager,
     ) : ISplashRepository {
-        override suspend fun hasUser(): Boolean = preferencesManager.hasUser()
-
         override suspend fun isOnboardingCompleted(): Boolean = preferencesManager.isOnboardingCompletedFlow.first()
     }

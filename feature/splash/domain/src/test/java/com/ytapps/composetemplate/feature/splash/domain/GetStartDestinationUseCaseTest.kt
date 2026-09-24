@@ -28,24 +28,12 @@ internal class GetStartDestinationUseCaseTest {
         }
 
     @Test
-    fun `given user has account and onboarding completed when invoke then return Home destination`() =
+    fun `given onboarding completed when invoke then return Home destination`() =
         runTest {
             coEvery { splashRepository.isOnboardingCompleted() } returns true
-            coEvery { splashRepository.hasUser() } returns true
 
             val result = getStartDestinationUseCase()
 
             Truth.assertThat(result).isEqualTo(SplashDestination.Home)
-        }
-
-    @Test
-    fun `given user has no account and onboarding completed when invoke then return Login destination`() =
-        runTest {
-            coEvery { splashRepository.isOnboardingCompleted() } returns true
-            coEvery { splashRepository.hasUser() } returns false
-
-            val result = getStartDestinationUseCase()
-
-            Truth.assertThat(result).isEqualTo(SplashDestination.Login)
         }
 }

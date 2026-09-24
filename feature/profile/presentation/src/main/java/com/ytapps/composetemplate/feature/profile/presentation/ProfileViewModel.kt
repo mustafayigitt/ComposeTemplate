@@ -62,7 +62,7 @@ internal class ProfileViewModel
         fun logout() {
             viewModelScope.launch {
                 logout.invoke()
-                sendEvent(ProfileEvent.NavigateToLogin)
+                sendEvent(ProfileEvent.NavigateToHome)
             }
         }
     }

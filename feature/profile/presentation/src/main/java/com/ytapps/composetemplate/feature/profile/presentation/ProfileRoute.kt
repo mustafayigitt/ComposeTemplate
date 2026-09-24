@@ -23,7 +23,7 @@ import com.ytapps.composetemplate.core.common.Language
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.core.ui.components.AppButton
 import com.ytapps.composetemplate.core.ui.components.AppCard
-import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
+import com.ytapps.composetemplate.feature.home.navigation.HomeRoute
 
 @Composable
 fun ProfileScreen(navigationManager: INavigationManager) {
@@ -40,7 +40,7 @@ internal fun ProfileScreenInternal(
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                ProfileEvent.NavigateToLogin -> navigationManager.navigateToTop(LoginRoute)
+                ProfileEvent.NavigateToHome -> navigationManager.navigateToTop(HomeRoute)
             }
         }
     }

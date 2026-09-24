@@ -1,8 +1,8 @@
 package com.ytapps.composetemplate.feature.splash.presentation
 
 import com.google.common.truth.Truth.assertThat
-import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
 import com.ytapps.composetemplate.feature.home.navigation.HomeRoute
+import com.ytapps.composetemplate.feature.onboarding.navigation.OnboardingRoute
 import com.ytapps.composetemplate.feature.splash.domain.GetStartDestinationUseCase
 import com.ytapps.composetemplate.feature.splash.domain.SplashDestination
 import io.mockk.coEvery
@@ -36,7 +36,7 @@ internal class SplashViewModelTest {
     }
 
     @Test
-    fun `given user has account then navigate to HomeRoute`() =
+    fun `given onboarding completed then navigate to HomeRoute`() =
         runTest(testDispatcher) {
             coEvery { getStartDestinationUseCase() } returns SplashDestination.Home
 
@@ -50,16 +50,16 @@ internal class SplashViewModelTest {
         }
 
     @Test
-    fun `given user has no account then navigate to LoginRoute`() =
+    fun `given onboarding not completed then navigate to OnboardingRoute`() =
         runTest(testDispatcher) {
-            coEvery { getStartDestinationUseCase() } returns SplashDestination.Login
+            coEvery { getStartDestinationUseCase() } returns SplashDestination.Onboarding
 
             val viewModel = SplashViewModel(getStartDestinationUseCase)
             viewModel.checkDestination()
             advanceUntilIdle()
 
             val event = viewModel.events.first()
-            assertThat(event).isEqualTo(SplashEvent.NavigateTo(LoginRoute))
+            assertThat(event).isEqualTo(SplashEvent.NavigateTo(OnboardingRoute))
             assertThat(viewModel.uiState.value.isLoading).isFalse()
         }
 }

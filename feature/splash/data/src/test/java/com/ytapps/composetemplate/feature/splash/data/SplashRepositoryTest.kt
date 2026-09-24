@@ -4,6 +4,7 @@ import com.google.common.truth.Truth
 import com.ytapps.composetemplate.core.data.IPreferencesManager
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -19,21 +20,21 @@ internal class SplashRepositoryTest {
     }
 
     @Test
-    fun `given signed user when hasUser then return true`() =
+    fun `given onboarding completed when queried then return true`() =
         runTest {
-            every { preferencesManager.hasUser() } returns true
+            every { preferencesManager.isOnboardingCompletedFlow } returns MutableStateFlow(true)
 
-            val result = splashRepository.hasUser()
+            val result = splashRepository.isOnboardingCompleted()
 
             Truth.assertThat(result).isTrue()
         }
 
     @Test
-    fun `given unsigned user when hasUser then return false`() =
+    fun `given onboarding not completed when queried then return false`() =
         runTest {
-            every { preferencesManager.hasUser() } returns false
+            every { preferencesManager.isOnboardingCompletedFlow } returns MutableStateFlow(false)
 
-            val result = splashRepository.hasUser()
+            val result = splashRepository.isOnboardingCompleted()
 
             Truth.assertThat(result).isFalse()
         }

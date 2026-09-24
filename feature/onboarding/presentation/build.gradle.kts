@@ -9,5 +9,5 @@ android {
 dependencies {
     implementation(project(":feature:onboarding:domain"))
     implementation(project(":feature:onboarding:navigation"))
-    implementation(project(":feature:auth:navigation"))
+    implementation(project(":feature:home:navigation"))
 }
