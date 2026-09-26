@@ -299,9 +299,10 @@ jobs:
         run: ./gradlew :feature:ci_feature:presentation:compileDebugKotlin
 
       - name: Generate Room feature scaffold
-        run: ./gradlew scaffoldFeature \
-          -PfeatureName=ci_database_feature \
-          -PwithDatabase=true
+        run: |
+          ./gradlew scaffoldFeature \
+            -PfeatureName=ci_database_feature \
+            -PwithDatabase=true
 
       - name: Compile Room feature scaffold
         run: ./gradlew \
