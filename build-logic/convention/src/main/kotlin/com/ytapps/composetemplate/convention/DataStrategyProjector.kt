@@ -206,9 +206,11 @@ internal object DataStrategyProjector {
                 gradleProperties.readText().substringBefore("\n# Secret Management").trimEnd() + "\n",
             )
         }
-        File(targetDir, "gradle/libs.versions.toml").removeLinesMatching { it.trimStart().startsWith("ndk =") }
+        File(targetDir, "gradle/libs.versions.toml").removeLinesMatching {
+            it.trimStart().startsWith("ndk" + " =")
+        }
         File(targetDir, ".gitignore").removeLinesMatching { it.contains("secrets" + ".properties") }
-        removeWorkflowStep(targetDir, "Create local.properties and " + "secrets.properties")
+        removeWorkflowStep(targetDir, "Create local.properties and " + "secrets" + ".properties")
     }
 
     private fun configureFeatureDataConvention(targetDir: File, strategy: DataStrategy) {

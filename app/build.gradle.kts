@@ -43,7 +43,7 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = rootProject.file(signingValue("STORE_FILE") ?: "release.keystore")
+            storeFile = file(signingValue("STORE_FILE") ?: "release.keystore")
             keyAlias = signingValue("KEY_ALIAS")
             keyPassword = signingValue("KEY_PASSWORD")
             storePassword = signingValue("STORE_PASSWORD")
