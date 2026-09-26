@@ -305,9 +305,10 @@ jobs:
             -PwithDatabase=true
 
       - name: Compile Room feature scaffold
-        run: ./gradlew \
-          :feature:ci_database_feature:data:compileDebugKotlin \
-          :feature:ci_database_feature:presentation:compileDebugKotlin
+        run: |
+          ./gradlew \
+            :feature:ci_database_feature:data:compileDebugKotlin \
+            :feature:ci_database_feature:presentation:compileDebugKotlin
 
       - name: Remove smoke-test feature scaffolds
         run: rm -rf feature/ci_feature feature/ci_database_feature
