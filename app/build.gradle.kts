@@ -3,6 +3,7 @@ import java.util.Properties
 
 plugins {
     id("composetemplate.create.new.app")
+    id("composetemplate.data.strategy.projection")
     id("composetemplate.android.application")
     id("composetemplate.perf")
     id("composetemplate.android.application.compose")
@@ -85,8 +86,8 @@ android {
 dependencies {
     // Every core and feature module found on disk is wired in automatically, so deleting a
     // module's folder removes it from the build without an edit here, and scaffolding a new
-    // feature needs no edit either. Intermediate path projects such as :feature:auth own no
-    // build file and are skipped.
+    // feature needs no edit either. Intermediate feature container projects own no build file
+    // and are skipped.
     rootProject.subprojects
         .filter { it.buildFile.isFile }
         .map { it.path }

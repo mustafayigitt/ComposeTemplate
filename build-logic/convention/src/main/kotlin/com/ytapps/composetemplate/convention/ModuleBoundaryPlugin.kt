@@ -26,7 +26,7 @@ abstract class ModuleBoundaryExtension {
      *
      * ```
      * moduleBoundary {
-     *     additionalPermittedProjectDependencies.add(":feature:auth:domain")
+     *     additionalPermittedProjectDependencies.add(":feature:sample:domain")
      * }
      * ```
      */

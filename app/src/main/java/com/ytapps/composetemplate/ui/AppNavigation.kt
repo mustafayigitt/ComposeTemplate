@@ -13,12 +13,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
-import com.ytapps.composetemplate.core.common.connectivity.NetworkMonitor
-import com.ytapps.composetemplate.core.common.connectivity.NetworkStatus
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.core.navigation.NavigationObserver
 import com.ytapps.composetemplate.core.navigation.ScreenRegistry
-import com.ytapps.composetemplate.core.ui.components.AppNoInternetBanner
 import com.ytapps.composetemplate.core.ui.theme.component.AppNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,14 +23,11 @@ import com.ytapps.composetemplate.core.ui.theme.component.AppNavigationBar
 fun AppNavigation(
     navigationManager: INavigationManager,
     screenRegistry: ScreenRegistry,
-    networkMonitor: NetworkMonitor,
     navigationObservers: Set<NavigationObserver>,
 ) {
     val backStack by navigationManager.backStack.collectAsStateWithLifecycle()
     val currentRoute = backStack.lastOrNull()
     val context = LocalContext.current
-
-    val networkStatus by networkMonitor.networkStatus.collectAsStateWithLifecycle(initialValue = NetworkStatus.Available)
 
     LaunchedEffect(currentRoute) {
         currentRoute?.let { route ->
@@ -44,9 +38,6 @@ fun AppNavigation(
     if (currentRoute != null) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            topBar = {
-                AppNoInternetBanner(isVisible = networkStatus != NetworkStatus.Available)
-            },
             bottomBar = {
                 if (navigationManager.showBottomBar(currentRoute)) {
                     AppNavigationBar(

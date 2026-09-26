@@ -1,151 +1,75 @@
 # 08 - Getting Started (Code-Verified)
 
-Every command and key below was verified against the Gradle plugins and CI workflow, not against a previous README.
+## Requirements
 
-## Toolchain requirements (derived from the build)
+- JDK 17
+- Android SDK: compileSdk 37, targetSdk 36, minSdk 26
+- Gradle wrapper
+- NDK 27/CMake only when secrets are retained
 
-| Requirement | Source of truth |
-| --- | --- |
-| JDK 17 | `.github/workflows/ci.yml` (temurin 17) |
-| Android SDK: compileSdk 37, targetSdk 36, minSdk 26 | `gradle/libs.versions.toml` |
-| NDK 27.0.12077973 + CMake | Required only when secrets are selected; version catalog + `core/secrets` |
-| Gradle wrapper (do not use a system Gradle) | composite build with `includeBuild("build-logic")` |
-
-The app targets Android 8.0 (API 26) and newer. Lowering that baseline is a one-line
-change in the version catalog, but read the [baseline decision log](07-risks-and-gaps.md#baseline-decision-log)
-first — some of the template's Java-API assumptions depend on it.
-
-## 1. Generate your app
+## Generate an application
 
 ```bash
 git clone https://github.com/mustafayigitt/ComposeTemplate.git
 cd ComposeTemplate
 
-# Full architecture, including secrets and runtime hardening
-./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -q --console=plain
-
-# Or generate without secrets and hardening infrastructure
-./gradlew create-new-app -Pargs='com.example.myapp,MyNewApp' -PwithSecrets=false -q --console=plain
+./gradlew create-new-app \
+  -Pargs='com.example.myapp,MyNewApp' \
+  -PdataStrategy=remote \
+  -q --console=plain
 
 cd ../MyNewApp
 ```
 
-Argument format is `packageName,AppName`. `withSecrets` defaults to `true` and changes only project-level infrastructure; every feature keeps the fixed `data`, `domain`, `navigation` and `presentation` modules. The output is a **sibling** directory, with no `.git`, no `local.properties` and no local `secrets.properties` carried over.
+Choose exactly one strategy:
 
-When `withSecrets=false`, the generated project also contains no secrets/security module, NDK or CMake secret pipeline, secret convention/validation plugin, secret Gradle property, example file, setup documentation or CI bootstrap step. Skip sections 2 and 3 below in that configuration.
+| Value | Output |
+| --- | --- |
+| `remote` | Network/auth, no Room; recommended default |
+| `offline-first` | Network/auth plus Room |
+| `local` | Room only; direct Home flow |
+| `minimal` | No predefined network or database infrastructure |
 
-## 2. Create `secrets.properties` when secrets are selected
+For a network-backed app without native secrets/hardening, add `-PwithSecrets=false`. Local and minimal omit that network-dependent capability automatically.
 
-Keys below are exactly those read by `ValidateSecretsPlugin` and the native build:
+## Start-flow behavior
 
-```properties
-API_KEY_DEBUG="your_debug_key"
-API_KEY_RELEASE="your_release_key"
-BASE_URL_DEBUG="https://api-debug.example.com/"
-BASE_URL_RELEASE="https://api.example.com/"
-XOR_MASK="at_least_24_chars_from_A-Za-z0-9._+/=-"
-EXPECTED_SIGNATURE_HASH="release_sha256_hex_with_or_without_colons"
-NATIVE_RUNTIME_CHECKS_ENABLED=true
-CERTIFICATE_PINNING_ENABLED=false
-CERTIFICATE_PINS=""
+- `remote` / `offline-first`: incomplete onboarding → Onboarding; otherwise stored user → Home, no user → Login.
+- `local` / `minimal`: incomplete onboarding → Onboarding; otherwise → Home.
 
-# Required only when a Release task is invoked
-STORE_FILE="release.keystore"
-STORE_PASSWORD="..."
-KEY_ALIAS="..."
-KEY_PASSWORD="..."
-```
+This is compile-time generated structure, not online/offline runtime branching.
 
-Hard rules enforced by validation:
+## Secrets setup
 
-- Base URLs must be absolute **HTTPS** and end with `/`.
-- `XOR_MASK` >= 24 characters, restricted character set.
-- `EXPECTED_SIGNATURE_HASH` must be valid SHA-256 hex.
-- With pinning enabled, at least **2** `sha256/...` pins.
-- Values containing `YOUR_` are rejected as placeholders.
-- Environment variables override file values — use this in CI instead of committing the file.
+Only when the generated README says secrets were included:
 
-## 3. Validate when secrets are selected
+1. Copy the provided example secrets file to the local secrets file.
+2. Fill the API keys, HTTPS base URLs, mask, signature hash, pinning options, and signing values.
+3. Run the validation and hardening tasks documented by the generated project.
 
-```bash
-./gradlew validateSecrets
-./gradlew hardeningReport
-```
-
-## 4. Run the CI-equivalent verification locally
+## Verify
 
 ```bash
 ./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug :app:assembleRelease
 ```
 
-When secrets are selected, also run:
-
-```bash
-./gradlew scanApkForSecrets
-```
-
-To reproduce the boundary rules that CI enforces, run any of the checks on their own:
-
-```bash
-./gradlew :app:checkAppModuleBoundary
-./gradlew :core:data:checkModuleBoundary
-./gradlew :feature:auth:presentation:checkModuleBoundary
-```
-
-Each task is wired into both `preBuild` and `check`, so an ordinary `assembleDebug` or
-`testDebugUnitTest` already runs them for every module. Note that `ktlintCheck` does
-**not** trigger `preBuild`, so a lint-only run will not surface a boundary violation.
-What a failure looks like, and why it is worded the way it is, is in
-[07 - Risks](07-risks-and-gaps.md#baseline-decision-log).
-
-## 5. Add your first feature
+## Add a feature
 
 ```bash
 ./gradlew scaffoldFeature -PfeatureName=user_profile
 ./gradlew :feature:user_profile:presentation:compileDebugKotlin
 ```
 
-The task writes four sub-module folders and nothing else. It logs `no edit needed` for
-both `settings.gradle.kts` and `app/build.gradle.kts`, which is the expected output, not a
-warning: modules are discovered from disk, so creating the folders is what registers the
-feature with the build. Do not go looking for an `include(...)` line to add.
-
-The new feature is governed by `checkModuleBoundary` from its first build, because the
-rule comes from the module's Gradle path rather than from a list someone has to update.
-
-After scaffolding you still need to:
-
-1. Replace the generated placeholder UI/state with the real screen.
-2. Register the route as a bottom-bar item if it belongs in the tab bar (multibinding key determines order).
-3. Add repository/use-case contracts if the feature needs data.
-
-## Removing what you do not need
-
-Prefer generation-time selection for capabilities supported by the generator. `withSecrets=false` omits secrets and hardening before the consumer project is handed over, so there is no cleanup step and no residue to audit.
-
-For other optional modules, delete the folder and the build stops referencing it — no flags, no `include(...)` cleanup. Two mechanisms keep that true: the boundary checks fail the build when a module imports something it is not allowed to name, so the coupling never accumulates in the first place; and CI proves the result on every pull request by deleting `core/security`, `core/analytics`, `benchmark` and `baselineprofile` and building the app without them.
-
-If you need a genuine exception, declare it in the importing module's own build script
-rather than weakening the rule for everyone:
-
-```kotlin
-moduleBoundary {
-    additionalPermittedImports.add("feature.auth.domain.")
-}
-```
-
-See [06 - Quality, Tests and CI](06-quality-tests-ci.md).
+Every generated feature contains `data`, `domain`, `navigation`, and `presentation`. If the project selected a database strategy, `-PwithDatabase=true` also creates a Room starter entity and DAO.
 
 ## First-release checklist
 
-- [ ] Release signing configured for your application; `:app:assembleRelease` succeeds
-- [ ] If secrets were selected: `validateSecrets` and `scanApkForSecrets` pass with real values
-- [ ] If hardening was selected: `hardeningReport` reviewed; pinning decision made with a rotation plan
-- [ ] An `ITokenRefresher` contributed if you need 401 retry — the template ships none, so today a 401 simply fails (see [03 - Network](03-network-and-auth.md))
-- [ ] `minSdk` reviewed against your own audience before the first release
-- [ ] Sample features (`detail`, design-system catalog) removed or adapted
-- [ ] App name, icon, locales and store metadata updated
-- [ ] At least one ViewModel test added for your own feature (the template ships none)
+- [ ] Release signing configured for the application
+- [ ] Real backend configuration supplied for network strategies
+- [ ] Secret validation and artifact scanning run when secrets are selected
+- [ ] Persistence schema/migrations reviewed when Room is selected
+- [ ] Sample features adapted or removed
+- [ ] App icon, locales, metadata, and tests updated
 
 ---
 

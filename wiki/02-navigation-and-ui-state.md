@@ -1,74 +1,46 @@
 # 02 - Navigation and UI State
 
-## `core:navigation` surface
+## `core:navigation`
 
-`INavigationItem`, `IBottomBarItem`, `INavigationManager`, `IScreenProvider`, `NavigationManager`, `ScreenRegistry`, `NavigationObserver`, `di/NavigationModule.kt`, `di/NavigationObserverModule.kt`.
+`INavigationItem`, `IBottomBarItem`, `INavigationManager`, `IScreenProvider`, `NavigationManager`, `ScreenRegistry`, and `NavigationObserver` form the navigation surface.
 
-## `NavigationManager` (internal, `@Singleton`)
+`NavigationManager` owns an in-memory `StateFlow` back stack and provides `navigate`, `navigateOver`, `navigateToTop`, `navigateBack`, `navigateBackToRoot`, `selectTab`, and bottom-bar state. The back stack is not persisted across process death.
 
-Injected dependencies:
+`ScreenRegistry` receives `Set<IScreenProvider>` through Hilt multibinding. The first provider that claims a typed route renders it; unresolved routes currently render a fallback message.
 
-- `startDestination: INavigationItem`
-- `Map<String, IBottomBarItem>` (Hilt multibinding, **sorted by map key**)
-- `IPreferencesManager`
+## Optional navigation observers
 
-State and operations:
-
-- Back stack is a `MutableStateFlow<List<INavigationItem>>` — a plain in-memory list, not `SavedStateHandle`-backed.
-- `navigate`, `navigateOver`, `navigateToTop`, `navigateBack`, `navigateBackToRoot`, `selectTab`.
-- Also exposes `isDarkModeFlow`, delegated from preferences.
-
-> Two consequences worth documenting for consumers: (1) bottom-bar ordering depends on multibinding **key strings**, so keys act as an ordering convention; (2) theme state is reachable through the navigation contract, which is why `MainActivity` reads dark mode from `INavigationManager`.
-
-## `ScreenRegistry` (`@Singleton`)
-
-- Injected `Set<IScreenProvider>` (multibinding).
-- Iterates providers linearly; the **first** provider that claims a route wins.
-- If no provider claims the route, it renders a fallback composable: `"Screen not found: ${route.route}"` instead of throwing.
-
-This makes a misconfigured feature a silent visual defect rather than a crash, and `Set` iteration order is not guaranteed if two providers claim the same route.
-
-## `NavigationObserver`
-
-```kotlin
-interface NavigationObserver {
-    fun onRouteChanged(route: INavigationItem)
-}
-```
-
-- Declared with `@Multibinds` in `NavigationObserverModule`, so the set resolves even when **nothing** contributes to it.
-- `core:analytics` contributes `AnalyticsNavigationObserver` with `@Binds @IntoSet`; it is the only contributor today.
-- The navigation host iterates the set on every route change and knows none of the implementations.
-
-This is the mechanism that lets `core:analytics` be deleted from a generated project. Screen-view logging used to be a `LaunchedEffect` inside `AppNavigation`, which forced `:app` to import `IAnalyticsManager` and `AnalyticsEvent` and made the module impossible to remove.
+`NavigationObserver` is a multibinding contract. `core:analytics` contributes the current implementation, while `AppNavigation` knows only the contract. Deleting analytics therefore leaves an empty, valid set.
 
 ## `MainActivity` and `AppNavigation`
 
-- `@AndroidEntryPoint`; field-injects `INavigationManager`, `ScreenRegistry`, `NetworkMonitor` (from `core:common`) and `Set<NavigationObserver>`. **Nothing here comes from an optional module.**
-- `enableEdgeToEdge()`.
-- Dark mode collected from `navigationManager.isDarkModeFlow` via `collectAsStateWithLifecycle`.
-- Renders `ComposeTemplateTheme { AppNavigation(...) }`.
-- `AppNavigation` uses Navigation3 `NavDisplay`, notifies every `NavigationObserver` on route change, shows an offline banner above content, and shows the bottom bar only when the current route is a bottom-bar item. Unhandled back finishes the Activity.
-- Language restoration is **not** done here. It runs as a `LocaleInitializer` contributed to `Set<AppInitializer>` from `core:data` (see page 01).
+`MainActivity` injects only `INavigationManager`, `ScreenRegistry`, and `Set<NavigationObserver>`. It collects theme state and renders `AppNavigation`.
 
-## UI state contract: `BaseViewModel<S, E>`
+`AppNavigation`:
 
-```kotlin
-abstract class BaseViewModel<S, E> : ViewModel() {
-    protected abstract val uiStateInternal: MutableStateFlow<S>
-    val uiState: StateFlow<S> by lazy { uiStateInternal.asStateFlow() }
-    // one-shot events via Channel + receiveAsFlow
-}
-```
+- renders Navigation3 `NavDisplay`
+- notifies observers on route changes
+- renders the bottom bar only for registered bottom-bar routes
+- finishes the Activity when back navigation is unhandled
 
-- `updateState { ... }` for reducer-style state changes.
-- `sendEvent(...)` for one-shot events (navigation, snackbar) through an **unbuffered** `Channel` consumed with `receiveAsFlow` — single-consumer semantics by design.
+Connectivity monitoring and the global offline banner were deliberately removed. They were app-specific behavior living in always-retained modules, so a network-free generated project still contained network concepts. Network-aware screens may model connectivity in their own feature state when the product actually needs it.
 
-## `core:ui` design system
+## Generated start flow
 
-- ~19 `App*` components: `AppButton`, `AppTextField`, `AppCard`, `AppDialog`, `AppTopBar`, `AppEmptyState`, `AppErrorState`, `AppSkeleton`, `AppNoInternetBanner`, `AppSearchField`, `AppAsyncImage`, and more.
-- `theme/` with `Color`, `Type`, `Spacing`, `Theme`, plus `component/AppNavigationBar`.
-- `ShimmerModifier`, `PreviewAnnotations`, and `DesignSystemScreen` — an in-app catalog of the design system.
+The generator projects one of two compile-time flows:
+
+- `remote` and `offline-first`: Onboarding → Login when no user is stored; otherwise Home. Logout returns to Login.
+- `local` and `minimal`: Onboarding → Home. The complete auth feature is absent.
+
+This is generation-time source projection, not a runtime check for internet availability. A network-free output never references `LoginRoute`.
+
+## UI state
+
+`BaseViewModel<S, E>` exposes immutable state and sends one-shot events through an unbuffered channel. Feature screens follow the Route/UI split and collect state with lifecycle awareness.
+
+## `core:ui`
+
+The design system includes buttons, fields, cards, dialogs, top bars, empty/error/loading states, search, image rendering, theme tokens, previews, and navigation-bar components. It no longer contains a global no-internet banner.
 
 ---
 
