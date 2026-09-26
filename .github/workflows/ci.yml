@@ -14,6 +14,7 @@ jobs:
   lint:
     name: Lint (ktlint + detekt)
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -26,22 +27,24 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Create local.properties and secrets.properties
+      - name: Create CI configuration
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
-          echo "API_KEY_DEBUG=\"debug_secret_value\"" > secrets.properties
-          echo "API_KEY_RELEASE=\"release_secret_value\"" >> secrets.properties
-          echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
-          echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
-          echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
-          echo "KEY_PASSWORD=\"android\"" >> secrets.properties
-          echo "STORE_PASSWORD=\"android\"" >> secrets.properties
-          echo "XOR_MASK=\"ci_mask_value_with_24_chars_minimum\"" >> secrets.properties
-          echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
-          echo "NATIVE_RUNTIME_CHECKS_ENABLED=true" >> secrets.properties
-          echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
-          echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
-          echo "MIN_VERSION=1" >> secrets.properties
+          cat > secrets.properties <<'EOF'
+          API_KEY_DEBUG="debug_secret_value"
+          API_KEY_RELEASE="release_secret_value"
+          BASE_URL_DEBUG="https://example.com/"
+          BASE_URL_RELEASE="https://example.com/"
+          KEY_ALIAS="androiddebugkey"
+          KEY_PASSWORD="android"
+          STORE_PASSWORD="android"
+          XOR_MASK="ci_mask_value_with_24_chars_minimum"
+          EXPECTED_SIGNATURE_HASH="53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8"
+          NATIVE_RUNTIME_CHECKS_ENABLED=true
+          CERTIFICATE_PINNING_ENABLED=false
+          CERTIFICATE_PINS=""
+          MIN_VERSION=1
+          EOF
 
       - name: Run ktlint
         run: ./gradlew ktlintCheck
@@ -52,6 +55,7 @@ jobs:
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -64,22 +68,24 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Create local.properties and secrets.properties
+      - name: Create CI configuration
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
-          echo "API_KEY_DEBUG=\"debug_secret_value\"" > secrets.properties
-          echo "API_KEY_RELEASE=\"release_secret_value\"" >> secrets.properties
-          echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
-          echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
-          echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
-          echo "KEY_PASSWORD=\"android\"" >> secrets.properties
-          echo "STORE_PASSWORD=\"android\"" >> secrets.properties
-          echo "XOR_MASK=\"ci_mask_value_with_24_chars_minimum\"" >> secrets.properties
-          echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
-          echo "NATIVE_RUNTIME_CHECKS_ENABLED=true" >> secrets.properties
-          echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
-          echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
-          echo "MIN_VERSION=1" >> secrets.properties
+          cat > secrets.properties <<'EOF'
+          API_KEY_DEBUG="debug_secret_value"
+          API_KEY_RELEASE="release_secret_value"
+          BASE_URL_DEBUG="https://example.com/"
+          BASE_URL_RELEASE="https://example.com/"
+          KEY_ALIAS="androiddebugkey"
+          KEY_PASSWORD="android"
+          STORE_PASSWORD="android"
+          XOR_MASK="ci_mask_value_with_24_chars_minimum"
+          EXPECTED_SIGNATURE_HASH="53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8"
+          NATIVE_RUNTIME_CHECKS_ENABLED=true
+          CERTIFICATE_PINNING_ENABLED=false
+          CERTIFICATE_PINS=""
+          MIN_VERSION=1
+          EOF
 
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest
@@ -87,6 +93,7 @@ jobs:
   build:
     name: Assemble Debug + Release
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -99,22 +106,24 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Create local.properties and secrets.properties
+      - name: Create CI configuration
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
-          echo "API_KEY_DEBUG=\"debug_secret_value\"" > secrets.properties
-          echo "API_KEY_RELEASE=\"release_secret_value\"" >> secrets.properties
-          echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
-          echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
-          echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
-          echo "KEY_PASSWORD=\"android\"" >> secrets.properties
-          echo "STORE_PASSWORD=\"android\"" >> secrets.properties
-          echo "XOR_MASK=\"ci_mask_value_with_24_chars_minimum\"" >> secrets.properties
-          echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
-          echo "NATIVE_RUNTIME_CHECKS_ENABLED=true" >> secrets.properties
-          echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
-          echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
-          echo "MIN_VERSION=1" >> secrets.properties
+          cat > secrets.properties <<'EOF'
+          API_KEY_DEBUG="debug_secret_value"
+          API_KEY_RELEASE="release_secret_value"
+          BASE_URL_DEBUG="https://example.com/"
+          BASE_URL_RELEASE="https://example.com/"
+          KEY_ALIAS="androiddebugkey"
+          KEY_PASSWORD="android"
+          STORE_PASSWORD="android"
+          XOR_MASK="ci_mask_value_with_24_chars_minimum"
+          EXPECTED_SIGNATURE_HASH="53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8"
+          NATIVE_RUNTIME_CHECKS_ENABLED=true
+          CERTIFICATE_PINNING_ENABLED=false
+          CERTIFICATE_PINS=""
+          MIN_VERSION=1
+          EOF
 
       - name: Assemble debug and release
         run: ./gradlew assembleDebug :app:assembleRelease
@@ -122,6 +131,7 @@ jobs:
   plug-out:
     name: Plug-out (optional modules removed)
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -134,63 +144,103 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Create local.properties and secrets.properties
+      - name: Create CI configuration
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
-          echo "API_KEY_DEBUG=\"debug_secret_value\"" > secrets.properties
-          echo "API_KEY_RELEASE=\"release_secret_value\"" >> secrets.properties
-          echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
-          echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
-          echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
-          echo "KEY_PASSWORD=\"android\"" >> secrets.properties
-          echo "STORE_PASSWORD=\"android\"" >> secrets.properties
-          echo "XOR_MASK=\"ci_mask_value_with_24_chars_minimum\"" >> secrets.properties
-          echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
-          echo "NATIVE_RUNTIME_CHECKS_ENABLED=true" >> secrets.properties
-          echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
-          echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
-          echo "MIN_VERSION=1" >> secrets.properties
+          cat > secrets.properties <<'EOF'
+          API_KEY_DEBUG="debug_secret_value"
+          API_KEY_RELEASE="release_secret_value"
+          BASE_URL_DEBUG="https://example.com/"
+          BASE_URL_RELEASE="https://example.com/"
+          KEY_ALIAS="androiddebugkey"
+          KEY_PASSWORD="android"
+          STORE_PASSWORD="android"
+          XOR_MASK="ci_mask_value_with_24_chars_minimum"
+          EXPECTED_SIGNATURE_HASH="53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8"
+          NATIVE_RUNTIME_CHECKS_ENABLED=true
+          CERTIFICATE_PINNING_ENABLED=false
+          CERTIFICATE_PINS=""
+          MIN_VERSION=1
+          EOF
 
-      # Every module listed here must be deletable without touching any other source file.
-      # The list grows with each plug-out refactor, which makes regressions impossible to merge.
-      #
-      # Deleting the folder is the whole operation: settings.gradle.kts discovers modules from
-      # disk, so there is nothing left to edit afterwards. The two sed calls that used to strip
-      # include() and project() lines were removed once that landed.
       - name: Delete optional modules
         run: |
           set -eu
-          for module in core/security core/analytics core/database core/network core/secrets feature/auth benchmark baselineprofile; do
-            gradle_path=":$(echo "$module" | tr '/' ':')"
-            echo "Removing $gradle_path"
+
+          for module in \
+            core/security \
+            core/analytics \
+            core/database \
+            core/network \
+            core/secrets \
+            feature/auth \
+            benchmark \
+            baselineprofile
+          do
+            echo "Removing $module"
             rm -rf "$module"
           done
 
-      - name: Verify no source references the removed modules
+      - name: Verify removed modules are not referenced
         run: |
           set -eu
-          if grep -rn "core\.security\|core\.analytics\|core\.database\|core\.network\|core\.secrets\|feature\.auth" --include="*.kt" app core feature; then
+
+          if grep -rn \
+            --include="*.kt" \
+            -E "core\.security|core\.analytics|core\.database|core\.network|core\.secrets|feature\.auth" \
+            app core feature
+          then
             echo "Removed module is still referenced from Kotlin sources."
             exit 1
           fi
 
-      # A successful build only proves the perf wiring did not explode; it does not prove the
-      # conditional branch ran. Asserting the log line proves composetemplate.perf actually took
-      # the "generator project is absent" path, so this job would still fail if the plugin
-      # silently started wiring baseline profiles unconditionally again.
       - name: Assemble debug without optional modules
         run: |
           set -euo pipefail
+
           ./gradlew :app:assembleDebug | tee plug-out-build.log
+
           if ! grep -q "Baseline profiles are disabled" plug-out-build.log; then
-            echo "composetemplate.perf did not report a missing :baselineprofile project."
-            echo "Either the plugin stopped being applied, or its wiring is no longer conditional."
+            echo "Baseline profile wiring is not conditional."
             exit 1
           fi
 
   template-smoke:
-    name: Template Smoke
+    name: Template Smoke (${{ matrix.strategy }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - strategy: remote
+            package_name: com.example.remote
+            app_name: RemoteApp
+            expect_network: true
+            expect_database: false
+            expect_secrets: true
+
+          - strategy: offline-first
+            package_name: com.example.offlinefirst
+            app_name: OfflineFirstApp
+            expect_network: true
+            expect_database: true
+            expect_secrets: true
+
+          - strategy: local
+            package_name: com.example.local
+            app_name: LocalApp
+            expect_network: false
+            expect_database: true
+            expect_secrets: false
+
+          - strategy: minimal
+            package_name: com.example.minimal
+            app_name: MinimalApp
+            expect_network: false
+            expect_database: false
+            expect_secrets: false
+
     steps:
       - uses: actions/checkout@v4
 
@@ -203,52 +253,198 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Create local.properties and secrets.properties
+      - name: Create template CI configuration
         run: |
           echo "STORE_FILE=debug.keystore" > local.properties
-          echo "API_KEY_DEBUG=\"debug_secret_value\"" > secrets.properties
-          echo "API_KEY_RELEASE=\"release_secret_value\"" >> secrets.properties
-          echo "BASE_URL_DEBUG=\"https://example.com/\"" >> secrets.properties
-          echo "BASE_URL_RELEASE=\"https://example.com/\"" >> secrets.properties
-          echo "KEY_ALIAS=\"androiddebugkey\"" >> secrets.properties
-          echo "KEY_PASSWORD=\"android\"" >> secrets.properties
-          echo "STORE_PASSWORD=\"android\"" >> secrets.properties
-          echo "XOR_MASK=\"ci_mask_value_with_24_chars_minimum\"" >> secrets.properties
-          echo "EXPECTED_SIGNATURE_HASH=\"53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8\"" >> secrets.properties
-          echo "NATIVE_RUNTIME_CHECKS_ENABLED=true" >> secrets.properties
-          echo "CERTIFICATE_PINNING_ENABLED=false" >> secrets.properties
-          echo "CERTIFICATE_PINS=\"\"" >> secrets.properties
-          echo "MIN_VERSION=1" >> secrets.properties
+          cat > secrets.properties <<'EOF'
+          API_KEY_DEBUG="debug_secret_value"
+          API_KEY_RELEASE="release_secret_value"
+          BASE_URL_DEBUG="https://example.com/"
+          BASE_URL_RELEASE="https://example.com/"
+          KEY_ALIAS="androiddebugkey"
+          KEY_PASSWORD="android"
+          STORE_PASSWORD="android"
+          XOR_MASK="ci_mask_value_with_24_chars_minimum"
+          EXPECTED_SIGNATURE_HASH="53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8"
+          NATIVE_RUNTIME_CHECKS_ENABLED=true
+          CERTIFICATE_PINNING_ENABLED=false
+          CERTIFICATE_PINS=""
+          MIN_VERSION=1
+          EOF
 
-      - name: Verify scaffold task is registered
+      - name: Verify invalid data strategy is rejected
+        if: matrix.strategy == 'remote'
+        run: |
+          set -euo pipefail
+
+          if ./gradlew create-new-app \
+            -Pargs='com.example.invalid,InvalidStrategyApp' \
+            -PdataStrategy=invalid \
+            -q \
+            --console=plain
+          then
+            echo "Invalid data strategy unexpectedly succeeded."
+            exit 1
+          fi
+
+          test ! -e ../InvalidStrategyApp
+
+      - name: Verify scaffold task
         run: ./gradlew help --task scaffoldFeature
 
-      - name: Generate a feature scaffold
+      - name: Generate regular feature scaffold
         run: ./gradlew scaffoldFeature -PfeatureName=ci_feature
 
-      - name: Compile generated feature
+      - name: Compile regular feature scaffold
         run: ./gradlew :feature:ci_feature:presentation:compileDebugKotlin
 
-      - name: Generate a database feature scaffold
-        run: ./gradlew scaffoldFeature -PfeatureName=ci_database_feature -PwithDatabase=true
-
-      - name: Compile generated database feature
-        run: ./gradlew :feature:ci_database_feature:data:compileDebugKotlin :feature:ci_database_feature:presentation:compileDebugKotlin
-
-      - name: Verify create-new-app excludes local secrets
+      - name: Generate Room feature scaffold
         run: |
-          ./gradlew create-new-app -Pargs='com.example.generated,GeneratedApp' -q --console=plain
-          test ! -f ../GeneratedApp/secrets.properties
-          test ! -f ../GeneratedApp/local.properties
-          test ! -d ../GeneratedApp/.git
+          ./gradlew scaffoldFeature \
+            -PfeatureName=ci_database_feature \
+            -PwithDatabase=true
 
-      - name: Generate a secret-free application
+      - name: Compile Room feature scaffold
+        run: |
+          ./gradlew \
+            :feature:ci_database_feature:data:compileDebugKotlin \
+            :feature:ci_database_feature:presentation:compileDebugKotlin
+
+      - name: Remove smoke-test feature scaffolds
+        run: rm -rf feature/ci_feature feature/ci_database_feature
+
+      - name: Generate ${{ matrix.strategy }} application
         run: |
           ./gradlew create-new-app \
-            -Pargs='com.example.secretfree,SecretFreeApp' \
-            -PwithSecrets=false \
-            -q --console=plain
+            -Pargs='${{ matrix.package_name }},${{ matrix.app_name }}' \
+            -PdataStrategy='${{ matrix.strategy }}' \
+            -q \
+            --console=plain
 
-      - name: Build the secret-free application
-        working-directory: ../SecretFreeApp
+      - name: Verify generated project metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          app_dir="../${{ matrix.app_name }}"
+
+          test -d "$app_dir"
+          test ! -d "$app_dir/.git"
+          test ! -f "$app_dir/local.properties"
+
+          if [ "${{ matrix.expect_secrets }}" = "true" ]; then
+            test -d "$app_dir/core/secrets"
+            test -f "$app_dir/secrets.properties.example"
+
+            echo "STORE_FILE=debug.keystore" > "$app_dir/local.properties"
+            keytool -genkeypair \
+              -keystore "$app_dir/debug.keystore" \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -dname "CN=Android Debug,O=Android,C=US" \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000
+
+            cat > "$app_dir/secrets.properties" <<'EOF'
+          API_KEY_DEBUG="debug_secret_value"
+          API_KEY_RELEASE="release_secret_value"
+          BASE_URL_DEBUG="https://example.com/"
+          BASE_URL_RELEASE="https://example.com/"
+          KEY_ALIAS="androiddebugkey"
+          KEY_PASSWORD="android"
+          STORE_PASSWORD="android"
+          XOR_MASK="ci_mask_value_with_24_chars_minimum"
+          EXPECTED_SIGNATURE_HASH="53017D6F6B5A861B3096D18257D5C91F0588287BC587F12C35767D362EF0A3A8"
+          NATIVE_RUNTIME_CHECKS_ENABLED=true
+          CERTIFICATE_PINNING_ENABLED=false
+          CERTIFICATE_PINS=""
+          MIN_VERSION=1
+          EOF
+          else
+            test ! -d "$app_dir/core/secrets"
+            test ! -d "$app_dir/core/security"
+            test ! -f "$app_dir/secrets.properties"
+            test ! -f "$app_dir/secrets.properties.example"
+          fi
+
+      - name: Verify network projection
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          app_dir="../${{ matrix.app_name }}"
+
+          if [ "${{ matrix.expect_network }}" = "true" ]; then
+            test -d "$app_dir/core/network"
+            test -d "$app_dir/feature/auth"
+            grep -R "LoginRoute" "$app_dir/feature/splash" "$app_dir/feature/onboarding"
+          else
+            test ! -d "$app_dir/core/network"
+            test ! -d "$app_dir/feature/auth"
+            ! grep -R "LoginRoute" "$app_dir/feature" --exclude-dir=build
+            ! grep -R \
+              -E "core:network|core\.network|feature:auth|feature\.auth|libs\.retrofit|libs\.okhttp|NetworkMonitor|AppNoInternetBanner" \
+              "$app_dir" \
+              --exclude-dir=.gradle \
+              --exclude-dir=build
+          fi
+
+      - name: Verify database projection
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          app_dir="../${{ matrix.app_name }}"
+
+          if [ "${{ matrix.expect_database }}" = "true" ]; then
+            test -d "$app_dir/core/database"
+          else
+            test ! -d "$app_dir/core/database"
+            ! grep -R \
+              -E "core:database|core\.database|androidx.room|androidx-room|AndroidRoomConventionPlugin|withDatabase" \
+              "$app_dir" \
+              --exclude-dir=.gradle \
+              --exclude-dir=build
+          fi
+
+      - name: Build generated ${{ matrix.strategy }} application
+        working-directory: ../${{ matrix.app_name }}
+        run: ./gradlew assembleDebug :app:assembleRelease
+
+      - name: Generate network-backed application without secrets
+        if: matrix.strategy == 'remote'
+        run: |
+          ./gradlew create-new-app \
+            -Pargs='com.example.remotesecretfree,RemoteSecretFreeApp' \
+            -PdataStrategy=remote \
+            -PwithSecrets=false \
+            -q \
+            --console=plain
+
+      - name: Verify network-backed secret-free projection
+        if: matrix.strategy == 'remote'
+        run: |
+          set -euo pipefail
+
+          app_dir="../RemoteSecretFreeApp"
+
+          test -d "$app_dir/core/network"
+          test -d "$app_dir/feature/auth"
+          test ! -d "$app_dir/core/secrets"
+          test ! -d "$app_dir/core/security"
+          test ! -f "$app_dir/secrets.properties"
+          test ! -f "$app_dir/secrets.properties.example"
+          test ! -f "$app_dir/local.properties"
+
+          ! grep -R \
+            -E "core:secrets|core\.secrets|core:security|core\.security|SecretManager|validateSecrets|scanApkForSecrets|hardeningReport|secrets\.properties|NATIVE_RUNTIME_CHECKS_ENABLED|EXPECTED_SIGNATURE_HASH|XOR_MASK|ndk =" \
+            "$app_dir" \
+            --exclude-dir=.gradle \
+            --exclude-dir=build
+
+      - name: Build network-backed secret-free application
+        if: matrix.strategy == 'remote'
+        working-directory: ../RemoteSecretFreeApp
         run: ./gradlew assembleDebug :app:assembleRelease

@@ -3,6 +3,7 @@ import java.util.Properties
 
 plugins {
     id("composetemplate.create.new.app")
+    id("composetemplate.data.strategy.projection")
     id("composetemplate.android.application")
     id("composetemplate.perf")
     id("composetemplate.android.application.compose")
