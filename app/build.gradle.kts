@@ -86,8 +86,8 @@ android {
 dependencies {
     // Every core and feature module found on disk is wired in automatically, so deleting a
     // module's folder removes it from the build without an edit here, and scaffolding a new
-    // feature needs no edit either. Intermediate path projects such as :feature:auth own no
-    // build file and are skipped.
+    // feature needs no edit either. Intermediate feature container projects own no build file
+    // and are skipped.
     rootProject.subprojects
         .filter { it.buildFile.isFile }
         .map { it.path }
