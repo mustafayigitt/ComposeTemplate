@@ -1,5 +1,6 @@
 plugins {
     id("composetemplate.feature.data")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -9,7 +10,7 @@ android {
 dependencies {
     implementation(project(":feature:auth:domain"))
     implementation(libs.retrofit)
-    implementation(libs.converter.gson)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.okhttp)
 }

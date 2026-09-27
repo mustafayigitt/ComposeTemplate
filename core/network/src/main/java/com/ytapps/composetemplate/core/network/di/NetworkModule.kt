@@ -9,12 +9,14 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.json.Json
 import okhttp3.CertificatePinner
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -22,15 +24,23 @@ import javax.inject.Singleton
 internal object NetworkModule {
     @Provides
     @Singleton
-    fun provideNetworkConfig(providers: Set<@JvmSuppressWildcards NetworkConfigProvider>): NetworkConfigProvider {
-        if (providers.isEmpty()) {
-            return DefaultNetworkConfigProvider
-        }
+    fun provideNetworkConfig(
+        providers: Set<@JvmSuppressWildcards NetworkConfigProvider>,
+    ): NetworkConfigProvider {
+        if (providers.isEmpty()) return DefaultNetworkConfigProvider
         check(providers.size == 1) {
             "Only one NetworkConfigProvider may be contributed, found ${providers.size}."
         }
         return providers.first()
     }
+
+    @Provides
+    @Singleton
+    fun provideJson(): Json =
+        Json {
+            ignoreUnknownKeys = true
+            explicitNulls = false
+        }
 
     @Provides
     @Singleton
@@ -63,23 +73,23 @@ internal object NetworkModule {
     fun provideRetrofit(
         okHttpClient: OkHttpClient,
         networkConfig: NetworkConfigProvider,
+        json: Json,
     ): Retrofit =
         Retrofit
             .Builder()
             .baseUrl(networkConfig.baseUrl)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(json.asConverterFactory(JSON_MEDIA_TYPE))
             .build()
 
-    private fun OkHttpClient.Builder.applyCertificatePinning(networkConfig: NetworkConfigProvider): OkHttpClient.Builder {
-        if (BuildConfig.DEBUG || !networkConfig.certificatePinningEnabled) {
-            return this
-        }
+    private fun OkHttpClient.Builder.applyCertificatePinning(
+        networkConfig: NetworkConfigProvider,
+    ): OkHttpClient.Builder {
+        if (BuildConfig.DEBUG || !networkConfig.certificatePinningEnabled) return this
 
         require(networkConfig.certificatePins.size >= MIN_CERTIFICATE_PIN_COUNT) {
             "Release certificate pinning requires primary and backup SHA-256 pins."
         }
-
         val host = networkConfig.baseUrl.toHttpUrl().host
         val certificatePinnerBuilder = CertificatePinner.Builder()
         networkConfig.certificatePins.forEach { pin ->
@@ -89,5 +99,6 @@ internal object NetworkModule {
         return this
     }
 
+    private val JSON_MEDIA_TYPE = "application/json".toMediaType()
     private const val MIN_CERTIFICATE_PIN_COUNT = 2
 }

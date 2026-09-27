@@ -20,7 +20,6 @@ androidx-material-icons-core = "1.7.8"
 
 # Network
 retrofit = "2.12.0"
-converter-gson = "2.12.0"
 okhttp = "4.12.0"
 logging-interceptor = "4.12.0"
 
@@ -66,8 +65,6 @@ google-play-app-update = "2.1.0"
 # Image Loading
 coil = "3.4.0"
 
-
-
 [libraries]
 # AndroidX Core
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
@@ -101,7 +98,7 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 
 # Network
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converter-gson" }
+converter-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "logging-interceptor" }
 
@@ -113,6 +110,7 @@ androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-com
 # Kotlin
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-test" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization-core" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-core" }
 
 # Logging
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
@@ -144,7 +142,7 @@ kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-p
 ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "symbol-processing-gradle-plugin", version.ref = "ksp" }
 compose-compiler-gradle-plugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
 detekt-gradle-plugin = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
-ktlint-gradle-plugin = { group = "org.jlleitschuh.gradle", name = "ktlint-gradle", version.ref = "ktlint" }
+ktlint-gradle-plugin = { group = "org.jlleitschuh.gradle.ktlint", name = "ktlint-gradle", version.ref = "ktlint" }
 
 [plugins]
 # Android

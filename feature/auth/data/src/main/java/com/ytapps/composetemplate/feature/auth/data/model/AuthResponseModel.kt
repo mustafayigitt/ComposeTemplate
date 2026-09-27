@@ -1,14 +1,16 @@
 package com.ytapps.composetemplate.feature.auth.data.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class AuthResponseModel(
-    @SerializedName("accessToken")
+    @SerialName("accessToken")
     val accessToken: String,
-    @SerializedName("refreshToken")
+    @SerialName("refreshToken")
     val refreshToken: String,
-    @SerializedName("expiresIn")
+    @SerialName("expiresIn")
     val expiresIn: String,
-    @SerializedName("tokenType")
+    @SerialName("tokenType")
     val tokenType: String,
 )
