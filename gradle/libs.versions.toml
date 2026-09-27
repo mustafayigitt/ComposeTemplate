@@ -87,7 +87,7 @@ androidx-material-icons-core = { module = "androidx.compose.material:material-ic
 # Navigation
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "androidx-navigation3" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "androidx-navigation3" }
-androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:viewmodel-navigation3", version.ref = "androidx-lifecycle" }
 androidx-material3-adaptive-navigation3 = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation3", version.ref = "androidx-material3-adaptive" }
 
 # Data Storage
@@ -158,7 +158,7 @@ kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 # Dependency Injection
-version-catalog-dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt-android" }
+dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt-android" }
 
 # Static Analysis
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
