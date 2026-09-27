@@ -49,22 +49,22 @@ internal object DataStrategyProjector {
 
     private fun applyAuthFlow(targetDir: File) {
         targetDir.findRequired("feature/splash/domain", "SplashDestination.kt")
-            .replaceRequired(
+            .replaceRequiredExactly(
                 "    data object Onboarding : SplashDestination\n\n    data object Home : SplashDestination",
                 "    data object Onboarding : SplashDestination\n\n    data object Login : SplashDestination\n\n    data object Home : SplashDestination",
             )
         targetDir.findRequired("feature/splash/domain", "ISplashRepository.kt")
-            .replaceRequired(
+            .replaceRequiredExactly(
                 "interface ISplashRepository {\n    suspend fun isOnboardingCompleted(): Boolean",
                 "interface ISplashRepository {\n    suspend fun hasUser(): Boolean\n\n    suspend fun isOnboardingCompleted(): Boolean",
             )
         targetDir.findRequired("feature/splash/data", "SplashRepository.kt")
-            .replaceRequired(
+            .replaceRequiredExactly(
                 "    ) : ISplashRepository {\n        override suspend fun isOnboardingCompleted(): Boolean",
                 "    ) : ISplashRepository {\n        override suspend fun hasUser(): Boolean = preferencesManager.hasUser()\n\n        override suspend fun isOnboardingCompleted(): Boolean",
             )
         targetDir.findRequired("feature/splash/domain", "GetStartDestinationUseCase.kt")
-            .replaceRequired(
+            .replaceRequiredExactly(
                 """        suspend operator fun invoke(): SplashDestination =
             if (splashRepository.isOnboardingCompleted()) {
                 SplashDestination.Home
@@ -82,44 +82,44 @@ internal object DataStrategyProjector {
             )
 
         File(targetDir, "feature/splash/presentation/build.gradle.kts")
-            .replaceRequired(
+            .replaceRequiredExactly(
                 "    implementation(project(\":feature:home:navigation\"))\n",
                 "    implementation(project(\":feature:home:navigation\"))\n    implementation(project(\":feature:auth:navigation\"))\n",
             )
         targetDir.findRequired("feature/splash/presentation", "SplashViewModel.kt")
             .addAuthImportBeforeHomeImport()
-            .replaceRequired(
+            .replaceRequiredExactly(
                 "                        SplashDestination.Home -> HomeRoute\n",
                 "                        SplashDestination.Home -> HomeRoute\n                        SplashDestination.Login -> LoginRoute\n",
             )
         targetDir.findRequired("feature/splash/domain", "GetStartDestinationUseCaseTest.kt")
-            .replaceRequired(
+            .replaceRequiredExactly(
                 "            coEvery { splashRepository.isOnboardingCompleted() } returns true\n\n            val result",
                 "            coEvery { splashRepository.isOnboardingCompleted() } returns true\n            coEvery { splashRepository.hasUser() } returns true\n\n            val result",
             )
 
         File(targetDir, "feature/onboarding/presentation/build.gradle.kts")
-            .replaceRequired(":feature:home:navigation", ":feature:auth:navigation")
+            .replaceRequiredExactly(":feature:home:navigation", ":feature:auth:navigation")
         targetDir.findRequired("feature/onboarding/presentation", "OnboardingRoute.kt")
-            .replaceRequired("feature.home.navigation.HomeRoute", "feature.auth.navigation.LoginRoute")
-            .replaceRequired("NavigateToHome", "NavigateToLogin")
-            .replaceRequired("route = HomeRoute", "route = LoginRoute")
+            .replaceRequiredExactly("feature.home.navigation.HomeRoute", "feature.auth.navigation.LoginRoute")
+            .replaceRequiredExactly("NavigateToHome", "NavigateToLogin")
+            .replaceRequiredExactly("route = HomeRoute", "route = LoginRoute")
         targetDir.findRequired("feature/onboarding/presentation", "OnboardingViewModel.kt")
-            .replaceRequired("NavigateToHome", "NavigateToLogin")
+            .replaceRequiredExactly("NavigateToHome", "NavigateToLogin")
 
         File(targetDir, "feature/profile/presentation/build.gradle.kts")
-            .replaceRequired(":feature:home:navigation", ":feature:auth:navigation")
+            .replaceRequiredExactly(":feature:home:navigation", ":feature:auth:navigation")
         targetDir.findRequired("feature/profile/presentation", "ProfileEvent.kt")
-            .replaceRequired("NavigateToHome", "NavigateToLogin")
+            .replaceRequiredExactly("NavigateToHome", "NavigateToLogin")
         targetDir.findRequired("feature/profile/presentation", "ProfileRoute.kt")
-            .replaceRequired("feature.home.navigation.HomeRoute", "feature.auth.navigation.LoginRoute")
-            .replaceRequired("NavigateToHome", "NavigateToLogin")
-            .replaceRequired("navigateToTop(HomeRoute)", "navigateToTop(LoginRoute)")
+            .replaceRequiredExactly("feature.home.navigation.HomeRoute", "feature.auth.navigation.LoginRoute")
+            .replaceRequiredExactly("NavigateToHome", "NavigateToLogin")
+            .replaceRequiredExactly("navigateToTop(HomeRoute)", "navigateToTop(LoginRoute)")
         targetDir.findRequired("feature/profile/presentation", "ProfileViewModel.kt")
-            .replaceRequired("NavigateToHome", "NavigateToLogin")
+            .replaceRequiredExactly("NavigateToHome", "NavigateToLogin")
         targetDir.findRequired("feature/profile/presentation", "ProfileViewModelTest.kt")
-            .replaceRequired("navigate to home", "navigate to login")
-            .replaceRequired("NavigateToHome", "NavigateToLogin")
+            .replaceRequiredExactly("navigate to home", "navigate to login")
+            .replaceRequiredExactly("NavigateToHome", "NavigateToLogin")
     }
 
     private fun removeNetworkCapability(targetDir: File) {
@@ -128,7 +128,7 @@ internal object DataStrategyProjector {
             val value = line.trimStart()
             value == "# Network" ||
                 value.startsWith("retrofit =") ||
-                value.startsWith("converter-gson =") ||
+                value.startsWith("converter-kotlinx-serialization =") ||
                 value.startsWith("okhttp =") ||
                 value.startsWith("logging-interceptor =") ||
                 value.startsWith("coil-network-okhttp =")
@@ -227,7 +227,7 @@ internal object DataStrategyProjector {
                     .mapNotNull(rootProject::findProject)"""
             }
         targetDir.findRequired("build-logic/convention", "FeatureDataConventionPlugin.kt")
-            .replaceRequired(
+            .replaceRequiredExactly(
                 """            val optionalInfrastructure =
                 listOf(":core:network", ":core:database")
                     .mapNotNull(rootProject::findProject)""",
@@ -348,7 +348,7 @@ All retained dependencies and versions are centralized in `gradle/libs.versions.
         val pathViolations = forbiddenPaths.filter { File(targetDir, it).exists() }
         val forbiddenTokens = buildList {
             if (!strategy.usesNetwork) {
-                addAll(listOf("core:network", "core.network", "feature:auth", "feature.auth", "libs.retrofit", "libs.okhttp", "libs.converter.gson", "libs.logging.interceptor", "libs.coil.network.okhttp", "AppNoInternetBanner", "NetworkMonitor"))
+                addAll(listOf("core:network", "core.network", "feature:auth", "feature.auth", "libs.retrofit", "libs.okhttp", "libs.converter.kotlinx.serialization", "libs.logging.interceptor", "libs.coil.network.okhttp", "AppNoInternetBanner", "NetworkMonitor"))
             }
             if (!strategy.usesDatabase) {
                 addAll(listOf("core:database", "core.database", "androidx-room", "androidx.room", "AndroidRoomConventionPlugin", ".android.room", "withDatabase"))
@@ -387,7 +387,7 @@ All retained dependencies and versions are centralized in `gradle/libs.versions.
     private fun File.findByName(fileName: String): File? =
         walkTopDown().firstOrNull { it.isFile && it.name == fileName }
 
-    private fun File.replaceRequired(oldValue: String, newValue: String): File {
+    private fun File.replaceRequiredExactly(oldValue: String, newValue: String): File {
         val content = readText()
         if (!content.contains(oldValue)) throw GradleException("Expected text not found in $path")
         writeText(content.replace(oldValue, newValue))
