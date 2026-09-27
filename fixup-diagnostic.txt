@@ -1,5 +1,0 @@
-scaffold 1
-helper-private 1
-helper-internal 0
-home-old 1
-gson 1

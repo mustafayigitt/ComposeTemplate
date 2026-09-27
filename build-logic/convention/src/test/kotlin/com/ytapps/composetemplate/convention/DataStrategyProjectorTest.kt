@@ -12,7 +12,7 @@ class DataStrategyProjectorTest {
         val file = Files.createTempFile("projector", ".txt").toFile().apply { writeText("before target after") }
 
         with(DataStrategyProjector) {
-  file.replaceRequiredExactly("target", "updated")
+            file.replaceRequiredExactly("target", "updated")
         }
 
         assertEquals("before updated after", file.readText())
@@ -23,9 +23,9 @@ class DataStrategyProjectorTest {
         val file = Files.createTempFile("projector", ".txt").toFile().apply { writeText("before after") }
 
         assertFailsWith<GradleException> {
-  with(DataStrategyProjector) {
-      file.replaceRequiredExactly("target", "updated")
-  }
+            with(DataStrategyProjector) {
+                file.replaceRequiredExactly("target", "updated")
+            }
         }
     }
 
@@ -34,9 +34,9 @@ class DataStrategyProjectorTest {
         val file = Files.createTempFile("projector", ".txt").toFile().apply { writeText("target and target") }
 
         assertFailsWith<GradleException> {
-  with(DataStrategyProjector) {
-      file.replaceRequiredExactly("target", "updated")
-  }
+            with(DataStrategyProjector) {
+                file.replaceRequiredExactly("target", "updated")
+            }
         }
     }
 }

@@ -139,11 +139,6 @@ internal object DataStrategyProjector {
         val proguard = File(targetDir, "app/proguard-rules.pro")
         if (proguard.exists()) {
             var content = proguard.readText()
-            val gsonStart = content.indexOf("# Gson: Keep all network model / DTO classes")
-            val serializationStart = content.indexOf("# Kotlinx Serialization:")
-            if (gsonStart >= 0 && serializationStart > gsonStart) {
-                content = content.removeRange(content.lastIndexOf("# ---", gsonStart), serializationStart)
-            }
             val retrofitStart = content.indexOf("# Retrofit: Keep service interface method signatures")
             if (retrofitStart >= 0) {
                 content = content.substring(0, content.lastIndexOf("# ---", retrofitStart)).trimEnd() + "\n"
@@ -377,7 +372,7 @@ All retained dependencies and versions are centralized in `gradle/libs.versions.
         val homeImport = content.lineSequence().firstOrNull { it.endsWith("feature.home.navigation.HomeRoute") }
             ?: throw GradleException("Could not find HomeRoute import in $path")
         val authImport = homeImport.replace("feature.home.navigation.HomeRoute", "feature.auth.navigation.LoginRoute")
-        return replaceRequired(homeImport, "$authImport\n$homeImport")
+        return replaceRequiredExactly(homeImport, "$authImport\n$homeImport")
     }
 
     private fun File.findRequired(modulePath: String, fileName: String): File =
@@ -387,9 +382,12 @@ All retained dependencies and versions are centralized in `gradle/libs.versions.
     private fun File.findByName(fileName: String): File? =
         walkTopDown().firstOrNull { it.isFile && it.name == fileName }
 
-    private fun File.replaceRequiredExactly(oldValue: String, newValue: String): File {
+    internal fun File.replaceRequiredExactly(oldValue: String, newValue: String): File {
         val content = readText()
-        if (!content.contains(oldValue)) throw GradleException("Expected text not found in $path")
+        val matchCount = content.windowedSequence(oldValue.length).count { it == oldValue }
+        if (matchCount != 1) {
+            throw GradleException("Expected exactly one match in $path, but found $matchCount")
+        }
         writeText(content.replace(oldValue, newValue))
         return this
     }
