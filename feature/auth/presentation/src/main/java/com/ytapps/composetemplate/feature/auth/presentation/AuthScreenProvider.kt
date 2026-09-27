@@ -7,24 +7,13 @@ import com.ytapps.composetemplate.core.navigation.IScreenProvider
 import com.ytapps.composetemplate.feature.auth.navigation.LoginRoute
 import javax.inject.Inject
 
-/**
- * Screen provider for Auth feature module.
- * Provides screens for all Auth routes (LoginRoute, etc.).
- */
-class AuthScreenProvider
-    @Inject
-    constructor() : IScreenProvider {
-        @Composable
-        override fun provideScreen(
-            route: INavigationItem,
-            navigationManager: INavigationManager,
-        ): Boolean =
-            when (route) {
-                is LoginRoute -> {
-                    LoginScreen(navigationManager)
-                    true
-                }
+class AuthScreenProvider @Inject constructor() : IScreenProvider {
+    override fun restoreRoute(route: String): INavigationItem? = LoginRoute.takeIf { it.route == route }
 
-                else -> false
-            }
-    }
+    @Composable
+    override fun provideScreen(route: INavigationItem, navigationManager: INavigationManager): Boolean =
+        when (route) {
+            is LoginRoute -> { LoginScreen(navigationManager); true }
+            else -> false
+        }
+}

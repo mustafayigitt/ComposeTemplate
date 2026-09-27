@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ytapps.composetemplate.core.common.IThemeManager
 import com.ytapps.composetemplate.core.navigation.INavigationManager
 import com.ytapps.composetemplate.core.navigation.NavigationObserver
 import com.ytapps.composetemplate.core.navigation.ScreenRegistry
@@ -23,13 +24,22 @@ class MainActivity : ComponentActivity() {
     lateinit var screenRegistry: ScreenRegistry
 
     @Inject
+    lateinit var themeManager: IThemeManager
+
+    @Inject
     lateinit var navigationObservers: Set<@JvmSuppressWildcards NavigationObserver>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        savedInstanceState
+            ?.getStringArrayList(NAVIGATION_BACK_STACK_KEY)
+            ?.let(screenRegistry::restoreBackStack)
+            ?.takeIf { it.isNotEmpty() }
+            ?.let(navigationManager::restoreBackStack)
+
         enableEdgeToEdge()
         setContent {
-            val isDarkMode by navigationManager.isDarkModeFlow.collectAsStateWithLifecycle()
+            val isDarkMode by themeManager.isDarkModeFlow.collectAsStateWithLifecycle()
 
             ComposeTemplateTheme(darkTheme = isDarkMode) {
                 AppNavigation(
@@ -39,5 +49,17 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putStringArrayList(
+            NAVIGATION_BACK_STACK_KEY,
+            ArrayList(navigationManager.backStack.value.map { it.route }),
+        )
+        super.onSaveInstanceState(outState)
+    }
+
+    private companion object {
+        const val NAVIGATION_BACK_STACK_KEY = "navigation_back_stack"
     }
 }

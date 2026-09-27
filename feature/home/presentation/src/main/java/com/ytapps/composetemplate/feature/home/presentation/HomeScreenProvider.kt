@@ -7,24 +7,13 @@ import com.ytapps.composetemplate.core.navigation.IScreenProvider
 import com.ytapps.composetemplate.feature.home.navigation.HomeRoute
 import javax.inject.Inject
 
-/**
- * Screen provider for Home feature.
- * Provides screens for HomeRoute.
- */
-class HomeScreenProvider
-    @Inject
-    constructor() : IScreenProvider {
-        @Composable
-        override fun provideScreen(
-            route: INavigationItem,
-            navigationManager: INavigationManager,
-        ): Boolean =
-            when (route) {
-                is HomeRoute -> {
-                    HomeScreen(navigationManager)
-                    true
-                }
+class HomeScreenProvider @Inject constructor() : IScreenProvider {
+    override fun restoreRoute(route: String): INavigationItem? = HomeRoute.takeIf { it.route == route }
 
-                else -> false
-            }
-    }
+    @Composable
+    override fun provideScreen(route: INavigationItem, navigationManager: INavigationManager): Boolean =
+        when (route) {
+            is HomeRoute -> { HomeScreen(navigationManager); true }
+            else -> false
+        }
+}

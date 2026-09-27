@@ -12,15 +12,22 @@ internal class NavigationManager
     constructor(
         override val startDestination: INavigationItem,
         private val bottomBarItemsRaw: Map<String, @JvmSuppressWildcards IBottomBarItem>,
-        private val preferencesManager: com.ytapps.composetemplate.core.data.IPreferencesManager,
     ) : INavigationManager {
         private val _backStack = MutableStateFlow(listOf(startDestination))
         override val backStack = _backStack.asStateFlow()
 
-        override val isDarkModeFlow = preferencesManager.isDarkModeFlow
-
         override val bottomBarItems: List<IBottomBarItem> =
             bottomBarItemsRaw.entries.sortedBy { it.key }.map { it.value }
+
+        override fun restoreBackStack(routes: List<INavigationItem>) {
+            if (routes.isEmpty()) return
+            _backStack.value =
+                if (routes.first().route == startDestination.route) {
+                    routes
+                } else {
+                    listOf(startDestination) + routes
+                }
+        }
 
         override fun showBottomBar(route: INavigationItem): Boolean = route in bottomBarItems
 
@@ -50,9 +57,7 @@ internal class NavigationManager
         }
 
         override fun navigate(route: INavigationItem) {
-            _backStack.update { stack ->
-                stack + route
-            }
+            _backStack.update { stack -> stack + route }
         }
 
         override fun navigateOver(

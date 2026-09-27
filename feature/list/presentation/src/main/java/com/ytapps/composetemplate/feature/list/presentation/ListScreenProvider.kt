@@ -7,24 +7,13 @@ import com.ytapps.composetemplate.core.navigation.IScreenProvider
 import com.ytapps.composetemplate.feature.list.navigation.ListRoute
 import javax.inject.Inject
 
-/**
- * Screen provider for List feature.
- * Provides screens for ListRoute.
- */
-class ListScreenProvider
-    @Inject
-    constructor() : IScreenProvider {
-        @Composable
-        override fun provideScreen(
-            route: INavigationItem,
-            navigationManager: INavigationManager,
-        ): Boolean =
-            when (route) {
-                is ListRoute -> {
-                    ListScreen(navigationManager)
-                    true
-                }
+class ListScreenProvider @Inject constructor() : IScreenProvider {
+    override fun restoreRoute(route: String): INavigationItem? = ListRoute.takeIf { it.route == route }
 
-                else -> false
-            }
-    }
+    @Composable
+    override fun provideScreen(route: INavigationItem, navigationManager: INavigationManager): Boolean =
+        when (route) {
+            is ListRoute -> { ListScreen(navigationManager); true }
+            else -> false
+        }
+}

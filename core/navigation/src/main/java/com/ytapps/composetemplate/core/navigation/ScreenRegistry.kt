@@ -1,11 +1,6 @@
 package com.ytapps.composetemplate.core.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,22 +10,23 @@ class ScreenRegistry
     constructor(
         private val screenProviders: Set<@JvmSuppressWildcards IScreenProvider>,
     ) {
+        fun restoreBackStack(routes: List<String>): List<INavigationItem> =
+            routes.mapNotNull { savedRoute ->
+                val matches = screenProviders.mapNotNull { it.restoreRoute(savedRoute) }
+                check(matches.size <= 1) {
+                    "Multiple screen providers restored route '$savedRoute'."
+                }
+                matches.singleOrNull()
+            }
+
         @Composable
         fun ScreenProvider(
             route: INavigationItem,
             navigationManager: INavigationManager,
         ) {
             for (provider in screenProviders) {
-                if (provider.provideScreen(route, navigationManager)) {
-                    return
-                }
+                if (provider.provideScreen(route, navigationManager)) return
             }
-
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(text = "Screen not found: ${route.route}")
-            }
+            error("No IScreenProvider registered for route '${route.route}'.")
         }
     }
