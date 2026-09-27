@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: refactor/resolve-risks-and-gaps
-          fetch-depth: 2
+          fetch-depth: 3
       - name: Apply and commit final source updates
         shell: bash
         run: |
@@ -27,19 +27,20 @@ jobs:
           scaffold = Path("build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/ScaffoldFeaturePlugin.kt")
           content = scaffold.read_text()
           old = "    constructor() : IScreenProvider {\n        @Composable\n"
-          new = """    constructor() : IScreenProvider {
-                  override fun restoreRoute(route: String): INavigationItem? =
-                      if (route == ${routeName}Route.route) ${routeName}Route else null
-
-                  @Composable
-          """
+          new = (
+              "    constructor() : IScreenProvider {\n"
+              "        override fun restoreRoute(route: String): INavigationItem? =\n"
+              "            if (route == ${routeName}Route.route) ${routeName}Route else null\n\n"
+              "        @Composable\n"
+          )
           if content.count(old) != 1:
-              raise RuntimeError("Generated screen provider insertion point changed")
+              raise RuntimeError(f"screen provider matches: {content.count(old)}")
           scaffold.write_text(content.replace(old, new))
 
           projector = Path("build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/DataStrategyProjector.kt")
           content = projector.read_text()
-          content = re.sub(
+          content = content.replace("return replaceRequired(homeImport,", "return replaceRequiredExactly(homeImport,")
+          content, cleanup_count = re.subn(
               r'\n            val gsonStart = content\.indexOf\("# Gson: Keep all network model / DTO classes"\)\n'
               r'            val serializationStart = content\.indexOf\("# Kotlinx Serialization:"\)\n'
               r'            if \(gsonStart >= 0 && serializationStart > gsonStart\) \{\n'
@@ -49,27 +50,29 @@ jobs:
               content,
               count=1,
           )
-          content = content.replace("return replaceRequired(homeImport,", "return replaceRequiredExactly(homeImport,")
-          old_helper = """    private fun File.replaceRequiredExactly(oldValue: String, newValue: String): File {
-              val content = readText()
-              if (!content.contains(oldValue)) throw GradleException("Expected text not found in $path")
-              writeText(content.replace(oldValue, newValue))
-              return this
-          }
-          """
-          new_helper = """    internal fun File.replaceRequiredExactly(oldValue: String, newValue: String): File {
-              val content = readText()
-              val matchCount = content.windowedSequence(oldValue.length).count { it == oldValue }
-              if (matchCount != 1) {
-                  throw GradleException("Expected exactly one match in $path, but found $matchCount")
-              }
-              writeText(content.replace(oldValue, newValue))
-              return this
-          }
-          """
-          if content.count(old_helper) != 1:
-              raise RuntimeError("Replacement helper changed")
-          projector.write_text(content.replace(old_helper, new_helper))
+          helper_pattern = re.compile(
+              r'    private fun File\.replaceRequiredExactly\(oldValue: String, newValue: String\): File \{\n'
+              r'        val content = readText\(\)\n'
+              r'        if \(!content\.contains\(oldValue\)\) throw GradleException\("Expected text not found in \$path"\)\n'
+              r'        writeText\(content\.replace\(oldValue, newValue\)\)\n'
+              r'        return this\n'
+              r'    \}'
+          )
+          helper = (
+              "    internal fun File.replaceRequiredExactly(oldValue: String, newValue: String): File {\n"
+              "        val content = readText()\n"
+              "        val matchCount = content.windowedSequence(oldValue.length).count { it == oldValue }\n"
+              "        if (matchCount != 1) {\n"
+              "            throw GradleException(\"Expected exactly one match in $path, but found $matchCount\")\n"
+              "        }\n"
+              "        writeText(content.replace(oldValue, newValue))\n"
+              "        return this\n"
+              "    }"
+          )
+          content, helper_count = helper_pattern.subn(lambda _: helper, content, count=1)
+          if cleanup_count != 1 or helper_count != 1:
+              raise RuntimeError(f"cleanup={cleanup_count}, helper={helper_count}")
+          projector.write_text(content)
 
           test = textwrap.dedent('''\
               package com.ytapps.composetemplate.convention
@@ -117,7 +120,7 @@ jobs:
           ''')
           Path("build-logic/convention/src/test/kotlin/com/ytapps/composetemplate/convention/DataStrategyProjectorTest.kt").write_text(test)
 
-          previous_ci = subprocess.check_output(["git", "show", "HEAD^:.github/workflows/ci.yml"], text=True)
+          previous_ci = subprocess.check_output(["git", "show", "HEAD~2:.github/workflows/ci.yml"], text=True)
           start = previous_ci.index("  source-fixup:\n")
           end = previous_ci.index("\n  lint:\n", start)
           final_ci = previous_ci[:start] + previous_ci[end + 1:]
