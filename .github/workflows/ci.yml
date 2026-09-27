@@ -3,33 +3,208 @@ name: CI
 on:
   pull_request:
     branches: [main, develop]
+  push:
+    branches: [main]
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  restore-ci:
+  lint:
+    name: Lint (ktlint + detekt + docs)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
-          ref: refactor/resolve-risks-and-gaps
-          fetch-depth: 0
-      - name: Restore final workflow
+          java-version: 17
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Create local.properties and secrets.properties
+        run: bash core/secrets/ci/setup.sh
+      - name: Run Kotlin quality gates
+        run: ./gradlew ktlintCheck detekt
+      - name: Set up Python
+        if: ${{ hashFiles('mkdocs.yml') != '' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate documentation
+        if: ${{ hashFiles('mkdocs.yml') != '' }}
+        run: |
+          python -m pip install mkdocs-material
+          mkdocs build --strict
+
+  test:
+    name: Unit Tests + Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Create local.properties and secrets.properties
+        run: bash core/secrets/ci/setup.sh
+      - name: Run app tests and coverage
+        run: ./gradlew testDebugUnitTest jacocoDebugReport
+      - name: Test build logic
+        run: ./gradlew -p build-logic :convention:test
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-debug-reports
+          path: '**/build/reports/jacoco/jacocoDebugReport/**'
+          if-no-files-found: warn
+
+  build:
+    name: Assemble Debug + Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Create local.properties and secrets.properties
+        run: bash core/secrets/ci/setup.sh
+      - run: ./gradlew assembleDebug :app:assembleRelease
+
+  plug-out:
+    name: Plug-out (optional modules removed)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Create local.properties and secrets.properties
+        run: bash core/secrets/ci/setup.sh
+      - name: Remove optional modules and build
+        run: |
+          set -euo pipefail
+          rm -rf core/security core/analytics core/database core/network core/secrets feature/auth benchmark baselineprofile
+          if grep -rn --include='*.kt' -E 'core\.security|core\.analytics|core\.database|core\.network|core\.secrets|feature\.auth' app core feature; then
+            echo 'Removed module is still referenced.'
+            exit 1
+          fi
+          ./gradlew :app:assembleDebug | tee plug-out-build.log
+          grep -q 'Baseline profiles are disabled' plug-out-build.log
+
+  template-smoke:
+    name: Template Smoke (${{ matrix.strategy }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - strategy: remote
+            package_name: com.example.remote
+            app_name: RemoteApp
+            network: true
+            database: false
+            secrets: true
+          - strategy: offline-first
+            package_name: com.example.offlinefirst
+            app_name: OfflineFirstApp
+            network: true
+            database: true
+            secrets: true
+          - strategy: local
+            package_name: com.example.local
+            app_name: LocalApp
+            network: false
+            database: true
+            secrets: false
+          - strategy: minimal
+            package_name: com.example.minimal
+            app_name: MinimalApp
+            network: false
+            database: false
+            secrets: false
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Create local.properties and secrets.properties
+        run: bash core/secrets/ci/setup.sh
+      - name: Run benchmark instrumentation
+        if: matrix.strategy == 'remote'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          script: ./gradlew :benchmark:connectedBenchmarkAndroidTest
+      - name: Verify invalid strategy rejection
+        if: matrix.strategy == 'remote'
+        run: |
+          if ./gradlew create-new-app -Pargs='com.example.invalid,InvalidApp' -PdataStrategy=invalid -q --console=plain; then exit 1; fi
+          test ! -e ../InvalidApp
+      - name: Verify generated feature restoration and compilation
+        if: matrix.strategy == 'remote'
+        run: |
+          ./gradlew scaffoldFeature -PfeatureName=ci_feature
+          grep -R 'override fun restoreRoute' feature/ci_feature/presentation
+          ./gradlew :feature:ci_feature:presentation:compileDebugKotlin
+          ./gradlew scaffoldFeature -PfeatureName=ci_database_feature -PwithDatabase=true
+          ./gradlew :feature:ci_database_feature:data:compileDebugKotlin :feature:ci_database_feature:presentation:compileDebugKotlin
+          rm -rf feature/ci_feature feature/ci_database_feature
+      - name: Generate application
+        run: ./gradlew create-new-app -Pargs='${{ matrix.package_name }},${{ matrix.app_name }}' -PdataStrategy='${{ matrix.strategy }}' -q --console=plain
+      - name: Configure and validate generated application
         shell: bash
         run: |
-          git show 62c7fd20922966cb2c1fbd2d047aa3088c649955:.github/workflows/ci.yml > /tmp/final-ci.yml
-          python3 <<'PY'
-          from pathlib import Path
-          content = Path("/tmp/final-ci.yml").read_text()
-          start = content.index("  source-fixup:\n")
-          end = content.index("\n  lint:\n", start)
-          content = content[:start] + content[end + 1:]
-          content = content.replace("permissions:\n  contents: write", "permissions:\n  contents: read")
-          Path(".github/workflows/ci.yml").write_text(content)
-          PY
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add .github/workflows/ci.yml
-          git commit -m "ci: finalize quality gates"
-          git push origin HEAD:refactor/resolve-risks-and-gaps
+          set -euo pipefail
+          app_dir="../${{ matrix.app_name }}"
+          test -d "$app_dir"
+          test ! -d "$app_dir/.git"
+          test ! -f "$app_dir/local.properties"
+          if [ '${{ matrix.secrets }}' = true ]; then
+            test -d "$app_dir/core/secrets"
+            (cd "$app_dir" && bash core/secrets/ci/setup.sh)
+            keytool -genkeypair -keystore "$app_dir/app/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname 'CN=Android Debug,O=Android,C=US' -keyalg RSA -keysize 2048 -validity 10000
+          else
+            test ! -d "$app_dir/core/secrets"
+            test ! -d "$app_dir/core/security"
+            test ! -f "$app_dir/secrets.properties.example"
+          fi
+          if [ '${{ matrix.network }}' = true ]; then
+            test -d "$app_dir/core/network"
+            test -d "$app_dir/feature/auth"
+          else
+            test ! -d "$app_dir/core/network"
+            test ! -d "$app_dir/feature/auth"
+            ! grep -R -E 'core:network|core\.network|feature:auth|feature\.auth|libs\.retrofit|libs\.okhttp|libs\.converter\.kotlinx\.serialization|NetworkMonitor|AppNoInternetBanner' "$app_dir" --exclude-dir=.gradle --exclude-dir=build
+          fi
+          if [ '${{ matrix.database }}' = true ]; then
+            test -d "$app_dir/core/database"
+          else
+            test ! -d "$app_dir/core/database"
+            ! grep -R -E 'core:database|core\.database|androidx.room|androidx-room|AndroidRoomConventionPlugin|withDatabase' "$app_dir" --exclude-dir=.gradle --exclude-dir=build
+          fi
+      - name: Build generated application
+        working-directory: ../${{ matrix.app_name }}
+        run: ./gradlew assembleDebug :app:assembleRelease
+      - name: Verify secret-free network projection
+        if: matrix.strategy == 'remote'
+        run: |
+          set -euo pipefail
+          ./gradlew create-new-app -Pargs='com.example.remotesecretfree,RemoteSecretFreeApp' -PdataStrategy=remote -PwithSecrets=false -q --console=plain
+          app_dir=../RemoteSecretFreeApp
+          test -d "$app_dir/core/network"
+          test ! -d "$app_dir/core/secrets"
+          test ! -f "$app_dir/local.properties"
+          ! grep -R -E 'core:secrets|core\.secrets|core:security|core\.security|SecretManager|validateSecrets|scanApkForSecrets|hardeningReport|secrets\.properties|NATIVE_RUNTIME_CHECKS_ENABLED|EXPECTED_SIGNATURE_HASH|XOR_MASK|ndk =' "$app_dir" --exclude-dir=.gradle --exclude-dir=build
+          (cd "$app_dir" && ./gradlew assembleDebug :app:assembleRelease)
