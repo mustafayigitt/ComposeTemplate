@@ -7,13 +7,23 @@ import com.ytapps.composetemplate.core.navigation.IScreenProvider
 import com.ytapps.composetemplate.feature.search.navigation.SearchRoute
 import javax.inject.Inject
 
-class SearchScreenProvider @Inject constructor() : IScreenProvider {
-    override fun restoreRoute(route: String): INavigationItem? = SearchRoute.takeIf { it.route == route }
+class SearchScreenProvider
+    @Inject
+    constructor() : IScreenProvider {
+        override fun restoreRoute(route: String): INavigationItem? =
+            SearchRoute.takeIf { it.route == route }
 
-    @Composable
-    override fun provideScreen(route: INavigationItem, navigationManager: INavigationManager): Boolean =
-        when (route) {
-            is SearchRoute -> { SearchScreen(navigationManager); true }
-            else -> false
-        }
-}
+        @Composable
+        override fun provideScreen(
+            route: INavigationItem,
+            navigationManager: INavigationManager,
+        ): Boolean =
+            when (route) {
+                is SearchRoute -> {
+                    SearchScreen(navigationManager)
+                    true
+                }
+
+                else -> false
+            }
+    }

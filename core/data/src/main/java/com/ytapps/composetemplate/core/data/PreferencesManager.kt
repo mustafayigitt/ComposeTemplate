@@ -20,7 +20,9 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "user_preferences",
+)
 
 @Singleton
 @Suppress("TooManyFunctions")
@@ -34,47 +36,104 @@ class PreferencesManager
         private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
         private val dataStore = appContext.dataStore
 
-        private val cachedAccessToken = dataStore.data.map { it[Keys.ACCESS_TOKEN] }.stateIn(scope, SharingStarted.Eagerly, null)
-        private val cachedRefreshToken = dataStore.data.map { it[Keys.REFRESH_TOKEN] }.stateIn(scope, SharingStarted.Eagerly, null)
-        private val cachedTokenType = dataStore.data.map { it[Keys.TOKEN_TYPE] }.stateIn(scope, SharingStarted.Eagerly, null)
-        private val cachedUUID = dataStore.data.map { it[Keys.UUID] }.stateIn(scope, SharingStarted.Eagerly, null)
-        private val cachedIsDarkMode = dataStore.data.map { it[Keys.IS_DARK_MODE] ?: false }.stateIn(scope, SharingStarted.Eagerly, false)
-        private val cachedLanguageCode = dataStore.data.map { it[Keys.LANGUAGE_CODE] }.stateIn(scope, SharingStarted.Eagerly, null)
-        private val cachedIsOnboardingCompleted =
-            dataStore.data.map { it[Keys.IS_ONBOARDING_COMPLETED] ?: false }.stateIn(scope, SharingStarted.Eagerly, false)
+        private val cachedAccessToken: StateFlow<String?> =
+            dataStore.data
+                .map { preferences -> preferences[Keys.ACCESS_TOKEN] }
+                .stateIn(scope, SharingStarted.Eagerly, null)
+
+        private val cachedRefreshToken: StateFlow<String?> =
+            dataStore.data
+                .map { preferences -> preferences[Keys.REFRESH_TOKEN] }
+                .stateIn(scope, SharingStarted.Eagerly, null)
+
+        private val cachedTokenType: StateFlow<String?> =
+            dataStore.data
+                .map { preferences -> preferences[Keys.TOKEN_TYPE] }
+                .stateIn(scope, SharingStarted.Eagerly, null)
+
+        private val cachedUUID: StateFlow<String?> =
+            dataStore.data
+                .map { preferences -> preferences[Keys.UUID] }
+                .stateIn(scope, SharingStarted.Eagerly, null)
+
+        private val cachedIsDarkMode: StateFlow<Boolean> =
+            dataStore.data
+                .map { preferences -> preferences[Keys.IS_DARK_MODE] ?: false }
+                .stateIn(scope, SharingStarted.Eagerly, false)
+
+        private val cachedLanguageCode: StateFlow<String?> =
+            dataStore.data
+                .map { preferences -> preferences[Keys.LANGUAGE_CODE] }
+                .stateIn(scope, SharingStarted.Eagerly, null)
+
+        private val cachedIsOnboardingCompleted: StateFlow<Boolean> =
+            dataStore.data
+                .map { preferences -> preferences[Keys.IS_ONBOARDING_COMPLETED] ?: false }
+                .stateIn(scope, SharingStarted.Eagerly, false)
 
         override fun getAccessToken(): String? = cachedAccessToken.value
+
         override fun getRefreshToken(): String? = cachedRefreshToken.value
+
         override fun getTokenType(): String? = cachedTokenType.value
+
         override fun getUUID(): String? = cachedUUID.value
+
         override fun hasUser(): Boolean = !cachedAccessToken.value.isNullOrBlank()
 
-        override suspend fun setAccessToken(accessToken: String) = dataStore.edit { it[Keys.ACCESS_TOKEN] = accessToken }.let { Unit }
-        override suspend fun setRefreshToken(refreshToken: String) = dataStore.edit { it[Keys.REFRESH_TOKEN] = refreshToken }.let { Unit }
-        override suspend fun setTokenType(tokenType: String) = dataStore.edit { it[Keys.TOKEN_TYPE] = tokenType }.let { Unit }
-        override suspend fun setUUID(uuid: String) = dataStore.edit { it[Keys.UUID] = uuid }.let { Unit }
-        override suspend fun setDarkMode(isEnabled: Boolean) = dataStore.edit { it[Keys.IS_DARK_MODE] = isEnabled }.let { Unit }
-        override suspend fun setLanguageCode(languageCode: String) = dataStore.edit { it[Keys.LANGUAGE_CODE] = languageCode }.let { Unit }
-        override suspend fun setOnboardingCompleted(isCompleted: Boolean) =
-            dataStore.edit { it[Keys.IS_ONBOARDING_COMPLETED] = isCompleted }.let { Unit }
+        override suspend fun setAccessToken(accessToken: String) {
+            dataStore.edit { preferences -> preferences[Keys.ACCESS_TOKEN] = accessToken }
+        }
+
+        override suspend fun setRefreshToken(refreshToken: String) {
+            dataStore.edit { preferences -> preferences[Keys.REFRESH_TOKEN] = refreshToken }
+        }
+
+        override suspend fun setTokenType(tokenType: String) {
+            dataStore.edit { preferences -> preferences[Keys.TOKEN_TYPE] = tokenType }
+        }
+
+        override suspend fun setUUID(uuid: String) {
+            dataStore.edit { preferences -> preferences[Keys.UUID] = uuid }
+        }
+
+        override suspend fun setDarkMode(isEnabled: Boolean) {
+            dataStore.edit { preferences -> preferences[Keys.IS_DARK_MODE] = isEnabled }
+        }
+
+        override suspend fun setLanguageCode(languageCode: String) {
+            dataStore.edit { preferences -> preferences[Keys.LANGUAGE_CODE] = languageCode }
+        }
+
+        override suspend fun setOnboardingCompleted(isCompleted: Boolean) {
+            dataStore.edit { preferences -> preferences[Keys.IS_ONBOARDING_COMPLETED] = isCompleted }
+        }
 
         override suspend fun clearAuth() {
-            dataStore.edit {
-                it.remove(Keys.ACCESS_TOKEN)
-                it.remove(Keys.REFRESH_TOKEN)
-                it.remove(Keys.TOKEN_TYPE)
-                it.remove(Keys.UUID)
+            dataStore.edit { preferences ->
+                preferences.remove(Keys.ACCESS_TOKEN)
+                preferences.remove(Keys.REFRESH_TOKEN)
+                preferences.remove(Keys.TOKEN_TYPE)
+                preferences.remove(Keys.UUID)
             }
         }
 
-        override suspend fun clear() = dataStore.edit { it.clear() }.let { Unit }
+        override suspend fun clear() {
+            dataStore.edit { preferences -> preferences.clear() }
+        }
 
         override val accessTokenFlow: StateFlow<String?> get() = cachedAccessToken
+
         override val refreshTokenFlow: StateFlow<String?> get() = cachedRefreshToken
+
         override val tokenTypeFlow: StateFlow<String?> get() = cachedTokenType
+
         override val uuidFlow: StateFlow<String?> get() = cachedUUID
+
         override val isDarkModeFlow: StateFlow<Boolean> get() = cachedIsDarkMode
+
         override val languageCodeFlow: StateFlow<String?> get() = cachedLanguageCode
+
         override val isOnboardingCompletedFlow: StateFlow<Boolean> get() = cachedIsOnboardingCompleted
 
         private object Keys {

@@ -7,13 +7,23 @@ import com.ytapps.composetemplate.core.navigation.IScreenProvider
 import com.ytapps.composetemplate.feature.profile.navigation.ProfileRoute
 import javax.inject.Inject
 
-class ProfileScreenProvider @Inject constructor() : IScreenProvider {
-    override fun restoreRoute(route: String): INavigationItem? = ProfileRoute.takeIf { it.route == route }
+class ProfileScreenProvider
+    @Inject
+    constructor() : IScreenProvider {
+        override fun restoreRoute(route: String): INavigationItem? =
+            ProfileRoute.takeIf { it.route == route }
 
-    @Composable
-    override fun provideScreen(route: INavigationItem, navigationManager: INavigationManager): Boolean =
-        when (route) {
-            is ProfileRoute -> { ProfileScreen(navigationManager); true }
-            else -> false
-        }
-}
+        @Composable
+        override fun provideScreen(
+            route: INavigationItem,
+            navigationManager: INavigationManager,
+        ): Boolean =
+            when (route) {
+                is ProfileRoute -> {
+                    ProfileScreen(navigationManager)
+                    true
+                }
+
+                else -> false
+            }
+    }

@@ -7,13 +7,23 @@ import com.ytapps.composetemplate.core.navigation.IScreenProvider
 import com.ytapps.composetemplate.feature.onboarding.navigation.OnboardingRoute
 import javax.inject.Inject
 
-class OnboardingScreenProvider @Inject constructor() : IScreenProvider {
-    override fun restoreRoute(route: String): INavigationItem? = OnboardingRoute.takeIf { it.route == route }
+class OnboardingScreenProvider
+    @Inject
+    constructor() : IScreenProvider {
+        override fun restoreRoute(route: String): INavigationItem? =
+            OnboardingRoute.takeIf { it.route == route }
 
-    @Composable
-    override fun provideScreen(route: INavigationItem, navigationManager: INavigationManager): Boolean =
-        when (route) {
-            is OnboardingRoute -> { OnboardingScreen(navigationManager); true }
-            else -> false
-        }
-}
+        @Composable
+        override fun provideScreen(
+            route: INavigationItem,
+            navigationManager: INavigationManager,
+        ): Boolean =
+            when (route) {
+                is OnboardingRoute -> {
+                    OnboardingScreen(navigationManager)
+                    true
+                }
+
+                else -> false
+            }
+    }
