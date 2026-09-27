@@ -11,9 +11,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.CertificatePinner
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -24,9 +24,7 @@ import javax.inject.Singleton
 internal object NetworkModule {
     @Provides
     @Singleton
-    fun provideNetworkConfig(
-        providers: Set<@JvmSuppressWildcards NetworkConfigProvider>,
-    ): NetworkConfigProvider {
+    fun provideNetworkConfig(providers: Set<@JvmSuppressWildcards NetworkConfigProvider>): NetworkConfigProvider {
         if (providers.isEmpty()) return DefaultNetworkConfigProvider
         check(providers.size == 1) {
             "Only one NetworkConfigProvider may be contributed, found ${providers.size}."
@@ -82,9 +80,7 @@ internal object NetworkModule {
             .addConverterFactory(json.asConverterFactory(JSON_MEDIA_TYPE))
             .build()
 
-    private fun OkHttpClient.Builder.applyCertificatePinning(
-        networkConfig: NetworkConfigProvider,
-    ): OkHttpClient.Builder {
+    private fun OkHttpClient.Builder.applyCertificatePinning(networkConfig: NetworkConfigProvider): OkHttpClient.Builder {
         if (BuildConfig.DEBUG || !networkConfig.certificatePinningEnabled) return this
 
         require(networkConfig.certificatePins.size >= MIN_CERTIFICATE_PIN_COUNT) {
