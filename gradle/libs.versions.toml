@@ -142,7 +142,7 @@ kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-p
 ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "symbol-processing-gradle-plugin", version.ref = "ksp" }
 compose-compiler-gradle-plugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
 detekt-gradle-plugin = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
-ktlint-gradle-plugin = { group = "org.jlleitschuh.gradle.ktlint", name = "ktlint-gradle", version.ref = "ktlint" }
+ktlint-gradle-plugin = { group = "org.jlleitschuh.gradle", name = "ktlint-gradle", version.ref = "ktlint" }
 
 [plugins]
 # Android
@@ -158,7 +158,7 @@ kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 # Dependency Injection
-dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt-android" }
+version-catalog-dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt-android" }
 
 # Static Analysis
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

@@ -2,10 +2,8 @@ package com.ytapps.composetemplate.convention
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.withType
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
 class TestConventionPlugin : Plugin<Project> {
@@ -23,33 +21,28 @@ class TestConventionPlugin : Plugin<Project> {
                 add("androidTestImplementation", libs.findLibrary("androidx-espresso-core").get())
             }
 
-            val reportTask =
-                tasks.register<JacocoReport>("jacocoDebugReport") {
-                    dependsOn("testDebugUnitTest")
-                    executionData(
-                        fileTree(layout.buildDirectory) {
-                            include("jacoco/testDebugUnitTest.exec")
-                            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
-                        },
-                    )
-                    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
-                    classDirectories.setFrom(
-                        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
-                            exclude(JACOCO_EXCLUSIONS)
-                        },
-                        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) {
-                            exclude(JACOCO_EXCLUSIONS)
-                        },
-                    )
-                    reports {
-                        xml.required.set(true)
-                        html.required.set(true)
-                    }
-                    onlyIf { executionData.files.any { it.exists() } }
+            tasks.register<JacocoReport>("jacocoDebugReport") {
+                dependsOn("testDebugUnitTest")
+                executionData(
+                    fileTree(layout.buildDirectory) {
+                        include("jacoco/testDebugUnitTest.exec")
+                        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+                    },
+                )
+                sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+                classDirectories.setFrom(
+                    fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+                        exclude(JACOCO_EXCLUSIONS)
+                    },
+                    fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) {
+                        exclude(JACOCO_EXCLUSIONS)
+                    },
+                )
+                reports {
+                    xml.required.set(true)
+                    html.required.set(true)
                 }
-
-            tasks.withType<Test>().configureEach {
-                finalizedBy(reportTask)
+                onlyIf { executionData.files.any { it.exists() } }
             }
         }
     }
