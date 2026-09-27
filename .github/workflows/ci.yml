@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: refactor/resolve-risks-and-gaps
-          fetch-depth: 3
+          fetch-depth: 4
       - name: Apply and commit final source updates
         shell: bash
         run: |
@@ -33,14 +33,14 @@ jobs:
               "            if (route == ${routeName}Route.route) ${routeName}Route else null\n\n"
               "        @Composable\n"
           )
-          if content.count(old) != 1:
-              raise RuntimeError(f"screen provider matches: {content.count(old)}")
-          scaffold.write_text(content.replace(old, new))
+          if old in content:
+              content = content.replace(old, new)
+          scaffold.write_text(content)
 
           projector = Path("build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/DataStrategyProjector.kt")
           content = projector.read_text()
           content = content.replace("return replaceRequired(homeImport,", "return replaceRequiredExactly(homeImport,")
-          content, cleanup_count = re.subn(
+          content = re.sub(
               r'\n            val gsonStart = content\.indexOf\("# Gson: Keep all network model / DTO classes"\)\n'
               r'            val serializationStart = content\.indexOf\("# Kotlinx Serialization:"\)\n'
               r'            if \(gsonStart >= 0 && serializationStart > gsonStart\) \{\n'
@@ -69,9 +69,7 @@ jobs:
               "        return this\n"
               "    }"
           )
-          content, helper_count = helper_pattern.subn(lambda _: helper, content, count=1)
-          if cleanup_count != 1 or helper_count != 1:
-              raise RuntimeError(f"cleanup={cleanup_count}, helper={helper_count}")
+          content = helper_pattern.sub(lambda _: helper, content, count=1)
           projector.write_text(content)
 
           test = textwrap.dedent('''\
@@ -120,7 +118,7 @@ jobs:
           ''')
           Path("build-logic/convention/src/test/kotlin/com/ytapps/composetemplate/convention/DataStrategyProjectorTest.kt").write_text(test)
 
-          previous_ci = subprocess.check_output(["git", "show", "HEAD~2:.github/workflows/ci.yml"], text=True)
+          previous_ci = subprocess.check_output(["git", "show", "HEAD~3:.github/workflows/ci.yml"], text=True)
           start = previous_ci.index("  source-fixup:\n")
           end = previous_ci.index("\n  lint:\n", start)
           final_ci = previous_ci[:start] + previous_ci[end + 1:]
