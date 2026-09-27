@@ -18,19 +18,19 @@ jobs:
           java-version: 17
           distribution: temurin
       - uses: gradle/actions/setup-gradle@v5
-      - name: Diagnose Gradle configuration
+      - name: Diagnose ktlint
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set +e
-          ./gradlew help --stacktrace --console=plain 2>&1 | tee gradle-diagnostic.log
+          ./gradlew ktlintCheck --console=plain 2>&1 | tee gradle-diagnostic.log
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
             {
-              echo '## Gradle diagnostic'
+              echo '## Ktlint diagnostic'
               echo '```text'
-              tail -n 120 gradle-diagnostic.log
+              grep -E '\.kt:[0-9]+:[0-9]+:' gradle-diagnostic.log | tail -n 120
               echo '```'
             } > diagnostic-comment.md
             gh pr comment "${{ github.event.pull_request.number }}" --body-file diagnostic-comment.md
