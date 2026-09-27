@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   diagnose:
     runs-on: ubuntu-latest
@@ -16,14 +20,19 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
       - name: Diagnose Gradle configuration
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set +e
           ./gradlew help --stacktrace --console=plain 2>&1 | tee gradle-diagnostic.log
           status=${PIPESTATUS[0]}
-          {
-            echo '## Gradle diagnostic'
-            echo '```text'
-            tail -n 120 gradle-diagnostic.log
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$status" -ne 0 ]; then
+            {
+              echo '## Gradle diagnostic'
+              echo '```text'
+              tail -n 120 gradle-diagnostic.log
+              echo '```'
+            } > diagnostic-comment.md
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file diagnostic-comment.md
+          fi
           exit "$status"
