@@ -14,15 +14,11 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: refactor/resolve-risks-and-gaps
-          fetch-depth: 0
       - name: Capture assumptions
         shell: bash
         run: |
-          python3 <<'PY' > fixup-error.log 2>&1
+          python3 <<'PY' > fixup-error.log
           from pathlib import Path
-          import re
-          import subprocess
-
           scaffold = Path("build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/ScaffoldFeaturePlugin.kt").read_text()
           projector = Path("build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/DataStrategyProjector.kt").read_text()
           print("scaffold", scaffold.count("    constructor() : IScreenProvider {\n        @Composable\n"))
@@ -30,10 +26,6 @@ jobs:
           print("helper-internal", projector.count("    internal fun File.replaceRequiredExactly"))
           print("home-old", projector.count("return replaceRequired(homeImport,"))
           print("gson", projector.count("val gsonStart ="))
-          previous_ci = subprocess.check_output(["git", "show", "62c7fd20922966cb2c1fbd2d047aa3088c649955:.github/workflows/ci.yml"], text=True)
-          print("ci-bytes", len(previous_ci))
-          print("source-start", previous_ci.count("  source-fixup:\n"))
-          print("lint-start", previous_ci.count("\n  lint:\n"))
           PY
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
