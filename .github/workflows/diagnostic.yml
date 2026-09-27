@@ -1,0 +1,56 @@
+name: Final Gate Diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Create local.properties and secrets.properties
+        run: bash core/secrets/ci/setup.sh
+      - name: Diagnose failing gates
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          ./gradlew ktlintCheck detekt --console=plain > lint.log 2>&1
+          lint_status=$?
+          ./gradlew create-new-app -Pargs='com.example.diaglocal,DiagLocal' -PdataStrategy=local -q --console=plain > local.log 2>&1
+          local_status=$?
+          ./gradlew create-new-app -Pargs='com.example.diagoffline,DiagOffline' -PdataStrategy=offline-first -q --console=plain > offline.log 2>&1
+          offline_status=$?
+          {
+            echo '## Final gate diagnostics'
+            echo
+            echo "- lint status: $lint_status"
+            echo "- local projection status: $local_status"
+            echo "- offline-first projection status: $offline_status"
+            echo
+            echo '### Lint tail'
+            echo '```text'
+            tail -n 120 lint.log
+            echo '```'
+            echo '### Local projection tail'
+            echo '```text'
+            tail -n 100 local.log
+            echo '```'
+            echo '### Offline-first projection tail'
+            echo '```text'
+            tail -n 100 offline.log
+            echo '```'
+          } > final-gate-diagnostic.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file final-gate-diagnostic.md
+          exit 0
