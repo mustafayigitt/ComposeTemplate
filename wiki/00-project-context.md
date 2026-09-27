@@ -2,49 +2,73 @@
 
 The mental model needed before reading any other page.
 
-## What this repository actually is
+## What this repository is
 
-The product is the **generator**, not the app. Evidence from `build-logic/convention`:
+The product is the **generator**, not a finished application. The source app and feature tree are a living fixture that exercises the same conventions and structures emitted for consumers.
+
+Key build-logic entry points:
 
 | Plugin | Role |
 | --- | --- |
-| `ScaffoldFeaturePlugin.kt` | Generates a four-module feature from templates |
-| `ValidateSecretsPlugin.kt` | `validateSecrets`, `scanApkForSecrets`, `hardeningReport` |
-| `CreateNewAppPlugin.kt` | Rebrands the template into a new sibling project |
-| `AndroidLibraryNativeConventionPlugin.kt` | NDK/CMake setup + secret injection |
+| `create.new.app` | Copies, rebrands, projects, cleans, and validates a consumer project |
+| `data.strategy.projection` | Applies `remote`, `offline-first`, `local`, or `minimal` infrastructure |
+| `scaffold.feature` | Creates the fixed four-module feature shape |
+| `validate.secrets` | Validates inputs and scans release artifacts |
+| `android.library.native` | Configures NDK/CMake secret injection when retained |
 
-Those four files carry more logic than most `core` modules contain of runtime logic. The application code under `app/` and `feature/` behaves as a **living fixture**: CI generates a feature and a whole new app from it on every push.
+## Three layers to keep separate
 
-## Three layers to keep separate in your head
+1. **Generation layer** — `build-logic/convention` tasks and plugins write or project files. They do not maintain a static module list because the build discovers module folders.
+2. **Runtime infrastructure** — 12 `core:*` groups: analytics, common, config, data, database, google-play, navigation, network, permission, secrets, security, and ui.
+3. **Product surface** — 8 features, each with `data`, `domain`, `navigation`, and `presentation`, aggregated by `:app`.
 
-1. **Generation layer** — `build-logic/convention` and its Gradle tasks. It writes new module folders. It does **not** edit `settings.gradle.kts` or `app/build.gradle.kts`, because both derive their contents from whichever module folders exist on disk.
-2. **Runtime infrastructure** — 12 `core:*` modules: analytics, common, config, data, database, google-play, navigation, network, permission, secrets, security, ui.
-3. **Product surface** — 8 features x 4 sub-modules, aggregated by `app`.
+## Data-strategy contract
 
-## Opinions the code enforces
+| Strategy | Network/auth | Room | Generated start flow |
+| --- | ---: | ---: | --- |
+| `remote` | Yes | No | Onboarding → Login/Home |
+| `offline-first` | Yes | Yes | Onboarding → Login/Home |
+| `local` | No | Yes | Onboarding → Home |
+| `minimal` | No | No | Onboarding → Home |
 
-- Every feature is **always** `domain` + `data` + `navigation` + `presentation`, with no exception for trivial features (`splash`, `detail` also carry 4 modules).
-- Navigation is **feature-owned**: features contribute routes and `IScreenProvider` implementations via Hilt multibinding; nothing is registered centrally by hand.
-- Screen state is standardized by `BaseViewModel<S, E>`: one `StateFlow` for state, one `Channel` for one-shot events.
-- Secrets never live as plain Kotlin strings in release: they go through XOR-obfuscated byte arrays in native code.
-- Build conventions are not optional: modules apply `composetemplate.*` plugins instead of configuring Android/Kotlin/Hilt themselves.
-- Optional modules stay deletable, and this is enforced for **every** module rather than argued in review. `:app` may import symbols only from `core:common`, `core:navigation` and `core:ui`; the four core modules that survive every plug-out combination may name only each other; every other core module may not name a feature; and a feature may not name another feature except through its published navigation contract. `checkAppModuleBoundary` and `checkModuleBoundary` fail the build when that is broken. Literal `project(":…")` edges are checked by `checkProjectDependencyBoundary` under the same module policy. Everything else reaches its consumers through DI multibindings.
-- Modules are discovered from disk, so adding or removing one is a folder operation rather than a build-file edit.
+`remote` is the default. `withSecrets` is a strict Boolean and is meaningful for network-backed strategies. Local and minimal remove secrets/security automatically.
 
-## Opinions the code does *not* enforce (worth knowing)
+The name `offline-first` describes the selected topology only: the generated project contains both network/auth and Room foundations. Synchronization, queues, conflict handling, cache policy, and reconciliation are product work and are not generated.
 
-- The build-file check scans literal `project(":…")` and `project(path = ":…")` references in a module's own `build.gradle.kts`. It deliberately does not resolve dynamic project paths: `:app`'s filesystem discovery uses `project(path)` to wire whatever modules exist, and rejecting that would make the template harder to extend.
-- Removability is only *proven* for four modules. The CI plug-out job deletes `core/security`, `core/analytics`, `benchmark` and `baselineprofile`; the remaining optional modules satisfy the rule but are never actually deleted and rebuilt.
-- `:app` still *depends* on every module at the Gradle level; what it may not do is *import* them. Removability comes from multibindings, not from a short dependency list.
-- Presentation modules have no tests, so the ViewModel/state contract is unverified by CI.
-- `main` is unprotected: passing checks are not a merge requirement.
+## Opinions enforced by code
+
+- Every retained feature has exactly four layers: `data`, `domain`, `navigation`, and `presentation`.
+- Features publish navigation contracts and contribute screens through Hilt multibindings.
+- Screen state follows `BaseViewModel<S, E>` with state and one-shot events.
+- Build conventions are applied through `composetemplate.*` plugins.
+- Modules are discovered from directories containing `build.gradle.kts`; adding or removing a module is primarily a folder operation.
+- `checkAppModuleBoundary`, `checkModuleBoundary`, and `checkProjectDependencyBoundary` enforce source/build dependency boundaries.
+- Optional integrations use DI multibindings where there is a real consumer.
+- App-shell connectivity monitoring and the global offline banner are intentionally absent.
+
+## Boundary model
+
+- `:app` may import only `core:common`, `core:navigation`, and `core:ui`.
+- Always-present core modules (`common`, `navigation`, `ui`, `data`) may name only one another.
+- Other core modules may depend on core modules but not features.
+- Features may reference other features only through navigation contracts.
+- Dynamic project paths remain allowed so discovery can wire the module folders that exist.
+
+`:app` still aggregates discovered modules at the Gradle level. Deletion safety comes from restricted imports, dependency rules, and multibindings—not from a short dependency list.
 
 ## Scale snapshot
 
-- 47 Gradle modules (`:app`, 12 core, 32 feature, `:benchmark`, `:baselineprofile`) — a count the discovery rule produces from the tree, not a fixed contract.
-- 20 convention plugins in a composite build: `pluginManagement { includeBuild("build-logic") }`.
-- `RepositoriesMode.FAIL_ON_PROJECT_REPOS` — modules cannot declare their own repositories.
-- Languages: Kotlin, C++, CMake.
+- 47 Gradle modules: `:app`, 12 core, 32 feature submodules, `:benchmark`, and `:baselineprofile`.
+- 44 Android library modules: 12 core plus 32 feature submodules.
+- 21 registered convention plugins in the included `build-logic` build.
+- Kotlin, C++, and CMake sources.
+- Central repositories enforced with `RepositoriesMode.FAIL_ON_PROJECT_REPOS`.
+
+## What the template does not promise
+
+A generated consumer is not a production-ready product by itself. It still needs product-specific requirements, backend contracts, domain logic, branding, signing, migrations, operational policy, and runtime/UI validation. Native XOR secret handling raises extraction cost but is not secure client-side secret storage.
+
+Repository policy such as branch protection and required checks should be verified and enforced in GitHub settings; documentation does not treat a transient setting as an architectural guarantee.
 
 ---
 

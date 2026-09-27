@@ -6,48 +6,77 @@
 ./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug :app:assembleRelease
 ```
 
-Application and library convention plugins attach import and literal project-dependency boundary checks to normal build/test tasks. The checks prevent retained modules from accumulating direct source or build-file coupling to removable modules.
+Application/library conventions attach import and literal project-dependency boundary checks to normal build/test tasks.
 
-## CI jobs
+## Five job definitions, eight visible checks
 
-The pull-request workflow has five jobs:
+`.github/workflows/ci.yml` defines five job types:
 
-1. Lint — ktlint and detekt
+1. Lint
 2. Unit Tests
 3. Assemble Debug + Release
-4. Plug-out — deletes the proven optional module set and assembles the app
-5. Template Smoke — exercises scaffolding and generated projects
+4. Plug-out
+5. Template Smoke matrix
 
-## Data-strategy matrix
+The four-row matrix expands the workflow to eight visible check runs:
 
-Template Smoke is the executable product contract. It generates four sibling applications:
+- Lint
+- Unit Tests
+- Assemble Debug + Release
+- Plug-out
+- Template Smoke (`remote`)
+- Template Smoke (`offline-first`)
+- Template Smoke (`local`)
+- Template Smoke (`minimal`)
 
-- `remote`
-- `offline-first`
-- `local`
-- `minimal`
+## What CI proves
 
-Each generated project must assemble debug and release. The job additionally checks strategy-specific path and text residue:
+- source-template lint, tests, debug assembly, and release assembly
+- a plug-out rebuild after deleting the tested optional path set
+- normal four-layer feature scaffolding and compilation
+- Room-backed feature scaffolding and compilation
+- rejection of an invalid `dataStrategy`
+- four strategy-specific consumer generations
+- strategy-specific path/text residue cleanup
+- `LoginRoute` presence for network strategies and absence for network-free strategies
+- debug and release assembly for every strategy
+- `remote + withSecrets=false` generation, residue checks, and debug/release assembly
 
-- remote has network/auth and no database
-- offline-first has network/auth and database
-- local has database and no network/auth/secrets
-- minimal has neither network/auth nor database/secrets
+## Exact plug-out set
 
-Network-backed output must contain the Login destination flow. Network-free output must contain the direct Home flow and no auth route reference.
+The plug-out job deletes:
 
-The matrix complements raw plug-out testing: plug-out protects folder-level removability in the source template, while generation proves the final consumer projection, catalog cleanup, convention cleanup, documentation, and release build.
+- `core/security`
+- `core/analytics`
+- `core/database`
+- `core/network`
+- `core/secrets`
+- `feature/auth`
+- `benchmark`
+- `baselineprofile`
 
-## Scaffolding smoke
+This source-template test complements consumer generation: plug-out protects deletion-safe module boundaries, while the matrix validates the final projected consumer.
 
-The template repository still verifies a normal four-module feature and a Room-backed feature before project generation. Database-free generated outputs intentionally no longer expose `-PwithDatabase=true`.
+## Matrix semantics
+
+| Strategy | Required retained infrastructure |
+| --- | --- |
+| `remote` | network/auth; no Room |
+| `offline-first` | network/auth and Room |
+| `local` | Room; no network/auth/secrets |
+| `minimal` | no predefined network, auth, Room, secrets, or security |
+
+The matrix proves topology and buildability. For `offline-first`, it does not prove application synchronization semantics.
 
 ## Known CI limitations
 
 - Secret bootstrap is duplicated across jobs.
-- No instrumentation or benchmark execution.
-- No coverage/report artifact upload.
-- Workflow changes require careful YAML review because invisible characters can suppress all checks.
+- Scaffold checks repeat in every matrix instance.
+- No instrumentation execution.
+- No benchmark execution.
+- No coverage/report artifact.
+- MkDocs strict build/link validation is not currently a pull-request check.
+- Workflow YAML remains sensitive to formatting and invisible-character mistakes.
 
 ---
 

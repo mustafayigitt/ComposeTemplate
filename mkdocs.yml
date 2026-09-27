@@ -1,5 +1,5 @@
 site_name: ComposeTemplate
-site_description: Production-grade Jetpack Compose template generator
+site_description: CI-proven Jetpack Compose project generator with selectable data infrastructure
 site_url: https://mustafayigitt.github.io/ComposeTemplate/
 repo_url: https://github.com/mustafayigitt/ComposeTemplate
 repo_name: mustafayigitt/ComposeTemplate

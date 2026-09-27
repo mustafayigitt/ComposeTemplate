@@ -1,182 +1,58 @@
-# Build Logic Convention Plugins
+# Build Logic
 
-This directory contains custom Gradle Convention Plugins that standardize build configuration across the project.
+`build-logic` is an included Gradle build that owns ComposeTemplate's generation, architecture, quality, optional-infrastructure, and verification conventions.
 
-## 📁 Structure
+## Registered convention plugins (21)
 
-```
-build-logic/
-├── convention/
-│   └── src/main/kotlin/com/ytapps/composetemplate/convention/
-│       ├── AndroidApplicationConventionPlugin.kt
-│       ├── AndroidComposeConventionPlugin.kt
-│       ├── AndroidHiltConventionPlugin.kt
-│       ├── AndroidLibraryConventionPlugin.kt       # applies static.analysis + module.boundary
-│       ├── AndroidLibraryNativeConventionPlugin.kt # NDK secret management
-│       ├── AndroidRoomConventionPlugin.kt
-│       ├── AppModuleBoundaryPlugin.kt              # registers checkAppModuleBoundary
-│       ├── BaselineProfileGeneratorConventionPlugin.kt
-│       ├── CheckModuleBoundaryTask.kt              # shared Kotlin import scanner
-│       ├── CheckProjectDependencyBoundaryTask.kt   # build.gradle.kts project-edge scanner
-│       ├── CreateNewAppPlugin.kt
-│       ├── FeatureDomainConventionPlugin.kt
-│       ├── FeatureDataConventionPlugin.kt
-│       ├── FeatureNavigationConventionPlugin.kt
-│       ├── FeaturePresentationConventionPlugin.kt
-│       ├── ModuleBoundaryPlugin.kt                 # registers both boundary checks
-│       ├── PerfConventionPlugin.kt                 # conditional baseline profile wiring
-│       ├── ScaffoldFeaturePlugin.kt
-│       ├── StaticAnalysisConventionPlugin.kt
-│       ├── TestConventionPlugin.kt
-│       ├── ValidateSecretsPlugin.kt
-│       └── ProjectExtensions.kt
-└── settings.gradle.kts
-```
+| Area | Plugin IDs |
+| --- | --- |
+| Application/library | `composetemplate.android.application`, `android.application.compose`, `android.library`, `android.library.compose` |
+| Android capabilities | `android.hilt`, `android.room`, `android.library.native` |
+| Feature layers | `feature.domain`, `feature.data`, `feature.navigation`, `feature.presentation` |
+| Quality/boundaries | `test`, `static.analysis`, `app.boundary`, `module.boundary` |
+| Generation | `create.new.app`, `data.strategy.projection`, `scaffold.feature` |
+| Operations | `validate.secrets`, `baseline.profile.generator`, `perf` |
 
-## ✨ Recent Improvements
+The exact registrations live in `convention/build.gradle.kts`.
 
-- **Module discovery**: `settings.gradle.kts` finds modules on disk, so adding or removing one needs no build-file edit.
-- **Enforced module boundaries**: the build fails when any module imports another module it is not allowed to name — not just `:app`.
-- **Enforced literal build dependencies**: explicit `project(":…")` edges are checked against the same module policy without disabling dynamic module discovery.
-- **Conditional data infrastructure**: feature data modules wire network and database projects only when those projects exist.
-- **Conditional performance tooling**: baseline profile wiring is applied only when the generator module exists.
-- **Compose Metrics & Reports**: Integrated support for generating performance and stability metrics.
-- **Secret Management**: Automated validation, native obfuscation, and artifact scanning support.
-- **Centralized Versioning**: Categorized dependencies in Version Catalog for better maintainability.
-
-## 🔌 Available Plugins
-
-### `composetemplate.android.application`
-**What it does:**
-- Applies the Android application plugin, Kotlin Android plugin, and shared SDK/default config.
-- Configures build types, packaging, and project-wide Android defaults.
-- Also applies `composetemplate.static.analysis` and `composetemplate.app.boundary`.
-
-### `composetemplate.android.application.compose`
-**What it does:**
-- Applies Kotlin Compose Compiler plugin.
-- Enables Compose build features.
-- Adds common Compose dependencies.
-- **New**: Supports metrics and stability reports via `gradle.properties`.
-
-### `composetemplate.android.library`
-**What it does:**
-- Applies the Android library plugin, Kotlin Android plugin, and shared library defaults.
-- Keeps module SDK and packaging configuration consistent.
-- Also applies `composetemplate.static.analysis` and `composetemplate.module.boundary`, which is how every library module gets both boundary checks without opting in.
-
-### `composetemplate.android.library.compose`
-**What it does:**
-- Applies the shared Compose setup for Android library modules.
-- Reuses the same compiler metrics and reports toggles.
-
-### `composetemplate.android.hilt`
-**What it does:**
-- Applies Hilt and KSP configuration.
-- Adds Hilt dependencies used by app, feature, and core modules.
-
-### `composetemplate.test`
-**What it does:**
-- Adds the common unit/UI test dependency set used across modules.
-- Includes JUnit, Truth, MockK, coroutine testing, and AndroidX test libraries.
-
-### `composetemplate.android.room`
-**What it does:**
-- Applies Room dependencies and KSP compiler setup.
-- Configures schema export for database modules.
-
-### `composetemplate.android.library.native`
-**What it does:**
-- Configures CMake and NDK.
-- Injects obfuscated secrets from `secrets.properties` or environment variables as native/compiler definitions.
-
-### `composetemplate.validate.secrets`
-**What it does:**
-- Fails builds when required secret values are missing, placeholders, weak, or malformed.
-- Validates Retrofit base URL shape, signature hash format, certificate pinning config, and minimum version.
-
-### `composetemplate.static.analysis`
-**What it does:**
-- Applies Ktlint and Detekt consistently across modules.
-- Uses the shared Detekt config from `config/detekt/detekt.yml`.
-
-### `composetemplate.app.boundary`
-**What it does:**
-- Registers the `checkAppModuleBoundary` verification task and hooks it into the application module's build.
-- Fails the build when `:app` imports a symbol from any module other than `core:common`, `core:navigation` and `core:ui`.
-- Writes a report to `build/reports/plugout/app-module-boundary.txt`.
-- This is what keeps optional modules deletable: they must reach the app through DI multibindings rather than imports.
-
-### `composetemplate.module.boundary`
-**What it does:**
-- Registers `checkModuleBoundary` and `checkProjectDependencyBoundary` for every Android library module, applied through `composetemplate.android.library` so no build script opts in.
-- Derives both rules from the module's own Gradle path:
-  - `core:common`, `core:navigation`, `core:ui` and `core:data` survive every plug-out combination, so they may name only each other. An import or literal build dependency on an optional module from here would make that module undeletable everywhere.
-  - Any other `core:*` module may name any core module but never a feature.
-  - A `feature:X:*` module may name its own feature and any feature's `navigation` module — a feature's route contract is what it publishes — but not another feature's `domain`, `data` or `presentation` code.
-- `checkModuleBoundary` scans Kotlin imports and writes `build/reports/plugout/module-boundary.txt`.
-- `checkProjectDependencyBoundary` scans literal project references in `build.gradle.kts` and writes `build/reports/plugout/project-dependency-boundary.txt`.
-- Both tasks are hooked into `preBuild` and `check`.
-- Dynamic project paths remain supported for module discovery; the check intentionally fails open when it cannot prove a path statically.
-- Narrow exceptions are declared per module, not in a shared file:
-
-```kotlin
-moduleBoundary {
-    additionalPermittedImports.add("feature.auth.domain.")
-    additionalPermittedProjectDependencies.add(":feature:auth:domain")
-}
-```
-
-- Both boundary tasks share the same module-derived policy. The source task knows nothing about which module it is checking; guarded prefixes, permitted patterns and advice text arrive as task inputs.
-
-### `composetemplate.perf`
-**What it does:**
-- Applies `androidx.baselineprofile`, adds the `:baselineprofile` generator dependency and the `profileinstaller` runtime dependency — but **only if the `:baselineprofile` project is part of the build**.
-- When the folder has been deleted, it logs that baseline profiles are disabled and does nothing else, so performance tooling can be plugged out with a folder delete.
-- CI asserts that log line, so a change that silently made the wiring unconditional again would fail instead of passing.
-
-### `composetemplate.scaffold.feature`
-**What it does:**
-- Generates `data`, `domain`, `navigation`, and `presentation` feature sub-modules.
-- Creates a route, ViewModel, UI state/event, stateless screen, screen provider, Hilt binding, and localized string resources.
-- Performs **no** build-file edits: module discovery registers the new folders, so the task logs `no edit needed` for `settings.gradle.kts` and `app/build.gradle.kts`.
+## Generation
 
 ### `composetemplate.create.new.app`
-**What it does:**
-- Copies the template into a sibling project with a new package and app name.
-- Excludes local-only files such as `local.properties`, `secrets.properties`, `.git`, and build outputs.
 
-### `composetemplate.baseline.profile.generator`
-**What it does:**
-- Applies the Baseline Profile generator setup used by the `:baselineprofile` module.
+Copies the source template into a sibling project, rebrands package/application names, excludes local/template-only files, writes consumer documentation, and validates that template-only residue is absent.
 
-### Feature layer plugins
-**What they do:**
-- `composetemplate.feature.domain`: keeps domain modules lean with `:core:common`, Hilt, and tests.
-- `composetemplate.feature.data`: always adds shared data foundations and conditionally adds network/database projects when present.
-- `composetemplate.feature.navigation`: adds typed route/navigation dependencies.
-- `composetemplate.feature.presentation`: adds Compose, UI, navigation, Hilt, and test dependencies.
+### `composetemplate.data.strategy.projection`
 
----
+Decorates `create-new-app` with strict `remote`, `offline-first`, `local`, and `minimal` projection. It selects network/auth and Room infrastructure, projects the correct Login/Home navigation flow, applies effective secrets selection, removes unselected catalog/build/source/documentation residue, and deletes generator-only code from the consumer.
 
-## 📦 Version Catalog Integration
+### `composetemplate.scaffold.feature`
 
-All dependencies and versions are managed in `gradle/libs.versions.toml`.
+Creates the fixed `data`, `domain`, `navigation`, and `presentation` feature vertical. In database-backed consumers, `-PwithDatabase=true` adds starter Room entity/DAO files. Filesystem module discovery means scaffolding does not edit settings or app build files.
 
-### Key SDK Versions
-- **minSdk**: 26
-- **compileSdk**: 37
-- **targetSdk**: 36
-- **Kotlin**: 2.0.21
+## Architecture enforcement
 
-The `minSdk` baseline is Android 8.0 (Oreo). It is read from the catalog by every
-convention plugin, so changing it there changes it for all 47 modules at once.
+- `app.boundary` prevents `:app` source imports from optional modules.
+- `module.boundary` registers source-import and literal project-dependency checks for library modules.
+- Dynamic project paths remain supported for filesystem discovery.
+- Per-module exceptions are explicit in that module's `moduleBoundary` block.
 
-## 🔧 Configuring Metrics
+## Optional infrastructure
 
-You can enable Compose Metrics by toggling these flags in `gradle.properties`:
+- `feature.data` wires only infrastructure selected in the generated consumer.
+- `perf` enables baseline-profile wiring only when `:baselineprofile` exists.
+- `android.room` owns Room/KSP configuration.
+- `android.library.native` owns CMake/NDK configuration.
+- `validate.secrets` provides `validateSecrets`, `scanApkForSecrets`, and `hardeningReport`.
+
+## Quality and shared configuration
+
+Android, Compose, Hilt, testing, static analysis, SDK values, and dependencies are centralized in convention plugins and `gradle/libs.versions.toml`. Current baseline: minSdk 26, targetSdk 36, compileSdk 37, Kotlin 2.0.21, AGP 9.2.1, and KSP 2.0.21-1.0.28.
+
+Compose compiler metrics and reports are controlled by:
 
 ```properties
 composetemplate.composeCompilerMetricsEnabled=true
 composetemplate.composeCompilerReportsEnabled=true
 ```
+
+See [`../wiki/01-module-topology.md`](../wiki/01-module-topology.md), [`../wiki/05-generator-and-scaffolding.md`](../wiki/05-generator-and-scaffolding.md), and [`../wiki/06-quality-tests-ci.md`](../wiki/06-quality-tests-ci.md).

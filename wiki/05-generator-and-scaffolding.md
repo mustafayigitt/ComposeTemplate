@@ -12,28 +12,29 @@
 
 `dataStrategy` is strict, defaults to `remote`, and accepts exactly:
 
-| CLI value | Label | Network/auth | Room | Start flow |
-| --- | --- | ---: | ---: | --- |
-| `remote` | Remote only | Yes | No | Onboarding → Login/Home |
-| `offline-first` | Offline-first | Yes | Yes | Onboarding → Login/Home |
-| `local` | Local only | No | Yes | Onboarding → Home |
-| `minimal` | No predefined data infrastructure | No | No | Onboarding → Home |
+| Value | Network/auth | Room | Start flow |
+| --- | ---: | ---: | --- |
+| `remote` | Yes | No | Onboarding → Login/Home |
+| `offline-first` | Yes | Yes | Onboarding → Login/Home |
+| `local` | No | Yes | Onboarding → Home |
+| `minimal` | No | No | Onboarding → Home |
 
-Every retained feature keeps the fixed `data`, `domain`, `navigation`, and `presentation` modules. “Minimal” removes predefined transport and persistence implementations; it does not remove the data layer.
+Every retained feature keeps `data`, `domain`, `navigation`, and `presentation`. `minimal` removes predefined transport and persistence implementations; it does not remove feature data layers.
 
-`withSecrets` is also strict. It applies to network-backed strategies. Local and minimal automatically omit secrets/security because the current secrets subsystem contributes network configuration.
+`withSecrets` is a strict Boolean for network-backed strategies. Local/minimal remove secrets/security automatically.
 
-## Projection order
+## Projection pipeline
 
-1. Copy consumer files to a sibling directory.
-2. Apply the existing secret selection and package/name relocation.
-3. Project the selected data strategy.
-4. Remove generator-only source and registration.
-5. Validate paths and searchable text for forbidden residue.
+1. Copy consumer files to a sibling project.
+2. Exclude `.git`, local properties/secrets, build output, template wiki/MkDocs/contribution material, and template-only workflows.
+3. Rebrand package and application names.
+4. Apply data strategy and effective secret selection.
+5. Project strategy-specific navigation and scaffolding.
+6. Remove generator source/registration.
+7. Validate forbidden paths and searchable text residue.
+8. Write strategy-specific consumer README and build-logic guidance.
 
-Network-free outputs remove network/auth modules, transport libraries, auth R8 rules, the network image-loader artifact, secret/security infrastructure, and all corresponding identifiers. Database-free outputs remove the database module, Room catalog entries, Room convention plugin, and database-specific scaffolding support.
-
-Network-backed outputs project auth-aware Splash, Onboarding, and Profile navigation. Network-free outputs keep the source tree’s deletion-safe Onboarding/Home flow.
+Network-free outputs remove transport/auth modules, libraries, rules, conventions, navigation references, and secret/security infrastructure. Database-free outputs remove Room modules, catalog entries, conventions, starter generation, and identifiers.
 
 ## `scaffoldFeature`
 
@@ -41,31 +42,38 @@ Network-backed outputs project auth-aware Splash, Onboarding, and Profile naviga
 ./gradlew scaffoldFeature -PfeatureName=settings
 ```
 
-The task always creates the four feature modules. Outputs that selected Room also support:
+The task always creates four modules. Database-backed consumers also retain:
 
 ```bash
-./gradlew scaffoldFeature -PfeatureName=settings -PwithDatabase=true
+./gradlew scaffoldFeature \
+  -PfeatureName=settings \
+  -PwithDatabase=true
 ```
 
-Database-free outputs contain no Room scaffolding flag or implementation. Feature and application modules are discovered from folders, so scaffolding never patches `settings.gradle.kts` or `app/build.gradle.kts`.
+That option emits a starter Room entity and DAO. Database-free consumers do not contain the flag or Room-specific scaffold code.
 
-## Consumer projection
+Because settings and app dependencies are discovered from module folders, scaffolding does not patch `settings.gradle.kts` or maintain a static app dependency list.
+
+## Generated-consumer guarantees
 
 Generated projects:
 
-- contain no template wiki, MkDocs config, contribution guide, Pages workflow, local files, `.git`, or generator implementation
-- retain consumer CI for lint, tests, and app assembly
-- receive a strategy-specific README and build-logic guide
-- keep only selected catalog entries, convention plugins, module paths, and source
-- fail generation when forbidden strategy residue remains
+- contain only selected infrastructure and no template generator/wiki residue
+- retain consumer CI for lint, unit tests, and app assembly
+- receive strategy-specific documentation
+- fail generation if forbidden strategy residue remains
+- preserve the fixed feature-layer architecture
+- assemble debug and release in the template’s strategy matrix
+
+These guarantees cover structure and buildability, not product completeness. Generated apps still require real domain behavior, backend contracts, configuration, branding, signing, migrations, and runtime/UI tests.
 
 ## Flags
 
 | Flag | Effect |
 | --- | --- |
-| `dataStrategy` | `remote`, `offline-first`, `local`, or `minimal`; default `remote` |
+| `dataStrategy` | Strict `remote`, `offline-first`, `local`, or `minimal`; default `remote` |
 | `withSecrets` | Strict Boolean for network strategies; default `true` |
-| `composetemplate.useNativeSecrets` | Native path inside a generated project that retained secrets |
+| `composetemplate.useNativeSecrets` | Native secret path in a consumer that retained secrets |
 | `composetemplate.composeCompilerMetricsEnabled` | Compose compiler metrics |
 | `composetemplate.composeCompilerReportsEnabled` | Compose compiler reports |
 

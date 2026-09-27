@@ -1,65 +1,62 @@
 # 01 - Module Topology and Build System
 
-## Composite build setup
+## Composite build and discovery
 
-`settings.gradle.kts`:
+`settings.gradle.kts` includes `build-logic` through `pluginManagement`, centralizes repositories with `RepositoriesMode.FAIL_ON_PROJECT_REPOS`, and uses the Foojay resolver for JDK provisioning.
 
-- `pluginManagement { includeBuild("build-logic") }` — convention plugins are a separate build, not `buildSrc`.
-- `RepositoriesMode.FAIL_ON_PROJECT_REPOS` — all repositories centralized.
-- Foojay toolchain resolver `1.0.0` for JDK provisioning.
-- Root project name: `ComposeTemplate`.
-- Modules are **discovered from disk**. The script walks the tree and includes every directory that directly contains a `build.gradle.kts`, skipping `build`, `build-logic`, `buildSrc`, `gradle` and `src`. There is no hand-maintained `include(...)` list, which is why plugging a module out is a single folder delete.
+The settings script walks the repository and includes each directory that directly contains `build.gradle.kts`, excluding `build`, `build-logic`, `buildSrc`, `gradle`, and `src`. There is no hand-maintained `include(...)` inventory.
 
 ## Module inventory
 
 | Group | Count | Notes |
-| --- | --- | --- |
-| `:app` | 1 | Composition root and dependency aggregator |
+| --- | ---: | --- |
+| `:app` | 1 | Composition root and discovered dependency aggregator |
 | `:core:*` | 12 | analytics, common, config, data, database, google-play, navigation, network, permission, secrets, security, ui |
-| `:feature:*:*` | 32 | 8 features x `domain`/`data`/`navigation`/`presentation` |
-| `:benchmark`, `:baselineprofile` | 2 | Macrobenchmark + Baseline Profile generation |
+| `:feature:*:*` | 32 | 8 features × 4 layers |
+| `:benchmark`, `:baselineprofile` | 2 | Macrobenchmark and Baseline Profile tooling |
 
-These counts describe what the tree contains today, not a contract. Because modules are discovered, adding or deleting a module folder changes the inventory with no build-file edit anywhere.
+Total: **47 Gradle modules**. The 12 core and 32 feature submodules are **44 Android libraries**. Counts describe the current tree; discovery makes them an outcome rather than a fixed include list.
 
-Of these, 44 are Android library modules — every `core:*` and every `feature:*:*`, since even `feature:*:domain` applies `composetemplate.android.library`. That is the set the boundary check covers.
+## Convention plugins (21)
 
-## Convention plugins (20)
-
-Applied by ID, e.g. `composetemplate.android.library`, `composetemplate.feature.presentation`.
+Registered IDs are grouped below:
 
 - **Android base**: `android.application`, `android.application.compose`, `android.library`, `android.library.compose`, `android.library.native`, `android.hilt`, `android.room`
-- **Feature tiers**: `feature.domain`, `feature.data`, `feature.navigation`, `feature.presentation`
-- **Tooling**: `test`, `static.analysis`, `create.new.app`, `scaffold.feature`, `validate.secrets`, `baseline.profile.generator`, `app.boundary`, `module.boundary`, `perf`, plus the shared `ProjectExtensions` helpers (not a plugin)
+- **Feature layers**: `feature.domain`, `feature.data`, `feature.navigation`, `feature.presentation`
+- **Generation**: `create.new.app`, `data.strategy.projection`, `scaffold.feature`
+- **Quality/operations**: `test`, `static.analysis`, `validate.secrets`, `baseline.profile.generator`, `app.boundary`, `module.boundary`, `perf`
 
-Each feature tier plugin encodes what that layer is allowed to depend on — this is where Clean Architecture is actually implemented, rather than in package naming.
+`ProjectExtensions` contains shared helpers but is not a registered plugin.
 
-Three of these exist to protect the plug-out property rather than to configure a module:
+## Boundary enforcement
 
-- **`app.boundary`** registers `checkAppModuleBoundary`, which fails the build when `:app` imports a symbol from any module other than `core:common`, `core:navigation` or `core:ui`.
-- **`module.boundary`** registers `checkModuleBoundary` for every library module. It is applied by `composetemplate.android.library`, so no module opts in, and the rule it enforces is derived from the module's own Gradle path: the four core modules that survive every plug-out combination may name only each other, any other core module may not name a feature, and a feature may not name another feature except through its published `navigation` module.
-- **`perf`** applies the baseline profile plugin and its dependencies **only when `:baselineprofile` is part of the build**, so deleting the folder is enough to remove performance tooling.
+- `checkAppModuleBoundary` scans app imports.
+- `checkModuleBoundary` scans library imports according to the module’s Gradle path.
+- `checkProjectDependencyBoundary` scans literal `project(":…")` and `project(path = ":…")` dependencies.
+- Dynamic paths remain allowed because `:app` intentionally wires discovered projects.
 
-The boundary pair covers both source and build-file coupling:
-
-- `checkModuleBoundary` and `checkAppModuleBoundary` scan Kotlin imports.
-- `checkProjectDependencyBoundary` scans literal `project(":…")` and `project(path = ":…")` references in the module's own build script.
-- Dynamic project paths remain available. This is important for `:app`, whose module-discovery code intentionally wires the folders that exist on disk rather than maintaining a hand-written dependency list.
+These checks protect folder-level removability. Optional consumers receive implementations through multibindings rather than direct imports.
 
 ## `app/build.gradle.kts`
 
-- Plugins: `composetemplate.create.new.app`, `composetemplate.android.application`, `composetemplate.perf`, `composetemplate.android.application.compose`, `composetemplate.android.hilt`, `composetemplate.test`, `kotlin.serialization`.
-- `namespace` and `applicationId` = `com.ytapps.composetemplate`; `versionCode`/`versionName` read from the version catalog.
-- **Release signing** values come from the `secrets` extension with a `local.properties` fallback.
-- `release`: `isMinifyEnabled = true`, `isShrinkResources = true`.
-- Extra `benchmark` build type: `initWith(release)` + `benchmark-rules.pro`. It stays even though `:benchmark` itself is removable, because the build type is what a macrobenchmark run targets and keeping it costs nothing.
-- `buildConfig = true` (needed for secret and flag plumbing).
-- Core and feature module dependencies are **derived from the discovered projects**, not listed by hand. Only libraries `:app` uses directly are declared explicitly, such as the Navigation3 libraries and Timber.
+The application applies generation, projection, Android application, Compose, Hilt, test, performance, and serialization plugins, including `composetemplate.data.strategy.projection`.
 
-> **Note:** `:app` may import symbols only from `core:common`, `core:navigation` and `core:ui`, and every other module is held to its own version of the same rule by `checkModuleBoundary`. Literal build-file edges are checked by `checkProjectDependencyBoundary`, while dynamic discovery remains supported. Modules reach each other through DI multibindings instead of imports, and the build fails when that is broken. See [06 - Quality, Tests and CI](06-quality-tests-ci.md) and [07 - Risks](07-risks-and-gaps.md#baseline-decision-log).
+Other behavior:
 
-The previous `baselineProfile(project(":baselineprofile"))` coupling is the example this second check is designed to prevent. `composetemplate.perf` fixed the shipped instance; `checkProjectDependencyBoundary` prevents a new literal edge from silently returning.
+- namespace/application ID start as `com.ytapps.composetemplate`
+- version code/name come from the catalog
+- release minification and resource shrinking are enabled
+- signing is secret-backed only when that subsystem is retained
+- a benchmark build type derives from release
+- core and feature project dependencies are derived from discovered projects
 
-## Version catalog highlights
+## Strategy projection at the build level
+
+`data.strategy.projection` removes unselected module paths and related catalog entries, conventions, scaffolding, ProGuard text, navigation source, and secret/signing infrastructure. It keeps the four-layer feature shape unchanged.
+
+Database-backed outputs retain optional Room starter generation through `-PwithDatabase=true`. Database-free outputs contain no Room scaffolding flag, path, or identifier.
+
+## Toolchain snapshot
 
 | Area | Version |
 | --- | --- |
@@ -75,12 +72,8 @@ The previous `baselineProfile(project(":baselineprofile"))` coupling is the exam
 | Room | 2.8.4 |
 | DataStore | 1.2.1 |
 | Coil | 3.4.0 |
-| Detekt / ktlint plugin | 1.23.8 / 14.2.0 |
-| Test stack | JUnit 4.13.2, MockK 1.14.11, Truth 1.4.5, coroutines-test 1.11.0 |
 
-Every module reads `minSdk`, `targetSdk` and `compileSdk` from this catalog through a convention plugin — no module declares them itself, so the baseline moves in one edit. The reasoning behind the Android 8.0 baseline is recorded in [07 - Risks](07-risks-and-gaps.md#baseline-decision-log).
-
-Note: the catalog carries both `converter-gson` and `kotlinx-serialization-core` — see [03 - Network](03-network-and-auth.md).
+The catalog currently includes Gson for Retrofit and kotlinx.serialization for routes; this split is documented in [03 - Network and Auth](03-network-and-auth.md).
 
 ---
 

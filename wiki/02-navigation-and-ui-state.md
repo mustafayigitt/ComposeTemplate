@@ -4,43 +4,43 @@
 
 `INavigationItem`, `IBottomBarItem`, `INavigationManager`, `IScreenProvider`, `NavigationManager`, `ScreenRegistry`, and `NavigationObserver` form the navigation surface.
 
-`NavigationManager` owns an in-memory `StateFlow` back stack and provides `navigate`, `navigateOver`, `navigateToTop`, `navigateBack`, `navigateBackToRoot`, `selectTab`, and bottom-bar state. The back stack is not persisted across process death.
+`NavigationManager` owns an in-memory `StateFlow` back stack and provides navigation, replacement, root, back, and tab operations. The stack is not persisted across process death.
 
-`ScreenRegistry` receives `Set<IScreenProvider>` through Hilt multibinding. The first provider that claims a typed route renders it; unresolved routes currently render a fallback message.
+`ScreenRegistry` receives `Set<IScreenProvider>` through Hilt multibinding. The first provider that claims a typed route renders it; unresolved routes currently render a fallback rather than failing fast.
 
-## Optional navigation observers
+## Optional observers
 
-`NavigationObserver` is a multibinding contract. `core:analytics` contributes the current implementation, while `AppNavigation` knows only the contract. Deleting analytics therefore leaves an empty, valid set.
+`NavigationObserver` is a multibinding contract. `core:analytics` contributes the current implementation while the app shell depends only on the contract. Removing analytics therefore leaves a valid empty set.
 
-## `MainActivity` and `AppNavigation`
+## App shell
 
-`MainActivity` injects only `INavigationManager`, `ScreenRegistry`, and `Set<NavigationObserver>`. It collects theme state and renders `AppNavigation`.
-
-`AppNavigation`:
+`MainActivity` injects navigation contracts and renders `AppNavigation`. `AppNavigation`:
 
 - renders Navigation3 `NavDisplay`
 - notifies observers on route changes
-- renders the bottom bar only for registered bottom-bar routes
+- shows the bottom bar only for registered bottom-bar routes
 - finishes the Activity when back navigation is unhandled
 
-Connectivity monitoring and the global offline banner were deliberately removed. They were app-specific behavior living in always-retained modules, so a network-free generated project still contained network concepts. Network-aware screens may model connectivity in their own feature state when the product actually needs it.
+The app shell intentionally has no `NetworkMonitor` or global offline banner. Network-aware UI belongs in a feature that actually requires it, which keeps network-free generated consumers free of network concepts.
 
 ## Generated start flow
 
 The generator projects one of two compile-time flows:
 
-- `remote` and `offline-first`: Onboarding → Login when no user is stored; otherwise Home. Logout returns to Login.
-- `local` and `minimal`: Onboarding → Home. The complete auth feature is absent.
+- `remote` and `offline-first`: incomplete onboarding → Onboarding; then stored user → Home, no user → Login. Logout returns to Login.
+- `local` and `minimal`: incomplete onboarding → Onboarding; then Home. The auth feature and `LoginRoute` references are absent.
 
-This is generation-time source projection, not a runtime check for internet availability. A network-free output never references `LoginRoute`.
+This is source projection at generation time, not runtime branching on internet availability.
 
 ## UI state
 
-`BaseViewModel<S, E>` exposes immutable state and sends one-shot events through an unbuffered channel. Feature screens follow the Route/UI split and collect state with lifecycle awareness.
+`BaseViewModel<S, E>` exposes immutable state and sends one-shot events through a channel. Feature screens follow the Route/UI split and collect state with lifecycle awareness.
+
+The contract standardizes structure but does not replace product tests. Generated consumers should add ViewModel, navigation, restoration, and Compose UI coverage for their actual flows.
 
 ## `core:ui`
 
-The design system includes buttons, fields, cards, dialogs, top bars, empty/error/loading states, search, image rendering, theme tokens, previews, and navigation-bar components. It no longer contains a global no-internet banner.
+The design system includes buttons, fields, cards, dialogs, top bars, empty/error/loading states, search, image rendering, theme tokens, previews, and navigation-bar components. It does not contain a global no-internet banner.
 
 ---
 
