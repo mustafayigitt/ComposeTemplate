@@ -10,7 +10,7 @@ dependencies {
     compileOnly(libs.ksp.gradle.plugin)
     compileOnly(libs.compose.compiler.gradle.plugin)
     compileOnly(libs.detekt.gradle.plugin)
-    compileOnly(libs.ktlint.gradle.plugin)
+    compileOnly("org.jlleitschuh.gradle:ktlint-gradle:${libs.versions.ktlint.get()}")
 }
 
 gradlePlugin {
