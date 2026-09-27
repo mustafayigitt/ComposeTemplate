@@ -30,7 +30,7 @@ jobs:
             {
               echo '## Ktlint diagnostic'
               echo '```text'
-              grep -E '\.kt:[0-9]+:[0-9]+:' gradle-diagnostic.log | tail -n 120
+              tail -n 200 gradle-diagnostic.log
               echo '```'
             } > diagnostic-comment.md
             gh pr comment "${{ github.event.pull_request.number }}" --body-file diagnostic-comment.md
