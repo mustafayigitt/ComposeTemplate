@@ -1,0 +1,45 @@
+name: Remaining Gate Diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Create local.properties and secrets.properties
+        run: bash core/secrets/ci/setup.sh
+      - name: Capture logs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          ./gradlew ktlintCheck detekt --console=plain > lint.log 2>&1
+          lint_status=$?
+          ./gradlew create-new-app -Pargs='com.example.diagminimal,DiagMinimal' -PdataStrategy=minimal -q --console=plain > minimal.log 2>&1
+          minimal_status=$?
+          ./gradlew create-new-app -Pargs='com.example.diagoffline,DiagOffline' -PdataStrategy=offline-first -q --console=plain > offline.log 2>&1
+          offline_status=$?
+          {
+            echo '## Remaining gate diagnostics'
+            echo "lint=$lint_status minimal=$minimal_status offline=$offline_status"
+            for file in lint minimal offline; do
+              echo "### $file"
+              echo '```text'
+              tail -n 140 "$file.log"
+              echo '```'
+            done
+          } > remaining-gates.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file remaining-gates.md
