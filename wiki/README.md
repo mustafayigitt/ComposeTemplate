@@ -1,36 +1,43 @@
 # ComposeTemplate Wiki
 
-This wiki is the **single documentation source** for ComposeTemplate. It is written from the source code only — Kotlin/C++ sources, Gradle build logic, the version catalog and the CI workflow on `main`. No previous README, guide or docs tree was used as a reference.
+This wiki documents the current source, build logic, generator, and CI contract of ComposeTemplate. ComposeTemplate is a **CI-proven Jetpack Compose project generator**; the application in this repository is the living fixture used to prove generated consumers.
 
 ## Pages
 
 | # | Page | What it covers |
 | --- | --- | --- |
-| 00 | [Project Context](00-project-context.md) | What this repository really is, and the opinions it enforces |
-| 01 | [Module Topology and Build System](01-module-topology.md) | 47 modules, 20 convention plugins, version catalog |
-| 02 | [Navigation and UI State](02-navigation-and-ui-state.md) | Hand-written back stack, `ScreenRegistry`, `BaseViewModel` |
-| 03 | [Network and Auth Token Flow](03-network-and-auth.md) | `safeCall`, `TokenAuthenticator`, certificate pinning |
-| 04 | [Secrets, Security and Hardening](04-secrets-and-hardening.md) | NDK/JNI secret pipeline and Gradle guardrails |
-| 05 | [Generator and Scaffolding Tooling](05-generator-and-scaffolding.md) | `scaffoldFeature`, `create-new-app` |
-| 06 | [Quality, Tests and CI](06-quality-tests-ci.md) | Unit tests, five CI jobs, template smoke test |
-| 07 | [Risks, Gaps and Open Questions](07-risks-and-gaps.md) | 20 findings, a remediation order and the baseline decision log |
-| 08 | [Getting Started](08-getting-started.md) | Commands and secret keys taken from the build |
+| 00 | [Project Context](00-project-context.md) | Product model, enforced opinions, scale, and scope |
+| 01 | [Module Topology and Build System](01-module-topology.md) | 47 modules, 21 convention plugins, discovery, boundaries, toolchain |
+| 02 | [Navigation and UI State](02-navigation-and-ui-state.md) | Navigation3 back stack, registry, observers, generated start flows |
+| 03 | [Network and Auth Token Flow](03-network-and-auth.md) | Transport, auth, token refresh, and strategy selection |
+| 04 | [Secrets, Security and Hardening](04-secrets-and-hardening.md) | Optional NDK/JNI obfuscation and Gradle guardrails |
+| 05 | [Generator and Scaffolding Tooling](05-generator-and-scaffolding.md) | Four data strategies, projection, residue checks, feature scaffolding |
+| 06 | [Quality, Tests and CI](06-quality-tests-ci.md) | Local gates, five job definitions, eight checks, generation matrix |
+| 07 | [Risks, Gaps and Open Questions](07-risks-and-gaps.md) | Current limitations and recommended next work |
+| 08 | [Getting Started](08-getting-started.md) | Generation, verification, scaffolding, and release checklist |
 
-Reading order: start with 00 for the mental model, then 01–06 for subsystems, and read 07 before making changes.
+Recommended order: read 00 for the mental model, 01–06 for subsystem contracts, 07 before architectural changes, and 08 when generating a consumer.
 
-## Source of truth
+## Current source snapshot
 
 | Aspect | Value |
 | --- | --- |
 | Repository | `mustafayigitt/ComposeTemplate` |
-| Branch inspected | `main` |
 | Base package | `com.ytapps.composetemplate` |
 | License | Apache-2.0 |
 | Gradle modules | 47 |
-| Convention plugins | 20 |
+| Android library modules | 44 |
+| Convention plugins | 21 |
+| Data strategies | `remote`, `offline-first`, `local`, `minimal` |
 | minSdk / targetSdk / compileSdk | 26 / 36 / 37 |
 | Kotlin / AGP / KSP | 2.0.21 / 9.2.1 / 2.0.21-1.0.28 |
 
-## One-paragraph summary
+## Generator contract in one paragraph
 
-ComposeTemplate is not a sample app: it is a **Gradle-based project generator** whose own application code doubles as the live fixture that proves the generator works. The heaviest logic sits in `build-logic/convention` (feature scaffolding, app rebranding, secret validation), and the most opinionated runtime code sits in `core:navigation` (a hand-written back stack over Navigation3) and `core:secrets` (NDK/JNI secret obfuscation with dynamic `RegisterNatives`). The template's guardrails — secret validation, APK/AAB secret scanning, a build-time check that stops any module from importing a module it is not allowed to name, and CI jobs that generate a whole new app and delete four optional modules before rebuilding — are its real differentiator.
+`create-new-app` copies consumer files into a sibling project, rebrands package and application names, applies one strict data strategy, optionally retains network-backed secrets/hardening, removes generator-only/template-only content, and rejects forbidden residue. Every retained feature still has `data`, `domain`, `navigation`, and `presentation`; the strategy changes only project-level infrastructure. CI proves all four generated strategies, debug and release assembly, route projection, residue cleanup, feature scaffolding, and a secret-free `remote` consumer.
+
+## Scope boundary
+
+The generator supplies architecture, build conventions, selected infrastructure, example features, and executable checks. A generated app still needs product-specific domain behavior, backend contracts, branding, release signing, migrations, and runtime/UI tests.
+
+`offline-first` currently means that network/auth and Room infrastructure coexist. It does **not** generate synchronization, queues, conflict resolution, cache policy, or background reconciliation.

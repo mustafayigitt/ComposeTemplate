@@ -3,9 +3,9 @@
 ## Requirements
 
 - JDK 17
-- Android SDK: compileSdk 37, targetSdk 36, minSdk 26
+- Android SDK with compileSdk 37, targetSdk 36, and minSdk 26 support
 - Gradle wrapper
-- NDK 27/CMake only when secrets are retained
+- NDK `27.0.12077973` and CMake only when native secrets are retained
 
 ## Generate an application
 
@@ -26,26 +26,29 @@ Choose exactly one strategy:
 | Value | Output |
 | --- | --- |
 | `remote` | Network/auth, no Room; recommended default |
-| `offline-first` | Network/auth plus Room |
+| `offline-first` | Network/auth plus Room infrastructure |
 | `local` | Room only; direct Home flow |
 | `minimal` | No predefined network or database infrastructure |
 
-For a network-backed app without native secrets/hardening, add `-PwithSecrets=false`. Local and minimal omit that network-dependent capability automatically.
+For a network-backed app without native secrets/hardening, add `-PwithSecrets=false`. Local/minimal omit that network-dependent subsystem automatically.
 
-## Start-flow behavior
+`offline-first` provides both infrastructure families; you must still design synchronization, conflict resolution, cache policy, retry/background work, and migrations for the product.
 
-- `remote` / `offline-first`: incomplete onboarding → Onboarding; otherwise stored user → Home, no user → Login.
+## Generated start flow
+
+- `remote` / `offline-first`: incomplete onboarding → Onboarding; otherwise stored user → Home and no user → Login.
 - `local` / `minimal`: incomplete onboarding → Onboarding; otherwise → Home.
 
-This is compile-time generated structure, not online/offline runtime branching.
+This is compile-time source projection, not online/offline runtime branching.
 
-## Secrets setup
+## Configure the selected output
 
-Only when the generated README says secrets were included:
+- For network strategies, replace sample/placeholder backend configuration with product endpoints and contracts.
+- If secrets were retained, create the documented local secrets file and run validation/hardening tasks.
+- Configure release signing for the generated application.
+- For Room strategies, review schema ownership, migrations, backup/export policy, and test coverage.
 
-1. Copy the provided example secrets file to the local secrets file.
-2. Fill the API keys, HTTPS base URLs, mask, signature hash, pinning options, and signing values.
-3. Run the validation and hardening tasks documented by the generated project.
+NDK/XOR hardening does not make client-shipped values secret; keep real secrets and authorization decisions server-side.
 
 ## Verify
 
@@ -60,16 +63,18 @@ Only when the generated README says secrets were included:
 ./gradlew :feature:user_profile:presentation:compileDebugKotlin
 ```
 
-Every generated feature contains `data`, `domain`, `navigation`, and `presentation`. If the project selected a database strategy, `-PwithDatabase=true` also creates a Room starter entity and DAO.
+Every feature contains `data`, `domain`, `navigation`, and `presentation`. In a database-backed output, add `-PwithDatabase=true` to generate a starter Room entity and DAO.
 
 ## First-release checklist
 
-- [ ] Release signing configured for the application
+- [ ] Product domain behavior and backend contracts implemented
+- [ ] Release signing and CI credentials configured
 - [ ] Real backend configuration supplied for network strategies
-- [ ] Secret validation and artifact scanning run when secrets are selected
-- [ ] Persistence schema/migrations reviewed when Room is selected
+- [ ] Secret validation and artifact scanning run when secrets are retained
+- [ ] Room schemas, migrations, and synchronization policy reviewed where applicable
 - [ ] Sample features adapted or removed
-- [ ] App icon, locales, metadata, and tests updated
+- [ ] Branding, icon, locales, privacy/metadata, and permissions reviewed
+- [ ] ViewModel, navigation, UI, instrumentation, and release smoke tests added
 
 ---
 
