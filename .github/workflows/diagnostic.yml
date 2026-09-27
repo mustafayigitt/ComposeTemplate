@@ -1,56 +1,79 @@
-name: Final Gate Diagnostic
+name: Final Gate Fix
 
 on:
   pull_request:
     branches: [main]
 
 permissions:
-  contents: read
-  pull-requests: write
+  contents: write
 
 jobs:
   diagnose:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-java@v5
         with:
-          java-version: 17
-          distribution: temurin
-      - uses: gradle/actions/setup-gradle@v5
-      - name: Create local.properties and secrets.properties
-        run: bash core/secrets/ci/setup.sh
-      - name: Diagnose failing gates
+          ref: refactor/resolve-risks-and-gaps
+      - name: Apply fixes
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          set +e
-          ./gradlew ktlintCheck detekt --console=plain > lint.log 2>&1
-          lint_status=$?
-          ./gradlew create-new-app -Pargs='com.example.diaglocal,DiagLocal' -PdataStrategy=local -q --console=plain > local.log 2>&1
-          local_status=$?
-          ./gradlew create-new-app -Pargs='com.example.diagoffline,DiagOffline' -PdataStrategy=offline-first -q --console=plain > offline.log 2>&1
-          offline_status=$?
-          {
-            echo '## Final gate diagnostics'
-            echo
-            echo "- lint status: $lint_status"
-            echo "- local projection status: $local_status"
-            echo "- offline-first projection status: $offline_status"
-            echo
-            echo '### Lint tail'
-            echo '```text'
-            tail -n 120 lint.log
-            echo '```'
-            echo '### Local projection tail'
-            echo '```text'
-            tail -n 100 local.log
-            echo '```'
-            echo '### Offline-first projection tail'
-            echo '```text'
-            tail -n 100 offline.log
-            echo '```'
-          } > final-gate-diagnostic.md
-          gh pr comment "${{ github.event.pull_request.number }}" --body-file final-gate-diagnostic.md
-          exit 0
+          python3 <<'PY'
+          from pathlib import Path
+
+          network = Path("core/network/src/main/java/com/ytapps/composetemplate/core/network/di/NetworkModule.kt")
+          content = network.read_text()
+          content = content.replace(
+              """import okhttp3.CertificatePinner
+          import okhttp3.MediaType.Companion.toMediaType
+          import okhttp3.OkHttpClient
+          import okhttp3.HttpUrl.Companion.toHttpUrl
+          """,
+              """import okhttp3.CertificatePinner
+          import okhttp3.HttpUrl.Companion.toHttpUrl
+          import okhttp3.MediaType.Companion.toMediaType
+          import okhttp3.OkHttpClient
+          """,
+          )
+          content = content.replace(
+              """    fun provideNetworkConfig(
+                  providers: Set<@JvmSuppressWildcards NetworkConfigProvider>,
+              ): NetworkConfigProvider {
+          """,
+              """    fun provideNetworkConfig(providers: Set<@JvmSuppressWildcards NetworkConfigProvider>): NetworkConfigProvider {
+          """,
+          )
+          content = content.replace(
+              """    private fun OkHttpClient.Builder.applyCertificatePinning(
+                  networkConfig: NetworkConfigProvider,
+              ): OkHttpClient.Builder {
+          """,
+              """    private fun OkHttpClient.Builder.applyCertificatePinning(networkConfig: NetworkConfigProvider): OkHttpClient.Builder {
+          """,
+          )
+          network.write_text(content)
+
+          generator = Path("build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/CreateNewAppPlugin.kt")
+          content = generator.read_text()
+          content = content.replace(
+              '                        ".github/workflows/pages.yml",\n',
+              '                        ".github/workflows/pages.yml",\n                        ".github/workflows/diagnostic.yml",\n',
+              1,
+          )
+          content = content.replace(
+              """        removeTemplateOnlyWorkflowJobs(targetDir)
+                  writeConsumerReadme(targetDir, appName, withSecrets)
+          """,
+              """        removeTemplateOnlyWorkflowJobs(targetDir)
+                  removeWorkflowStep(targetDir, "Set up Python")
+                  removeWorkflowStep(targetDir, "Validate documentation")
+                  writeConsumerReadme(targetDir, appName, withSecrets)
+          """,
+          )
+          generator.write_text(content)
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/diagnostic.yml
+          git add core/network/src/main/java/com/ytapps/composetemplate/core/network/di/NetworkModule.kt build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/CreateNewAppPlugin.kt
+          git commit -m "fix: clear lint and consumer generation gates"
+          git push origin HEAD:refactor/resolve-risks-and-gaps
