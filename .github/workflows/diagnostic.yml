@@ -1,0 +1,29 @@
+name: Gradle Diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Diagnose Gradle configuration
+        shell: bash
+        run: |
+          set +e
+          ./gradlew help --stacktrace --console=plain 2>&1 | tee gradle-diagnostic.log
+          status=${PIPESTATUS[0]}
+          {
+            echo '## Gradle diagnostic'
+            echo '```text'
+            tail -n 120 gradle-diagnostic.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
