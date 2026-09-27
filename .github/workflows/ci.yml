@@ -8,117 +8,28 @@ permissions:
   contents: write
 
 jobs:
-  source-fixup:
+  restore-ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
           ref: refactor/resolve-risks-and-gaps
-      - name: Apply source patch
+          fetch-depth: 0
+      - name: Restore final workflow
         shell: bash
         run: |
+          git show 62c7fd20922966cb2c1fbd2d047aa3088c649955:.github/workflows/ci.yml > /tmp/final-ci.yml
           python3 <<'PY'
           from pathlib import Path
-          import re
-          import textwrap
-
-          scaffold = Path("build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/ScaffoldFeaturePlugin.kt")
-          content = scaffold.read_text()
-          old = "    constructor() : IScreenProvider {\n        @Composable\n"
-          new = (
-              "    constructor() : IScreenProvider {\n"
-              "        override fun restoreRoute(route: String): INavigationItem? =\n"
-              "            if (route == ${routeName}Route.route) ${routeName}Route else null\n\n"
-              "        @Composable\n"
-          )
-          if content.count(old) != 1:
-              raise RuntimeError("screen provider insertion point changed")
-          scaffold.write_text(content.replace(old, new))
-
-          projector = Path("build-logic/convention/src/main/kotlin/com/ytapps/composetemplate/convention/DataStrategyProjector.kt")
-          content = projector.read_text().replace("return replaceRequired(homeImport,", "return replaceRequiredExactly(homeImport,")
-          content = re.sub(
-              r'\n            val gsonStart = content\.indexOf\("# Gson: Keep all network model / DTO classes"\)\n'
-              r'            val serializationStart = content\.indexOf\("# Kotlinx Serialization:"\)\n'
-              r'            if \(gsonStart >= 0 && serializationStart > gsonStart\) \{\n'
-              r'                content = content\.removeRange\(content\.lastIndexOf\("# ---", gsonStart\), serializationStart\)\n'
-              r'            \}\n',
-              "\n",
-              content,
-              count=1,
-          )
-          helper_pattern = re.compile(
-              r'    private fun File\.replaceRequiredExactly\(oldValue: String, newValue: String\): File \{\n'
-              r'        val content = readText\(\)\n'
-              r'        if \(!content\.contains\(oldValue\)\) throw GradleException\("Expected text not found in \$path"\)\n'
-              r'        writeText\(content\.replace\(oldValue, newValue\)\)\n'
-              r'        return this\n'
-              r'    \}'
-          )
-          helper = (
-              "    internal fun File.replaceRequiredExactly(oldValue: String, newValue: String): File {\n"
-              "        val content = readText()\n"
-              "        val matchCount = content.windowedSequence(oldValue.length).count { it == oldValue }\n"
-              "        if (matchCount != 1) {\n"
-              "            throw GradleException(\"Expected exactly one match in $path, but found $matchCount\")\n"
-              "        }\n"
-              "        writeText(content.replace(oldValue, newValue))\n"
-              "        return this\n"
-              "    }"
-          )
-          content, count = helper_pattern.subn(lambda _: helper, content, count=1)
-          if count != 1:
-              raise RuntimeError("replacement helper changed")
-          projector.write_text(content)
-
-          Path("build-logic/convention/src/test/kotlin/com/ytapps/composetemplate/convention/DataStrategyProjectorTest.kt").write_text(textwrap.dedent('''\
-              package com.ytapps.composetemplate.convention
-
-              import org.gradle.api.GradleException
-              import java.nio.file.Files
-              import kotlin.test.Test
-              import kotlin.test.assertEquals
-              import kotlin.test.assertFailsWith
-
-              class DataStrategyProjectorTest {
-                  @Test
-                  fun `required replacement updates exactly one occurrence`() {
-                      val file = Files.createTempFile("projector", ".txt").toFile().apply { writeText("before target after") }
-
-                      with(DataStrategyProjector) {
-                          file.replaceRequiredExactly("target", "updated")
-                      }
-
-                      assertEquals("before updated after", file.readText())
-                  }
-
-                  @Test
-                  fun `required replacement rejects missing content`() {
-                      val file = Files.createTempFile("projector", ".txt").toFile().apply { writeText("before after") }
-
-                      assertFailsWith<GradleException> {
-                          with(DataStrategyProjector) {
-                              file.replaceRequiredExactly("target", "updated")
-                          }
-                      }
-                  }
-
-                  @Test
-                  fun `required replacement rejects duplicate content`() {
-                      val file = Files.createTempFile("projector", ".txt").toFile().apply { writeText("target and target") }
-
-                      assertFailsWith<GradleException> {
-                          with(DataStrategyProjector) {
-                              file.replaceRequiredExactly("target", "updated")
-                          }
-                      }
-                  }
-              }
-          '''))
+          content = Path("/tmp/final-ci.yml").read_text()
+          start = content.index("  source-fixup:\n")
+          end = content.index("\n  lint:\n", start)
+          content = content[:start] + content[end + 1:]
+          content = content.replace("permissions:\n  contents: write", "permissions:\n  contents: read")
+          Path(".github/workflows/ci.yml").write_text(content)
           PY
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git rm fixup-diagnostic.txt
-          git add build-logic/convention/src
-          git commit -m "fix: finalize projection and scaffold hardening"
+          git add .github/workflows/ci.yml
+          git commit -m "ci: finalize quality gates"
           git push origin HEAD:refactor/resolve-risks-and-gaps
