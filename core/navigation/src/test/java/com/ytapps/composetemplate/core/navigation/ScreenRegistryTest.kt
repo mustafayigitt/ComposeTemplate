@@ -11,7 +11,9 @@ internal class ScreenRegistryTest {
 
         val restored = registry.restoreBackStack(listOf("home", "removed", "detail/42"))
 
-        assertThat(restored).containsExactly(TestRoute.Home, TestRoute.Detail("42")).inOrder()
+        assertThat(restored)
+            .containsExactly(TestRoute.Home, TestRoute.Detail("42"))
+            .inOrder()
     }
 
     private class TestProvider : IScreenProvider {
@@ -23,11 +25,21 @@ internal class ScreenRegistryTest {
             }
 
         @Composable
-        override fun provideScreen(route: INavigationItem, navigationManager: INavigationManager): Boolean = false
+        override fun provideScreen(
+            route: INavigationItem,
+            navigationManager: INavigationManager,
+        ): Boolean = false
     }
 
     private sealed interface TestRoute : INavigationItem {
-        data object Home : TestRoute { override val route = "home" }
-        data class Detail(val id: String) : TestRoute { override val route = "detail/$id" }
+        data object Home : TestRoute {
+            override val route = "home"
+        }
+
+        data class Detail(
+            val id: String,
+        ) : TestRoute {
+            override val route = "detail/$id"
+        }
     }
 }
