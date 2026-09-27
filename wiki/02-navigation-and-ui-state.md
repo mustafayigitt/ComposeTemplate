@@ -1,47 +1,26 @@
 # 02 - Navigation and UI State
 
-## `core:navigation`
+## Navigation contract
 
-`INavigationItem`, `IBottomBarItem`, `INavigationManager`, `IScreenProvider`, `NavigationManager`, `ScreenRegistry`, and `NavigationObserver` form the navigation surface.
+`NavigationManager` owns the typed Navigation3 back stack. `MainActivity` persists stable route strings in `onSaveInstanceState` and restores them through `INavigationManager.restoreBackStack` and `IScreenProvider.restoreRoute`. Missing features are skipped, and the start destination is prepended when restored history does not contain it.
 
-`NavigationManager` owns an in-memory `StateFlow` back stack and provides navigation, replacement, root, back, and tab operations. The stack is not persisted across process death.
+Each retained feature provider restores its object route; detail restores its typed ID route. `scaffoldFeature` emits the same restoration hook for newly generated features.
 
-`ScreenRegistry` receives `Set<IScreenProvider>` through Hilt multibinding. The first provider that claims a typed route renders it; unresolved routes currently render a fallback rather than failing fast.
+`ScreenRegistry` rejects multiple restorers for one route and throws when no provider can render a route. Unknown routes therefore fail fast instead of silently showing a fallback.
 
-## Optional observers
+## App shell and theme
 
-`NavigationObserver` is a multibinding contract. `core:analytics` contributes the current implementation while the app shell depends only on the contract. Removing analytics therefore leaves a valid empty set.
+`MainActivity` injects `IThemeManager` separately from `INavigationManager`. Navigation no longer owns preference or theme concerns. Optional navigation observers remain multibound, allowing analytics to be removed safely.
 
-## App shell
+## Start flow
 
-`MainActivity` injects navigation contracts and renders `AppNavigation`. `AppNavigation`:
+- `remote` / `offline-first`: incomplete onboarding → Onboarding; then stored user → Home, no user → Login.
+- `local` / `minimal`: incomplete onboarding → Onboarding; then Home, with no auth or `LoginRoute` residue.
 
-- renders Navigation3 `NavDisplay`
-- notifies observers on route changes
-- shows the bottom bar only for registered bottom-bar routes
-- finishes the Activity when back navigation is unhandled
+## Coverage
 
-The app shell intentionally has no `NetworkMonitor` or global offline banner. Network-aware UI belongs in a feature that actually requires it, which keeps network-free generated consumers free of network concepts.
-
-## Generated start flow
-
-The generator projects one of two compile-time flows:
-
-- `remote` and `offline-first`: incomplete onboarding → Onboarding; then stored user → Home, no user → Login. Logout returns to Login.
-- `local` and `minimal`: incomplete onboarding → Onboarding; then Home. The auth feature and `LoginRoute` references are absent.
-
-This is source projection at generation time, not runtime branching on internet availability.
-
-## UI state
-
-`BaseViewModel<S, E>` exposes immutable state and sends one-shot events through a channel. Feature screens follow the Route/UI split and collect state with lifecycle awareness.
-
-The contract standardizes structure but does not replace product tests. Generated consumers should add ViewModel, navigation, restoration, and Compose UI coverage for their actual flows.
-
-## `core:ui`
-
-The design system includes buttons, fields, cards, dialogs, top bars, empty/error/loading states, search, image rendering, theme tokens, previews, and navigation-bar components. It does not contain a global no-internet banner.
+Focused tests cover back-stack restoration, route reconstruction, duplicate restorers, unknown routes, and generated scaffold compilation. Product consumers should extend these with feature-specific ViewModel and Compose UI tests.
 
 ---
 
-[← Previous: 01 - Module Topology and Build System](01-module-topology.md) · [Index](README.md) · [Next: 03 - Network and Auth Token Flow →](03-network-and-auth.md)
+[← Previous](01-module-topology.md) · [Index](README.md) · [Next →](03-network-and-auth.md)

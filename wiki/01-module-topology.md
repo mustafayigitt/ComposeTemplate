@@ -1,80 +1,30 @@
 # 01 - Module Topology and Build System
 
-## Composite build and discovery
+## Topology
 
-`settings.gradle.kts` includes `build-logic` through `pluginManagement`, centralizes repositories with `RepositoriesMode.FAIL_ON_PROJECT_REPOS`, and uses the Foojay resolver for JDK provisioning.
+`settings.gradle.kts` discovers directories containing `build.gradle.kts`; `:app` similarly aggregates discovered modules. The current tree contains the app, core libraries, four-layer feature verticals, benchmark tooling, and the included `build-logic` build.
 
-The settings script walks the repository and includes each directory that directly contains `build.gradle.kts`, excluding `build`, `build-logic`, `buildSrc`, `gradle`, and `src`. There is no hand-maintained `include(...)` inventory.
+Convention plugins enforce Android defaults, Compose, Hilt, testing, static analysis, module boundaries, generation, optional infrastructure, and performance wiring. `core:navigation` has no dependency on `core:data`; theme state is exposed through `IThemeManager`, not the navigation contract.
 
-## Module inventory
+## Projection
 
-| Group | Count | Notes |
-| --- | ---: | --- |
-| `:app` | 1 | Composition root and discovered dependency aggregator |
-| `:core:*` | 12 | analytics, common, config, data, database, google-play, navigation, network, permission, secrets, security, ui |
-| `:feature:*:*` | 32 | 8 features × 4 layers |
-| `:benchmark`, `:baselineprofile` | 2 | Macrobenchmark and Baseline Profile tooling |
+`data.strategy.projection` supports `remote`, `offline-first`, `local`, and `minimal`. Required source rewrites demand exactly one match, and network-free outputs remove Retrofit, OkHttp, the kotlinx.serialization Retrofit converter, auth modules, and related residue. Database-free outputs remove Room and database scaffolding.
 
-Total: **47 Gradle modules**. The 12 core and 32 feature submodules are **44 Android libraries**. Counts describe the current tree; discovery makes them an outcome rather than a fixed include list.
+`offline-first` selects network/auth plus Room infrastructure. It deliberately does not generate a synchronization engine.
 
-## Convention plugins (21)
+## Serialization
 
-Registered IDs are grouped below:
-
-- **Android base**: `android.application`, `android.application.compose`, `android.library`, `android.library.compose`, `android.library.native`, `android.hilt`, `android.room`
-- **Feature layers**: `feature.domain`, `feature.data`, `feature.navigation`, `feature.presentation`
-- **Generation**: `create.new.app`, `data.strategy.projection`, `scaffold.feature`
-- **Quality/operations**: `test`, `static.analysis`, `validate.secrets`, `baseline.profile.generator`, `app.boundary`, `module.boundary`, `perf`
-
-`ProjectExtensions` contains shared helpers but is not a registered plugin.
-
-## Boundary enforcement
-
-- `checkAppModuleBoundary` scans app imports.
-- `checkModuleBoundary` scans library imports according to the module’s Gradle path.
-- `checkProjectDependencyBoundary` scans literal `project(":…")` and `project(path = ":…")` dependencies.
-- Dynamic paths remain allowed because `:app` intentionally wires discovered projects.
-
-These checks protect folder-level removability. Optional consumers receive implementations through multibindings rather than direct imports.
-
-## `app/build.gradle.kts`
-
-The application applies generation, projection, Android application, Compose, Hilt, test, performance, and serialization plugins, including `composetemplate.data.strategy.projection`.
-
-Other behavior:
-
-- namespace/application ID start as `com.ytapps.composetemplate`
-- version code/name come from the catalog
-- release minification and resource shrinking are enabled
-- signing is secret-backed only when that subsystem is retained
-- a benchmark build type derives from release
-- core and feature project dependencies are derived from discovered projects
-
-## Strategy projection at the build level
-
-`data.strategy.projection` removes unselected module paths and related catalog entries, conventions, scaffolding, ProGuard text, navigation source, and secret/signing infrastructure. It keeps the four-layer feature shape unchanged.
-
-Database-backed outputs retain optional Room starter generation through `-PwithDatabase=true`. Database-free outputs contain no Room scaffolding flag, path, or identifier.
+Navigation routes and Retrofit DTOs both use kotlinx.serialization. Retrofit is configured with `converter-kotlinx-serialization`; Gson is not part of the active network stack.
 
 ## Toolchain snapshot
 
-| Area | Version |
-| --- | --- |
-| minSdk / targetSdk / compileSdk | 26 / 36 / 37 |
-| NDK | 27.0.12077973 |
-| Kotlin | 2.0.21 |
-| AGP | 9.2.1 |
-| KSP | 2.0.21-1.0.28 |
-| Compose BOM | 2026.05.01 |
-| Navigation3 | 1.1.2 |
-| Hilt | 2.59.2 |
-| Retrofit / OkHttp | 2.12.0 / 4.12.0 |
-| Room | 2.8.4 |
-| DataStore | 1.2.1 |
-| Coil | 3.4.0 |
-
-The catalog currently includes Gson for Retrofit and kotlinx.serialization for routes; this split is documented in [03 - Network and Auth](03-network-and-auth.md).
+- minSdk / targetSdk / compileSdk: 26 / 36 / 37
+- Kotlin: 2.0.21
+- AGP: 9.2.1
+- Navigation3: 1.1.2
+- Retrofit: 2.12.0
+- Room: 2.8.4
 
 ---
 
-[← Previous: 00 - Project Context](00-project-context.md) · [Index](README.md) · [Next: 02 - Navigation and UI State →](02-navigation-and-ui-state.md)
+[← Previous](00-project-context.md) · [Index](README.md) · [Next →](02-navigation-and-ui-state.md)

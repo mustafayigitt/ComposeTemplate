@@ -1,58 +1,21 @@
 # Build Logic
 
-`build-logic` is an included Gradle build that owns ComposeTemplate's generation, architecture, quality, optional-infrastructure, and verification conventions.
-
-## Registered convention plugins (21)
-
-| Area | Plugin IDs |
-| --- | --- |
-| Application/library | `composetemplate.android.application`, `android.application.compose`, `android.library`, `android.library.compose` |
-| Android capabilities | `android.hilt`, `android.room`, `android.library.native` |
-| Feature layers | `feature.domain`, `feature.data`, `feature.navigation`, `feature.presentation` |
-| Quality/boundaries | `test`, `static.analysis`, `app.boundary`, `module.boundary` |
-| Generation | `create.new.app`, `data.strategy.projection`, `scaffold.feature` |
-| Operations | `validate.secrets`, `baseline.profile.generator`, `perf` |
-
-The exact registrations live in `convention/build.gradle.kts`.
+`build-logic` is the included Gradle build for generation, architecture, quality, optional infrastructure, and verification conventions.
 
 ## Generation
 
-### `composetemplate.create.new.app`
+- `create.new.app` copies and rebrands the template.
+- `data.strategy.projection` applies strict `remote`, `offline-first`, `local`, or `minimal` topology. Required rewrites must match exactly once; unit tests cover successful, missing, and duplicate matches.
+- `scaffold.feature` creates the fixed data/domain/navigation/presentation vertical. Generated screen providers include stable-route restoration; `-PwithDatabase=true` adds Room starters when available.
 
-Copies the source template into a sibling project, rebrands package/application names, excludes local/template-only files, writes consumer documentation, and validates that template-only residue is absent.
+Network-free projection removes Retrofit/OkHttp/auth and the kotlinx.serialization Retrofit converter. Database-free projection removes Room and database scaffold options. `offline-first` retains both infrastructure families but intentionally does not generate synchronization policy.
 
-### `composetemplate.data.strategy.projection`
+## Quality
 
-Decorates `create-new-app` with strict `remote`, `offline-first`, `local`, and `minimal` projection. It selects network/auth and Room infrastructure, projects the correct Login/Home navigation flow, applies effective secrets selection, removes unselected catalog/build/source/documentation residue, and deletes generator-only code from the consumer.
+The test convention registers `jacocoDebugReport` with XML and HTML output. CI runs Android unit tests, build-logic tests, strict docs validation, coverage artifact upload, strategy smoke builds, and benchmark instrumentation.
 
-### `composetemplate.scaffold.feature`
+## Boundaries
 
-Creates the fixed `data`, `domain`, `navigation`, and `presentation` feature vertical. In database-backed consumers, `-PwithDatabase=true` adds starter Room entity/DAO files. Filesystem module discovery means scaffolding does not edit settings or app build files.
+App/module boundary plugins protect optional-module removability. Dynamic filesystem discovery remains supported, while literal project dependencies and forbidden imports are checked.
 
-## Architecture enforcement
-
-- `app.boundary` prevents `:app` source imports from optional modules.
-- `module.boundary` registers source-import and literal project-dependency checks for library modules.
-- Dynamic project paths remain supported for filesystem discovery.
-- Per-module exceptions are explicit in that module's `moduleBoundary` block.
-
-## Optional infrastructure
-
-- `feature.data` wires only infrastructure selected in the generated consumer.
-- `perf` enables baseline-profile wiring only when `:baselineprofile` exists.
-- `android.room` owns Room/KSP configuration.
-- `android.library.native` owns CMake/NDK configuration.
-- `validate.secrets` provides `validateSecrets`, `scanApkForSecrets`, and `hardeningReport`.
-
-## Quality and shared configuration
-
-Android, Compose, Hilt, testing, static analysis, SDK values, and dependencies are centralized in convention plugins and `gradle/libs.versions.toml`. Current baseline: minSdk 26, targetSdk 36, compileSdk 37, Kotlin 2.0.21, AGP 9.2.1, and KSP 2.0.21-1.0.28.
-
-Compose compiler metrics and reports are controlled by:
-
-```properties
-composetemplate.composeCompilerMetricsEnabled=true
-composetemplate.composeCompilerReportsEnabled=true
-```
-
-See [`../wiki/01-module-topology.md`](../wiki/01-module-topology.md), [`../wiki/05-generator-and-scaffolding.md`](../wiki/05-generator-and-scaffolding.md), and [`../wiki/06-quality-tests-ci.md`](../wiki/06-quality-tests-ci.md).
+See the [module topology](../wiki/01-module-topology.md), [generator guide](../wiki/05-generator-and-scaffolding.md), [quality guide](../wiki/06-quality-tests-ci.md), and [risk register](../wiki/07-risks-and-gaps.md).
