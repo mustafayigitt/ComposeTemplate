@@ -10,8 +10,7 @@ import javax.inject.Inject
 class ProfileScreenProvider
     @Inject
     constructor() : IScreenProvider {
-        override fun restoreRoute(route: String): INavigationItem? =
-            ProfileRoute.takeIf { it.route == route }
+        override fun restoreRoute(route: String): INavigationItem? = ProfileRoute.takeIf { it.route == route }
 
         @Composable
         override fun provideScreen(

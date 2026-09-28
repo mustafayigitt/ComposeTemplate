@@ -10,8 +10,7 @@ import javax.inject.Inject
 class SplashScreenProvider
     @Inject
     constructor() : IScreenProvider {
-        override fun restoreRoute(route: String): INavigationItem? =
-            SplashRoute.takeIf { it.route == route }
+        override fun restoreRoute(route: String): INavigationItem? = SplashRoute.takeIf { it.route == route }
 
         @Composable
         override fun provideScreen(

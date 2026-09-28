@@ -10,8 +10,7 @@ import javax.inject.Inject
 class SearchScreenProvider
     @Inject
     constructor() : IScreenProvider {
-        override fun restoreRoute(route: String): INavigationItem? =
-            SearchRoute.takeIf { it.route == route }
+        override fun restoreRoute(route: String): INavigationItem? = SearchRoute.takeIf { it.route == route }
 
         @Composable
         override fun provideScreen(

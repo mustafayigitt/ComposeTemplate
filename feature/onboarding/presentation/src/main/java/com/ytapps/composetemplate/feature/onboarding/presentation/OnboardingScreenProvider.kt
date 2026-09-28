@@ -10,8 +10,7 @@ import javax.inject.Inject
 class OnboardingScreenProvider
     @Inject
     constructor() : IScreenProvider {
-        override fun restoreRoute(route: String): INavigationItem? =
-            OnboardingRoute.takeIf { it.route == route }
+        override fun restoreRoute(route: String): INavigationItem? = OnboardingRoute.takeIf { it.route == route }
 
         @Composable
         override fun provideScreen(
