@@ -107,6 +107,10 @@ dependencies {
     implementation(libs.androidx.material3.adaptive.navigation3)
     implementation(libs.kotlinx.serialization.core)
 
+    // Macrobenchmark's partial compilation broadcasts directly to ProfileInstallReceiver.
+    // Keep the receiver in the tested benchmark APK even when release shrinking is enabled.
+    add("benchmarkImplementation", libs.androidx.profileinstaller)
+
     // Baseline profile wiring, including the profileinstaller runtime dependency, is contributed
     // by composetemplate.perf and only when :baselineprofile exists.
 }
