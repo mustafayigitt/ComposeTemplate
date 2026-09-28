@@ -1,0 +1,54 @@
+name: Benchmark Retry Fix
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: refactor/resolve-risks-and-gaps
+      - name: Add retry
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          workflow = Path(".github/workflows/ci.yml")
+          content = workflow.read_text()
+          old = "          script: ./gradlew :benchmark:connectedBenchmarkAndroidTest\n"
+          new = """          disable-animations: true
+                    script: |
+                      set -u
+                      adb wait-for-device
+                      for attempt in 1 2 3; do
+                        echo "Benchmark instrumentation attempt $attempt"
+                        if ./gradlew :benchmark:connectedBenchmarkAndroidTest; then
+                          exit 0
+                        fi
+                        packages=$(adb shell pm list packages 2>/dev/null | sed 's/^package://' | grep '^com.ytapps.composetemplate' || true)
+                        for package_name in $packages; do
+                          adb uninstall "$package_name" || true
+                        done
+                        adb kill-server || true
+                        adb start-server
+                        adb wait-for-device
+                        sleep 20
+                      done
+                      exit 1
+          """
+          if content.count(old) != 1:
+              raise RuntimeError(f"benchmark script matches: {content.count(old)}")
+          workflow.write_text(content.replace(old, new))
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/diagnostic.yml
+          git add .github/workflows/ci.yml
+          git commit -m "ci: retry flaky benchmark installation"
+          git push origin HEAD:refactor/resolve-risks-and-gaps
