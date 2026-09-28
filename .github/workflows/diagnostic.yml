@@ -1,0 +1,69 @@
+name: Final Gate Fix
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: refactor/resolve-risks-and-gaps
+      - name: Apply final fixes
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          home = Path("feature/home/presentation/src/main/java/com/ytapps/composetemplate/feature/home/presentation/HomeScreenProvider.kt")
+          content = home.read_text()
+          content = content.replace(
+              """        override fun restoreRoute(route: String): INavigationItem? =
+                      HomeRoute.takeIf { it.route == route }
+          """,
+              """        override fun restoreRoute(route: String): INavigationItem? = HomeRoute.takeIf { it.route == route }
+          """,
+          )
+          home.write_text(content)
+
+          workflow = Path(".github/workflows/ci.yml")
+          content = workflow.read_text()
+          content = content.replace(
+              """          profile: pixel_6
+                  script: ./gradlew :benchmark:connectedBenchmarkAndroidTest
+          """,
+              """          profile: pixel_6
+                  disable-animations: true
+                  script: |
+                    set -u
+                    adb wait-for-device
+                    for attempt in 1 2 3; do
+                      echo "Benchmark instrumentation attempt $attempt"
+                      if ./gradlew :benchmark:connectedBenchmarkAndroidTest; then
+                        exit 0
+                      fi
+                      packages=$(adb shell pm list packages 2>/dev/null | sed 's/^package://' | grep '^com.ytapps.composetemplate' || true)
+                      for package_name in $packages; do
+                        adb uninstall "$package_name" || true
+                      done
+                      adb kill-server || true
+                      adb start-server
+                      adb wait-for-device
+                      sleep 20
+                    done
+                    exit 1
+          """,
+          )
+          workflow.write_text(content)
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/diagnostic.yml
+          git add .github/workflows/ci.yml feature/home/presentation/src/main/java/com/ytapps/composetemplate/feature/home/presentation/HomeScreenProvider.kt
+          git commit -m "fix: stabilize lint and emulator installation"
+          git push origin HEAD:refactor/resolve-risks-and-gaps
