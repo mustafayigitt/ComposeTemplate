@@ -1,0 +1,44 @@
+name: Lint Diagnostics
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: refactor/resolve-risks-and-gaps
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Create local.properties and secrets.properties
+        run: bash core/secrets/ci/setup.sh
+      - name: Capture lint reports
+        shell: bash
+        run: |
+          set +e
+          ./gradlew ktlintCheck detekt --continue --stacktrace > /tmp/gradle-lint.log 2>&1
+          {
+            echo '=== Gradle output (last 400 lines) ==='
+            tail -n 400 /tmp/gradle-lint.log
+            echo
+            echo '=== Ktlint text reports ==='
+            find . -path '*/build/reports/ktlint/*.txt' -type f -print -exec cat {} \;
+            echo
+            echo '=== Detekt text reports ==='
+            find . -path '*/build/reports/detekt/*.txt' -type f -print -exec cat {} \;
+          } > .github/lint-diagnostics.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/diagnostic.yml
+          git add .github/lint-diagnostics.txt
+          git commit -m 'ci: record remaining lint diagnostics'
+          git push origin HEAD:refactor/resolve-risks-and-gaps
