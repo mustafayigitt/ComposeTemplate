@@ -146,7 +146,25 @@ jobs:
           api-level: 35
           arch: x86_64
           profile: pixel_6
-          script: ./gradlew :benchmark:connectedBenchmarkAndroidTest
+          disable-animations: true
+          script: |
+            set -u
+            adb wait-for-device
+            for attempt in 1 2 3; do
+              echo "Benchmark instrumentation attempt $attempt"
+              if ./gradlew :benchmark:connectedBenchmarkAndroidTest; then
+                exit 0
+              fi
+              packages=$(adb shell pm list packages 2>/dev/null | sed 's/^package://' | grep '^com.ytapps.composetemplate' || true)
+              for package_name in $packages; do
+                adb uninstall "$package_name" || true
+              done
+              adb kill-server || true
+              adb start-server
+              adb wait-for-device
+              sleep 20
+            done
+            exit 1
       - name: Verify invalid strategy rejection
         if: matrix.strategy == 'remote'
         run: |
