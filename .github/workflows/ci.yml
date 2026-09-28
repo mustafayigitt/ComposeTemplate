@@ -139,15 +139,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
       - name: Create local.properties and secrets.properties
         run: bash core/secrets/ci/setup.sh
-      - name: Run benchmark instrumentation
-        if: matrix.strategy == 'remote'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          arch: x86_64
-          profile: pixel_6
-          disable-animations: true
-          script: bash .github/scripts/run-benchmark-with-retry.sh
       - name: Verify invalid strategy rejection
         if: matrix.strategy == 'remote'
         run: |
