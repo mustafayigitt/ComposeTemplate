@@ -105,7 +105,13 @@ internal object DataStrategyProjector {
             .replaceRequiredExactly("NavigateToHome", "NavigateToLogin")
             .replaceRequiredExactly("route = HomeRoute", "route = LoginRoute")
         targetDir.findRequired("feature/onboarding/presentation", "OnboardingViewModel.kt")
-            .replaceRequiredExactly("NavigateToHome", "NavigateToLogin")
+            .replaceRequiredExactly(
+                "sendEvent(OnboardingEvent.NavigateToHome)",
+                "sendEvent(OnboardingEvent.NavigateToLogin)",
+            ).replaceRequiredExactly(
+                "object NavigateToHome : OnboardingEvent()",
+                "object NavigateToLogin : OnboardingEvent()",
+            )
 
         File(targetDir, "feature/profile/presentation/build.gradle.kts")
             .replaceRequiredExactly(":feature:home:navigation", ":feature:auth:navigation")
@@ -327,6 +333,8 @@ All retained dependencies and versions are centralized in `gradle/libs.versions.
     private fun removeProjectionInfrastructure(targetDir: File) {
         targetDir.findByName("DataStrategyProjectionPlugin.kt")?.delete()
         targetDir.findByName("DataStrategyProjector.kt")?.delete()
+        targetDir.findByName("DataStrategyProjectorTest.kt")?.delete()
+        targetDir.findByName("DataStrategyTest.kt")?.delete()
         removePluginRegistration(
             File(targetDir, "build-logic/convention/build.gradle.kts"),
             "dataStrategyProjection",
