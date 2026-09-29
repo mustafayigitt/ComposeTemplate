@@ -20,7 +20,7 @@ class StartupBenchmark {
         packageName = "com.ytapps.composetemplate",
         metrics = listOf(StartupTimingMetric()),
         compilationMode = CompilationMode.Partial(
-            baselineProfileMode = BaselineProfileMode.Require,
+            baselineProfileMode = BaselineProfileMode.UseIfAvailable,
         ),
         iterations = 5,
         startupMode = StartupMode.COLD

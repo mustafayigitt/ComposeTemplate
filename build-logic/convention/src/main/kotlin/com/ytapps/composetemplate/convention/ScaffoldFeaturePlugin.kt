@@ -346,6 +346,9 @@ import javax.inject.Inject
 class ${routeName}ScreenProvider
     @Inject
     constructor() : IScreenProvider {
+        override fun restoreRoute(route: String): INavigationItem? =
+            if (route == ${routeName}Route.route) ${routeName}Route else null
+
         @Composable
         override fun provideScreen(
             route: INavigationItem,

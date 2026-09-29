@@ -107,6 +107,10 @@ dependencies {
     implementation(libs.androidx.material3.adaptive.navigation3)
     implementation(libs.kotlinx.serialization.core)
 
-    // Baseline profile wiring, including the profileinstaller runtime dependency, is contributed
-    // by composetemplate.perf and only when :baselineprofile exists.
+    // Required in every tested app variant so Macrobenchmark's partial compilation broadcast can
+    // reach ProfileInstallReceiver in the target APK.
+    implementation(libs.androidx.profileinstaller)
+
+    // Baseline profile plugin wiring is contributed by composetemplate.perf only when the
+    // :baselineprofile generator project exists.
 }

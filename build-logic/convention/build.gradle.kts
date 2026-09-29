@@ -11,6 +11,8 @@ dependencies {
     compileOnly(libs.compose.compiler.gradle.plugin)
     compileOnly(libs.detekt.gradle.plugin)
     compileOnly(libs.ktlint.gradle.plugin)
+
+    testImplementation(kotlin("test"))
 }
 
 gradlePlugin {

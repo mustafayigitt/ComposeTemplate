@@ -1,10 +1,12 @@
 package com.ytapps.composetemplate.feature.auth.data.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class AuthRequestModel(
-    @SerializedName("email")
+    @SerialName("email")
     val email: String,
-    @SerializedName("password")
+    @SerialName("password")
     val password: String,
 )

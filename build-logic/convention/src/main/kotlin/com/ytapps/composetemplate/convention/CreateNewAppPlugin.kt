@@ -73,6 +73,7 @@ class CreateNewAppPlugin : Plugin<Project> {
                         "mkdocs.yml",
                         "CONTRIBUTING.md",
                         ".github/workflows/pages.yml",
+                        ".github/workflows/diagnostic.yml",
                     )
                 }
 
@@ -191,6 +192,8 @@ class CreateNewAppPlugin : Plugin<Project> {
         }
 
         removeTemplateOnlyWorkflowJobs(targetDir)
+        removeWorkflowStep(targetDir, "Set up Python")
+        removeWorkflowStep(targetDir, "Validate documentation")
         writeConsumerReadme(targetDir, appName, withSecrets)
         writeConsumerBuildLogicReadme(targetDir)
         validateGeneratedProject(targetDir, withSecrets)

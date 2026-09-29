@@ -3,15 +3,13 @@ package com.ytapps.composetemplate.core.navigation
 import androidx.compose.runtime.Composable
 
 /**
- * Interface for providing screens for navigation routes.
- * Each feature's presentation module should implement this interface
- * to provide screens for its routes.
+ * Provides rendering and restoration for routes owned by one feature.
  */
 interface IScreenProvider {
-    /**
-     * Provides the screen composable for the given route.
-     * Returns false if this provider doesn't handle the given route.
-     */
+    /** Recreates a typed route from its stable route string after process recreation. */
+    fun restoreRoute(route: String): INavigationItem? = null
+
+    /** Returns false when this provider does not handle the route. */
     @Composable
     fun provideScreen(
         route: INavigationItem,

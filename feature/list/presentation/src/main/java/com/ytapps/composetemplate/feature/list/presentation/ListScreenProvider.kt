@@ -7,13 +7,11 @@ import com.ytapps.composetemplate.core.navigation.IScreenProvider
 import com.ytapps.composetemplate.feature.list.navigation.ListRoute
 import javax.inject.Inject
 
-/**
- * Screen provider for List feature.
- * Provides screens for ListRoute.
- */
 class ListScreenProvider
     @Inject
     constructor() : IScreenProvider {
+        override fun restoreRoute(route: String): INavigationItem? = ListRoute.takeIf { it.route == route }
+
         @Composable
         override fun provideScreen(
             route: INavigationItem,

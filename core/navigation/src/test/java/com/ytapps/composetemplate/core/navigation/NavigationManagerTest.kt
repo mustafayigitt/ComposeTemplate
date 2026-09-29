@@ -1,25 +1,16 @@
 package com.ytapps.composetemplate.core.navigation
 
 import com.google.common.truth.Truth.assertThat
-import com.ytapps.composetemplate.core.data.IPreferencesManager
-import io.mockk.every
-import io.mockk.mockk
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 
 internal class NavigationManagerTest {
-    private lateinit var preferencesManager: IPreferencesManager
     private lateinit var navigationManager: NavigationManager
 
     @Before
     fun setUp() {
-        preferencesManager =
-            mockk {
-                every { isDarkModeFlow } returns MutableStateFlow(false)
-            }
         navigationManager =
             NavigationManager(
                 startDestination = TestRoute.Home,
@@ -28,22 +19,41 @@ internal class NavigationManagerTest {
                         "1" to TestRoute.Home,
                         "2" to TestRoute.Search,
                     ),
-                preferencesManager = preferencesManager,
             )
     }
 
     @Test
     fun `given initial state then back stack contains only start destination`() {
-        val stack = navigationManager.backStack.value
-        assertThat(stack).containsExactly(TestRoute.Home)
+        assertThat(navigationManager.backStack.value).containsExactly(TestRoute.Home)
+    }
+
+    @Test
+    fun `given saved routes then restoreBackStack preserves history`() {
+        navigationManager.restoreBackStack(
+            listOf(TestRoute.Home, TestRoute.Detail, TestRoute.Profile),
+        )
+
+        assertThat(navigationManager.backStack.value)
+            .containsExactly(TestRoute.Home, TestRoute.Detail, TestRoute.Profile)
+            .inOrder()
+    }
+
+    @Test
+    fun `given saved routes without root then restoreBackStack prepends root`() {
+        navigationManager.restoreBackStack(listOf(TestRoute.Detail))
+
+        assertThat(navigationManager.backStack.value)
+            .containsExactly(TestRoute.Home, TestRoute.Detail)
+            .inOrder()
     }
 
     @Test
     fun `given single item when navigate then route is added to stack`() {
         navigationManager.navigate(TestRoute.Detail)
 
-        val stack = navigationManager.backStack.value
-        assertThat(stack).containsExactly(TestRoute.Home, TestRoute.Detail)
+        assertThat(navigationManager.backStack.value)
+            .containsExactly(TestRoute.Home, TestRoute.Detail)
+            .inOrder()
     }
 
     @Test
@@ -54,136 +64,104 @@ internal class NavigationManagerTest {
         val navigated = navigationManager.navigateBack()
 
         assertThat(navigated).isTrue()
-        val stack = navigationManager.backStack.value
-        assertThat(stack).containsExactly(TestRoute.Home, TestRoute.Detail)
+        assertThat(navigationManager.backStack.value)
+            .containsExactly(TestRoute.Home, TestRoute.Detail)
+            .inOrder()
     }
 
     @Test
-    fun `given single item when navigateBack then returns false and stack stays same`() {
-        val navigated = navigationManager.navigateBack()
-
-        assertThat(navigated).isFalse()
-        val stack = navigationManager.backStack.value
-        assertThat(stack).containsExactly(TestRoute.Home)
+    fun `given single item when navigateBack then returns false`() {
+        assertThat(navigationManager.navigateBack()).isFalse()
+        assertThat(navigationManager.backStack.value).containsExactly(TestRoute.Home)
     }
 
     @Test
-    fun `given tab selected when already in stack then truncates to that tab`() {
+    fun `given tab already in stack then selection truncates to tab`() {
         navigationManager.navigate(TestRoute.Detail)
         navigationManager.selectTab(TestRoute.Home)
 
-        val stack = navigationManager.backStack.value
-        assertThat(stack).containsExactly(TestRoute.Home)
+        assertThat(navigationManager.backStack.value).containsExactly(TestRoute.Home)
     }
 
     @Test
-    fun `given tab selected when not in stack then appends to stack`() {
+    fun `given new tab then selection appends tab`() {
         navigationManager.selectTab(TestRoute.Search)
 
-        val stack = navigationManager.backStack.value
-        assertThat(stack).containsExactly(TestRoute.Home, TestRoute.Search)
+        assertThat(navigationManager.backStack.value)
+            .containsExactly(TestRoute.Home, TestRoute.Search)
+            .inOrder()
     }
 
     @Test
-    fun `given route when navigateOver existing route then replaces from that point`() {
+    fun `given existing target then navigateOver replaces from target`() {
         navigationManager.navigate(TestRoute.Detail)
         navigationManager.navigate(TestRoute.Profile)
 
-        navigationManager.navigateOver(route = TestRoute.Search, over = TestRoute.Detail)
+        navigationManager.navigateOver(TestRoute.Search, TestRoute.Detail)
 
-        val stack = navigationManager.backStack.value
-        assertThat(stack).containsExactly(TestRoute.Home, TestRoute.Search)
+        assertThat(navigationManager.backStack.value)
+            .containsExactly(TestRoute.Home, TestRoute.Search)
+            .inOrder()
     }
 
     @Test
-    fun `given route when navigateOver non-existing route then appends`() {
-        navigationManager.navigateOver(route = TestRoute.Search, over = TestRoute.Detail)
-
-        val stack = navigationManager.backStack.value
-        assertThat(stack).containsExactly(TestRoute.Home, TestRoute.Search)
-    }
-
-    @Test
-    fun `given route when navigateToTop then replaces from start destination`() {
+    fun `given route then navigateToTop resets above root`() {
         navigationManager.navigate(TestRoute.Detail)
-        navigationManager.navigate(TestRoute.Profile)
-
         navigationManager.navigateToTop(TestRoute.Search)
 
-        val stack = navigationManager.backStack.value
-        assertThat(stack).containsExactly(TestRoute.Home, TestRoute.Search)
+        assertThat(navigationManager.backStack.value)
+            .containsExactly(TestRoute.Home, TestRoute.Search)
+            .inOrder()
     }
 
     @Test
-    fun `given bottom bar route then showBottomBar returns true`() {
-        val result = navigationManager.showBottomBar(TestRoute.Home)
-
-        assertThat(result).isTrue()
+    fun `bottom bar visibility uses registered items`() {
+        assertThat(navigationManager.showBottomBar(TestRoute.Home)).isTrue()
+        assertThat(navigationManager.showBottomBar(TestRoute.Detail)).isFalse()
     }
 
     @Test
-    fun `given non-bottom bar route then showBottomBar returns false`() {
-        val result = navigationManager.showBottomBar(TestRoute.Detail)
-
-        assertThat(result).isFalse()
+    fun `bottom bar items are sorted by key`() {
+        assertThat(navigationManager.bottomBarItems)
+            .containsExactly(TestRoute.Home, TestRoute.Search)
+            .inOrder()
     }
 
     @Test
-    fun `given bottomBarItems then returns sorted by key`() {
-        val items = navigationManager.bottomBarItems
-
-        assertThat(items).hasSize(2)
-        assertThat(items[0]).isEqualTo(TestRoute.Home)
-        assertThat(items[1]).isEqualTo(TestRoute.Search)
-    }
-
-    @Test
-    fun `given multiple items when navigateBackToRoot then resets to single item`() {
+    fun `given nested stack then navigateBackToRoot resets stack`() {
         navigationManager.navigate(TestRoute.Detail)
-        navigationManager.navigate(TestRoute.Profile)
 
-        val navigated = navigationManager.navigateBackToRoot()
-
-        assertThat(navigated).isTrue()
-        val stack = navigationManager.backStack.value
-        assertThat(stack).containsExactly(TestRoute.Home)
+        assertThat(navigationManager.navigateBackToRoot()).isTrue()
+        assertThat(navigationManager.backStack.value).containsExactly(TestRoute.Home)
     }
 
     @Test
-    fun `given single item when navigateBackToRoot then returns false and stack stays same`() {
-        val navigated = navigationManager.navigateBackToRoot()
-
-        assertThat(navigated).isFalse()
-        val stack = navigationManager.backStack.value
-        assertThat(stack).containsExactly(TestRoute.Home)
-    }
-
-    @Test
-    fun `given backStack is StateFlow then emits updates`() =
+    fun `backStack state flow emits updates`() =
         runTest {
             navigationManager.navigate(TestRoute.Detail)
 
-            val stack = navigationManager.backStack.first()
-            assertThat(stack).containsExactly(TestRoute.Home, TestRoute.Detail)
+            assertThat(navigationManager.backStack.first())
+                .containsExactly(TestRoute.Home, TestRoute.Detail)
+                .inOrder()
         }
 
     private sealed interface TestRoute : INavigationItem {
         data object Home : TestRoute, IBottomBarItem {
-            override val route: String get() = "home"
+            override val route = "home"
             override val icon: @androidx.compose.runtime.Composable () -> Unit = {}
         }
 
         data object Search : TestRoute, IBottomBarItem {
-            override val route: String get() = "search"
+            override val route = "search"
             override val icon: @androidx.compose.runtime.Composable () -> Unit = {}
         }
 
         data object Detail : TestRoute {
-            override val route: String get() = "detail"
+            override val route = "detail"
         }
 
         data object Profile : TestRoute {
-            override val route: String get() = "profile"
+            override val route = "profile"
         }
     }
 }

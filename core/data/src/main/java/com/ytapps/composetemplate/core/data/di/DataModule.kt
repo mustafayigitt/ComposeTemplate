@@ -1,5 +1,6 @@
 package com.ytapps.composetemplate.core.data.di
 
+import com.ytapps.composetemplate.core.common.IThemeManager
 import com.ytapps.composetemplate.core.data.IPreferencesManager
 import com.ytapps.composetemplate.core.data.PreferencesManager
 import dagger.Binds
@@ -14,4 +15,8 @@ internal abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindPreferencesManager(preferencesManager: PreferencesManager): IPreferencesManager
+
+    @Binds
+    @Singleton
+    abstract fun bindThemeManager(preferencesManager: PreferencesManager): IThemeManager
 }

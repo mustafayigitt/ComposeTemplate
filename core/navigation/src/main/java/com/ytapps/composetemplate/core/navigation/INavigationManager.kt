@@ -7,7 +7,7 @@ interface INavigationManager {
     val startDestination: INavigationItem
     val bottomBarItems: List<IBottomBarItem>
 
-    val isDarkModeFlow: StateFlow<Boolean>
+    fun restoreBackStack(routes: List<INavigationItem>)
 
     fun showBottomBar(route: INavigationItem): Boolean
 
