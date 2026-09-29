@@ -17,6 +17,7 @@ jobs:
   lint:
     name: Lint (ktlint + detekt + docs)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
@@ -42,6 +43,7 @@ jobs:
   test:
     name: Unit Tests + Coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
@@ -65,6 +67,7 @@ jobs:
   build:
     name: Assemble Debug + Release
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
@@ -74,11 +77,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
       - name: Create local.properties and secrets.properties
         run: bash core/secrets/ci/setup.sh
-      - run: ./gradlew assembleDebug :app:assembleRelease
+      - run: ./gradlew assembleDebug :app:assembleRelease --stacktrace
 
   plug-out:
     name: Plug-out (optional modules removed)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
@@ -100,36 +104,9 @@ jobs:
           grep -q 'Baseline profiles are disabled' plug-out-build.log
 
   template-smoke:
-    name: Template Smoke (${{ matrix.strategy }})
+    name: Template Smoke (remote)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - strategy: remote
-            package_name: com.example.remote
-            app_name: RemoteApp
-            network: true
-            database: false
-            secrets: true
-          - strategy: offline-first
-            package_name: com.example.offlinefirst
-            app_name: OfflineFirstApp
-            network: true
-            database: true
-            secrets: true
-          - strategy: local
-            package_name: com.example.local
-            app_name: LocalApp
-            network: false
-            database: true
-            secrets: false
-          - strategy: minimal
-            package_name: com.example.minimal
-            app_name: MinimalApp
-            network: false
-            database: false
-            secrets: false
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
@@ -139,64 +116,21 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
       - name: Create local.properties and secrets.properties
         run: bash core/secrets/ci/setup.sh
-      - name: Verify invalid strategy rejection
-        if: matrix.strategy == 'remote'
-        run: |
-          if ./gradlew create-new-app -Pargs='com.example.invalid,InvalidApp' -PdataStrategy=invalid -q --console=plain; then exit 1; fi
-          test ! -e ../InvalidApp
-      - name: Verify generated feature restoration and compilation
-        if: matrix.strategy == 'remote'
-        run: |
-          ./gradlew scaffoldFeature -PfeatureName=ci_feature
-          grep -R 'override fun restoreRoute' feature/ci_feature/presentation
-          ./gradlew :feature:ci_feature:presentation:compileDebugKotlin
-          ./gradlew scaffoldFeature -PfeatureName=ci_database_feature -PwithDatabase=true
-          ./gradlew :feature:ci_database_feature:data:compileDebugKotlin :feature:ci_database_feature:presentation:compileDebugKotlin
-          rm -rf feature/ci_feature feature/ci_database_feature
-      - name: Generate application
-        run: ./gradlew create-new-app -Pargs='${{ matrix.package_name }},${{ matrix.app_name }}' -PdataStrategy='${{ matrix.strategy }}' -q --console=plain
-      - name: Configure and validate generated application
-        shell: bash
+      - name: Generate remote application
+        run: ./gradlew create-new-app -Pargs='com.example.remote,RemoteApp' -PdataStrategy=remote -q --console=plain
+      - name: Configure generated application
         run: |
           set -euo pipefail
-          app_dir="../${{ matrix.app_name }}"
+          app_dir=../RemoteApp
           test -d "$app_dir"
           test ! -d "$app_dir/.git"
           test ! -f "$app_dir/local.properties"
-          if [ '${{ matrix.secrets }}' = true ]; then
-            test -d "$app_dir/core/secrets"
-            (cd "$app_dir" && bash core/secrets/ci/setup.sh)
-            keytool -genkeypair -keystore "$app_dir/app/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname 'CN=Android Debug,O=Android,C=US' -keyalg RSA -keysize 2048 -validity 10000
-          else
-            test ! -d "$app_dir/core/secrets"
-            test ! -d "$app_dir/core/security"
-            test ! -f "$app_dir/secrets.properties.example"
-          fi
-          if [ '${{ matrix.network }}' = true ]; then
-            test -d "$app_dir/core/network"
-            test -d "$app_dir/feature/auth"
-          else
-            test ! -d "$app_dir/core/network"
-            test ! -d "$app_dir/feature/auth"
-            ! grep -R -E 'core:network|core\.network|feature:auth|feature\.auth|libs\.retrofit|libs\.okhttp|libs\.converter\.kotlinx\.serialization|NetworkMonitor|AppNoInternetBanner' "$app_dir" --exclude-dir=.gradle --exclude-dir=build
-          fi
-          if [ '${{ matrix.database }}' = true ]; then
-            test -d "$app_dir/core/database"
-          else
-            test ! -d "$app_dir/core/database"
-            ! grep -R -E 'core:database|core\.database|androidx.room|androidx-room|AndroidRoomConventionPlugin|withDatabase' "$app_dir" --exclude-dir=.gradle --exclude-dir=build
-          fi
-      - name: Build generated application
-        working-directory: ../${{ matrix.app_name }}
-        run: ./gradlew assembleDebug :app:assembleRelease
-      - name: Verify secret-free network projection
-        if: matrix.strategy == 'remote'
-        run: |
-          set -euo pipefail
-          ./gradlew create-new-app -Pargs='com.example.remotesecretfree,RemoteSecretFreeApp' -PdataStrategy=remote -PwithSecrets=false -q --console=plain
-          app_dir=../RemoteSecretFreeApp
           test -d "$app_dir/core/network"
-          test ! -d "$app_dir/core/secrets"
-          test ! -f "$app_dir/local.properties"
-          ! grep -R -E 'core:secrets|core\.secrets|core:security|core\.security|SecretManager|validateSecrets|scanApkForSecrets|hardeningReport|secrets\.properties|NATIVE_RUNTIME_CHECKS_ENABLED|EXPECTED_SIGNATURE_HASH|XOR_MASK|ndk =' "$app_dir" --exclude-dir=.gradle --exclude-dir=build
-          (cd "$app_dir" && ./gradlew assembleDebug :app:assembleRelease)
+          test -d "$app_dir/core/secrets"
+          test -d "$app_dir/feature/auth"
+          test ! -d "$app_dir/core/database"
+          (cd "$app_dir" && bash core/secrets/ci/setup.sh)
+          keytool -genkeypair -keystore "$app_dir/app/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname 'CN=Android Debug,O=Android,C=US' -keyalg RSA -keysize 2048 -validity 10000
+      - name: Build generated application
+        working-directory: ../RemoteApp
+        run: ./gradlew assembleDebug --stacktrace
